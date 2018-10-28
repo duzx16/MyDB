@@ -5,8 +5,6 @@
 #ifndef MYDB_RECORDMANAGER_H
 #define MYDB_RECORDMANAGER_H
 
-#include "../fileio/BufPageManager.h"
-#include "../fileio/FileManager.h"
 #include "RM_FileHandle.h"
 #include "RM_FileScan.h"
 #include "HeaderPage.h"
@@ -15,17 +13,15 @@
 
 class RecordManager {
 public:
-    RecordManager(FileManager &);
     ~RecordManager();
 
     int createFile (std::string, unsigned record_size);
     int destroyFile(std::string filename);
     int openFile(std::string filename, RM_FileHandle &file_handle);
     int closeFile(RM_FileHandle &file_handle);
-
+    static RecordManager & getInstance();
 private:
-    FileManager &_file_manager;
-    BufPageManager _page_manager;
+    RecordManager();
 };
 
 #endif //MYDB_RECORDMANAGER_H

@@ -5,9 +5,6 @@
 #ifndef MYDB_HEADERPAGE_H
 #define MYDB_HEADERPAGE_H
 
-#include "../utils/pagedef.h"
-
-
 struct HeaderPage {
     unsigned recordSize;
     unsigned recordNum;

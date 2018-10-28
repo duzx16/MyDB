@@ -6,10 +6,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
-/*
- * 一个页面中的字节数
- */
-#define PAGE_SIZE 8192
+#include "../Constants.h"
+
 /*
  * 一个页面中的整数个数
  */
