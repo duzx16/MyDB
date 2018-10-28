@@ -12,8 +12,17 @@
 
 class RM_FileHandle {
 public:
-    RM_FileHandle();                                  // Constructor
-    ~RM_FileHandle();                                  // Destructor
+    friend class RecordManager;
+
+    RM_FileHandle() = default;                                  // Constructor
+    ~RM_FileHandle() = default;                                  // Destructor
+
+    void setRecordSize(unsigned size)
+    {
+        _header_page.recordSize = size;
+        _header_modified = true;
+    }
+
     int getRec(const RID &rid, RM_Record &rec) const;
 
     // Get a record
@@ -25,6 +34,7 @@ public:
 private:
     HeaderPage _header_page;
     bool _header_modified;
+    int _fileID;
 };
 
 #endif //MYDB_RM_FILEHANDLE_H
