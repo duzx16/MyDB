@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
-project(MyDB)
+add_subdirectory(rm)
 
-add_executable(MyDB main.cpp)
+add_library(${CMAKE_PROJECT_NAME}_lib ${SOURCE} ${HEADERS})
+add_executable(${CMAKE_PROJECT_NAME} main.cpp)

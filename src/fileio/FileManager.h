@@ -104,9 +104,8 @@ public:
 	 * 功能:新建name指定的文件名
 	 * 返回:操作成功，返回true
 	 */
-	bool createFile(const char* name) {
-		_createFile(name);
-		return true;
+	int createFile(const char* name) {
+		return _createFile(name);
 	}
 	/*
 	 * @函数名openFile
@@ -115,11 +114,10 @@ public:
 	 * 功能:打开文件
 	 * 返回:如果成功打开，在fileID中存储为该文件分配的id，返回true，否则返回false
 	 */
-	bool openFile(const char* name, int& fileID) {
+	int openFile(const char* name, int& fileID) {
 		fileID = fm->findLeftOne();
 		fm->setBit(fileID, 0);
-		_openFile(name, fileID);
-		return true;
+		return _openFile(name, fileID);
 	}
 	int newType() {
 		int t = tm->findLeftOne();
