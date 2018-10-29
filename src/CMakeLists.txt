@@ -1,3 +1,4 @@
+add_subdirectory(utils)
 add_subdirectory(fileio)
 add_subdirectory(rm)
 

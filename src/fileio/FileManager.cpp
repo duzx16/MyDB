@@ -37,7 +37,6 @@ int FileManager::_openFile(const char *name, int fileID)
 
 FileManager::FileManager()
 {
-    MyBitMap::initConst();
     fm = new MyBitMap(MAX_FILE_NUM, 1);
     tm = new MyBitMap(MAX_TYPE_NUM, 1);
 }
