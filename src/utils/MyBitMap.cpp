@@ -4,7 +4,7 @@
 
 #include "MyBitMap.h"
 
-unsigned char h[61];
+static unsigned char h[61];
 
 uint MyBitMap::getMask(int k)
 {

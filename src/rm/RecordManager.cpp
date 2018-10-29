@@ -12,7 +12,8 @@ unsigned bitmap_size(unsigned record_per_page)
     return ((record_per_page + 31u) >> 5u) * 4;
 }
 
-unsigned record_per_page(unsigned record_size) {
+unsigned record_per_page(unsigned record_size)
+{
     return (32 * PAGE_SIZE - 31) / (record_size * 32 + 1);
 }
 
@@ -93,13 +94,18 @@ int RecordManager::openFile(std::string filename, RM_FileHandle &file_handle)
 int RecordManager::closeFile(RM_FileHandle &file_handle)
 {
     int rc;
-    if(file_handle._header_modified) {
+    if (file_handle._header_modified)
+    {
         int index;
-        auto header = reinterpret_cast<HeaderPage *>(BufPageManager::getInstance().allocPage(file_handle._fileID, 0, index, false));
+        auto header = reinterpret_cast<HeaderPage *>(BufPageManager::getInstance().allocPage(file_handle._fileID, 0,
+                                                                                             index, false));
         *header = file_handle._header_page;
         BufPageManager::getInstance().markDirty(index);
         BufPageManager::getInstance().writeBack(index);
     }
+
+    //Write back the pages
+    BufPageManager::getInstance().closeFile(file_handle._fileID);
 
     //Close the file
     if ((rc = FileManager::getInstance().closeFile(file_handle._fileID)) != 0)

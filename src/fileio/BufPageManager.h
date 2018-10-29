@@ -100,6 +100,8 @@ public:
      */
     void close();
 
+    void closeFile(int fileID);
+
     /*
      * @函数名getKey
      * @参数index:缓存页面数组中的下标，用来指定一个缓存页面

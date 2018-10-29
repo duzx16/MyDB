@@ -138,3 +138,16 @@ BufPageManager::~BufPageManager()
 {
     close();
 }
+
+void BufPageManager::closeFile(int fileID)
+{
+    int file, page;
+    for (int i = 0; i < CAP; ++i)
+    {
+        getKey(i, file, page);
+        if (file == fileID)
+        {
+            writeBack(i);
+        }
+    }
+}

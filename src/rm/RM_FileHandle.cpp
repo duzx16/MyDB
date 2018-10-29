@@ -97,7 +97,7 @@ int RM_FileHandle::insertPage()
     BufType page = page_manager.getPage(_fileID, _header_page.pageNum, index);
     page[0] = _header_page.firstSparePage;
     _header_page.firstSparePage = _header_page.pageNum;
-    memset(page + 2, 1, _header_page.slotMapSize);
+    memset(page + 2, 0xff, _header_page.slotMapSize);
     page_manager.markDirty(index);
 
     _header_page.pageNum += 1;
