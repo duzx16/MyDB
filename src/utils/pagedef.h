@@ -8,6 +8,7 @@
 #include <dirent.h>
 #include "../Constants.h"
 
+#define PAGE_SIZE 8192
 /*
  * 一个页面中的整数个数
  */

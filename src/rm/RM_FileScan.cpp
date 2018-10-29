@@ -3,8 +3,8 @@
 //
 
 #include "RM_FileScan.h"
-#include "../fileio/BufPageManager.h"
 #include "RM_FileHandle.h"
+#include "../pf/pf.h"
 
 int
 RM_FileScan::openScan(const RM_FileHandle &fileHandle, AttrType attrType, int attrLength, int attrOffset, CompOp compOp,
@@ -29,15 +29,15 @@ bool comp_function(T a, T b, CompOp compOp)
         case CompOp::EQ_OP:
             return a == b;
         case CompOp::GE_OP:
-            return not (a < b);
+            return not(a < b);
         case CompOp::GT_OP:
-            return not (a < b) and not (a == b);
+            return not(a < b) and not(a == b);
         case CompOp::LE_OP:
             return a < b or a == b;
         case CompOp::LT_OP:
             return a < b;
         case CompOp::NE_OP:
-            return not (a == b);
+            return not(a == b);
         case CompOp::NO_OP:
             return true;
     }
@@ -59,11 +59,14 @@ int RM_FileScan::getNextRec(RM_Record &rec)
             {
                 return 1;
             }
-            int index;
-            BufType page = BufPageManager::getInstance().getPage(_file_handle->_fileID, _current_page, index);
+            PF_PageHandle page_handle;
+            _file_handle->_pf_file_handle.GetThisPage(_current_page, page_handle);
+            char *page_data;
+            page_handle.GetData(page_data);
             delete[]_current_bitdata;
             _current_bitdata = new char[_file_handle->_header_page.slotMapSize];
-            memcpy(_current_bitdata, page + 2, _file_handle->_header_page.slotMapSize);
+            memcpy(_current_bitdata, page_data + 8, _file_handle->_header_page.slotMapSize);
+            _file_handle->_pf_file_handle.UnpinPage(_current_page);
             for (int i = 0; i < _file_handle->_header_page.slotMapSize; ++i)
             {
                 _current_bitdata[i] = ~_current_bitdata[i];
@@ -109,4 +112,5 @@ int RM_FileScan::getNextRec(RM_Record &rec)
 int RM_FileScan::closeScan()
 {
     delete[] _current_bitdata;
+    return 0;
 }

@@ -8,12 +8,13 @@
 #include "RM_FileHandle.h"
 #include "RM_FileScan.h"
 #include "HeaderPage.h"
+#include "../pf/pf.h"
 
 #include <string>
 
 class RecordManager {
 public:
-    ~RecordManager();
+    ~RecordManager() = default;
 
     int createFile (std::string, unsigned record_size);
     int destroyFile(std::string filename);
@@ -22,6 +23,7 @@ public:
     static RecordManager & getInstance();
 private:
     RecordManager();
+    PF_Manager _pf_manager;
 };
 
 #endif //MYDB_RECORDMANAGER_H

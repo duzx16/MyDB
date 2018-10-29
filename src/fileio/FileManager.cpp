@@ -57,7 +57,7 @@ int FileManager::writePage(int fileID, int pageID, BufType buf, int off)
     {
         return -1;
     }
-    printf("%d\n", offset);
+    printf("%ld\n", offset);
     BufType b = buf + off;
     error = write(f, (void *) b, PAGE_SIZE);
     return 0;

@@ -1,0 +1,20 @@
+set(HEADERS
+        ${HEADERS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/pf.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/pf_buffermgr.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/pf_hashtable.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/pf_internal.h
+        PARENT_SCOPE
+        )
+
+set(SOURCE
+        ${SOURCE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/pf_buffermgr.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/pf_error.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/pf_filehandle.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/pf_hashtable.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/pf_manager.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/pf_pagehandle.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/pf_statistics.cc
+        PARENT_SCOPE
+        )

@@ -10,6 +10,7 @@
 
 #include "RID.h"
 #include "../Constants.h"
+#include "../pf/pf.h"
 
 class RM_FileHandle {
 public:
@@ -33,7 +34,7 @@ private:
 
     HeaderPage _header_page;
     bool _header_modified;
-    int _fileID;
+    PF_FileHandle _pf_file_handle;
     bool _initialized = false;
 };
 

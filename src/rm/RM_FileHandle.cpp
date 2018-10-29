@@ -3,51 +3,54 @@
 //
 
 #include "RM_FileHandle.h"
-#include "../fileio/BufPageManager.h"
 #include "RecordManager.h"
 #include "../utils/MyBitMap.h"
 
 int RM_FileHandle::getRec(const RID &rid, RM_Record &record) const
 {
-    BufPageManager &page_manager = BufPageManager::getInstance();
-    int index;
-    BufType page = page_manager.getPage(_fileID, rid.getPageNum(), index);
-    record.init(reinterpret_cast<char *>(page) + getOffset(rid.getSlotNum()), _header_page.recordSize, rid);
+    PF_PageHandle page_handle;
+    _pf_file_handle.GetThisPage(rid.getPageNum(), page_handle);
+    char *page_data;
+    page_handle.GetData(page_data);
+    record.init(reinterpret_cast<char *>(page_data) + getOffset(rid.getSlotNum()), _header_page.recordSize, rid);
+    _pf_file_handle.UnpinPage(rid.getPageNum());
     return 0;
 }
 
 RID RM_FileHandle::insertRec(const char *pData)
 {
+    int rc;
     if (_header_page.firstSparePage <= 0)
     {
         insertPage();
     }
     unsigned page_num = _header_page.firstSparePage;
-    BufPageManager &page_manager = BufPageManager::getInstance();
-    int index;
-    BufType page = page_manager.getPage(_fileID, page_num, index);
-    if (index == 1)
-    {
-        int a = 0;
-    }
+    PF_PageHandle page_handle;
+    _pf_file_handle.GetThisPage(page_num, page_handle);
+    char *page_data;
+    page_handle.GetData(page_data);
+    _pf_file_handle.MarkDirty(page_num);
 
-    page_manager.markDirty(index);
-    printf("%d\n", index);
-    MyBitMap bitmap(_header_page.slotMapSize * 8, page + 2);
+    MyBitMap bitmap(_header_page.slotMapSize * 8, reinterpret_cast<unsigned *>(page_data + 8));
     unsigned slot_num = bitmap.findLeftOne();
-    memcpy(reinterpret_cast<char *>(page) + getOffset(slot_num), pData,
+    memcpy(page_data + getOffset(slot_num), pData,
            _header_page.recordSize);
     bitmap.setBit(slot_num, 0);
     if (bitmap.findLeftOne() >= _header_page.recordPerPage)
     {
-        if (static_cast<int>(page[1]) > 0)
+        if (reinterpret_cast<int *>(page_data)[1] > 0)
         {
-            _header_page.firstSparePage = page[1];
+            _header_page.firstSparePage = reinterpret_cast<int *>(page_data)[1];
         } else
         {
             _header_page.firstSparePage = 0;
         }
-        page[1] = 0;
+        reinterpret_cast<int *>(page_data)[1] = 0;
+    }
+
+    if ((rc = _pf_file_handle.UnpinPage(page_num)) != 0)
+    {
+        printf("%d\n", rc);
     }
     _header_page.recordNum += 1;
     _header_modified = true;
@@ -56,10 +59,12 @@ RID RM_FileHandle::insertRec(const char *pData)
 
 int RM_FileHandle::deleteRec(const RID &rid)
 {
-    BufPageManager &page_manager = BufPageManager::getInstance();
-    int index;
-    BufType page = page_manager.getPage(_fileID, rid.getPageNum(), index);
-    MyBitMap bitmap(_header_page.slotMapSize * 8, page + 2);
+    int rc;
+    PF_PageHandle page_handle;
+    _pf_file_handle.GetThisPage(rid.getPageNum(), page_handle);
+    char *page_data;
+    page_handle.GetData(page_data);
+    MyBitMap bitmap(_header_page.slotMapSize * 8, reinterpret_cast<unsigned *>(page_data + 8));
     bool full = false;
     if (bitmap.findLeftOne() >= _header_page.recordPerPage)
     {
@@ -70,38 +75,57 @@ int RM_FileHandle::deleteRec(const RID &rid)
     {
         if (_header_page.firstSparePage > 0)
         {
-            page[1] = (_header_page.firstSparePage);
+            reinterpret_cast<int *>(page_data)[1] = (_header_page.firstSparePage);
         } else
         {
-            page[1] = 0;
+            reinterpret_cast<int *>(page_data)[1] = 0;
         }
         _header_page.firstSparePage = rid.getPageNum();
         _header_modified = true;
     }
+    if ((rc = _pf_file_handle.UnpinPage(rid.getPageNum())) != 0)
+    {
+        return rc;
+    }
+
     return 0;
 }
 
 int RM_FileHandle::updateRec(const RM_Record &rec)
 {
-    BufPageManager &page_manager = BufPageManager::getInstance();
-    int index;
-    BufType page = page_manager.getPage(_fileID, rec.getRID().getPageNum(), index);
-    memcpy(reinterpret_cast<char *>(page) + getOffset(rec.getRID().getSlotNum()), rec.getData(),
+
+    int rc;
+    PF_PageHandle page_handle;
+    _pf_file_handle.GetThisPage(rec.getRID().getPageNum(), page_handle);
+    char *page_data;
+    page_handle.GetData(page_data);
+    memcpy(page_data + getOffset(rec.getRID().getSlotNum()), rec.getData(),
            _header_page.recordSize);
-    page_manager.markDirty(index);
+    _pf_file_handle.MarkDirty(rec.getRID().getPageNum());
+    if ((rc = _pf_file_handle.UnpinPage(rec.getRID().getPageNum())) != 0)
+    {
+        return rc;
+    }
     return 0;
 }
 
 int RM_FileHandle::insertPage()
 {
-    BufPageManager &page_manager = BufPageManager::getInstance();
-    int index;
-    BufType page = page_manager.getPage(_fileID, _header_page.pageNum, index);
-    page[0] = _header_page.firstSparePage;
+    int rc;
+    PF_PageHandle page_handle;
+    _pf_file_handle.AllocatePage(page_handle);
+    char *page_data;
+    page_handle.GetData(page_data);
+    reinterpret_cast<int *>(page_data)[0] = _header_page.firstSparePage;
     _header_page.firstSparePage = _header_page.pageNum;
-    memset(page + 2, 0xff, _header_page.slotMapSize);
-    page_manager.markDirty(index);
-
+    memset(page_data + 8, 0xff, _header_page.slotMapSize);
+    long page_num;
+    page_handle.GetPageNum(page_num);
+    _pf_file_handle.MarkDirty(page_num);
+    if ((rc = _pf_file_handle.UnpinPage(page_num)) != 0)
+    {
+        return rc;
+    }
     _header_page.pageNum += 1;
     _header_modified = true;
     return 0;

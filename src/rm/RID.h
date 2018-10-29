@@ -12,10 +12,10 @@ public:
 
     // Construct RID from page and
     //   slot number
-    unsigned getPageNum() const { return _page_num; }  // Return page number
+    unsigned long getPageNum() const { return _page_num; }  // Return page number
     unsigned getSlotNum() const { return _slot_num; }  // Return slot number
 private:
-    unsigned _page_num = 0;
+    unsigned long _page_num = 0;
     unsigned _slot_num = 0;
 };
 
