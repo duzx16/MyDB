@@ -16,10 +16,16 @@ int main()
     RM_FileHandle file_handle2;
     rm.openFile("class", file_handle2);
 
-    
+
 
     RID rid = file_handle.insertRec("12345678901");
     RM_Record record = file_handle.getRec(rid);
+    for (int i = 0; i < 7; ++i)
+    {
+        RID new_rid(1,i);
+        printf(file_handle.getRec(rid).getData());
+        printf("\n");
+    }
     BufPageManager::getInstance().close();
     printf(record.getData());
 }
