@@ -49,7 +49,7 @@ int RecordManager::createFile(std::string filename, unsigned record_size)
     header->recordNum = 0;
     header->recordPerPage = record_per_page(record_size);
     header->firstSparePage = 0;
-    header->slotMapSize = bitmap_size(header->recordPerPage);
+    header->slotMapSize = bitmap_size(header->recordPerPage) + 4;
 
     //Write back the header page
     page_manager.markDirty(index);

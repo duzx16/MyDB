@@ -14,18 +14,18 @@
 class RM_FileHandle {
 public:
     friend class RecordManager;
+    friend class RM_FileScan;
 
     RM_FileHandle() = default;                                  // Constructor
     ~RM_FileHandle();                                  // Destructor
 
-    RM_Record getRec(const RID &rid) const;
+    int getRec(const RID &rid, RM_Record & record) const;
 
     // Get a record
     RID insertRec(const char *pData);       // Insert a new record,
     //   return record id
     int deleteRec(const RID &rid);                    // Delete a record
     int updateRec(const RM_Record &rec);              // Update a record
-    int forcePages(unsigned pageNum) const; // Write dirty page(s) to disk
 private:
     int insertPage();
 

@@ -10,6 +10,11 @@
 
 struct RM_Record {
 public:
+    RM_Record() : _data(nullptr), _size(0)
+    {
+
+    }
+
     RM_Record(const char *data, unsigned size, const RID &rid) : _rid(rid)
     {
         _data = new char[size];
@@ -29,6 +34,25 @@ public:
     unsigned getSize() const
     {
         return _size;
+    }
+
+    void init(const char *data, unsigned size, const RID &rid)
+    {
+        this->_rid = rid;
+        if (_data)
+        {
+            delete[]_data;
+        }
+        _data = new char[size];
+        memcpy(_data, data, size);
+    }
+
+    ~RM_Record()
+    {
+        if (_data)
+        {
+            delete[]_data;
+        }
     }
 
 private:

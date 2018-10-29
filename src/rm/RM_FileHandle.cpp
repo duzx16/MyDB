@@ -7,12 +7,13 @@
 #include "RecordManager.h"
 #include "../utils/MyBitMap.h"
 
-RM_Record RM_FileHandle::getRec(const RID &rid) const
+int RM_FileHandle::getRec(const RID &rid, RM_Record &record) const
 {
     BufPageManager &page_manager = BufPageManager::getInstance();
     int index;
     BufType page = page_manager.getPage(_fileID, rid.getPageNum(), index);
-    return {reinterpret_cast<char *>(page) + getOffset(rid.getSlotNum()), _header_page.recordSize, rid};
+    record.init(reinterpret_cast<char *>(page) + getOffset(rid.getSlotNum()), _header_page.recordSize, rid);
+    return 0;
 }
 
 RID RM_FileHandle::insertRec(const char *pData)
@@ -25,8 +26,14 @@ RID RM_FileHandle::insertRec(const char *pData)
     BufPageManager &page_manager = BufPageManager::getInstance();
     int index;
     BufType page = page_manager.getPage(_fileID, page_num, index);
+    if (index == 1)
+    {
+        int a = 0;
+    }
+
     page_manager.markDirty(index);
-    MyBitMap bitmap(_header_page.slotMapSize * 32, page + 2);
+    printf("%d\n", index);
+    MyBitMap bitmap(_header_page.slotMapSize * 8, page + 2);
     unsigned slot_num = bitmap.findLeftOne();
     memcpy(reinterpret_cast<char *>(page) + getOffset(slot_num), pData,
            _header_page.recordSize);
@@ -52,7 +59,7 @@ int RM_FileHandle::deleteRec(const RID &rid)
     BufPageManager &page_manager = BufPageManager::getInstance();
     int index;
     BufType page = page_manager.getPage(_fileID, rid.getPageNum(), index);
-    MyBitMap bitmap(_header_page.slotMapSize * 32, page + 2);
+    MyBitMap bitmap(_header_page.slotMapSize * 8, page + 2);
     bool full = false;
     if (bitmap.findLeftOne() >= _header_page.recordPerPage)
     {
@@ -85,11 +92,6 @@ int RM_FileHandle::updateRec(const RM_Record &rec)
     return 0;
 }
 
-int RM_FileHandle::forcePages(unsigned pageNum) const
-{
-    return 0;
-}
-
 int RM_FileHandle::insertPage()
 {
     BufPageManager &page_manager = BufPageManager::getInstance();
@@ -112,7 +114,8 @@ unsigned RM_FileHandle::getOffset(unsigned slot_num) const
 
 RM_FileHandle::~RM_FileHandle()
 {
-    if(_initialized) {
+    if (_initialized)
+    {
         RecordManager::getInstance().closeFile(*this);
     }
 }

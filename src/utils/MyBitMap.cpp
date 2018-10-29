@@ -18,6 +18,15 @@ uint MyBitMap::getMask(int k)
 
 int MyBitMap::findLeftOne()
 {
+    bool full = true;
+    for (int i = 0; i < size; ++i)
+    {
+        if(data[i])
+            full = false;
+    }
+    if(full) {
+        return size * 32 + 1;
+    }
     int i = _findLeftOne(rootLevel, rootIndex, 0, rootBit);
     /*
     for (i = 0; i < size;++i){
@@ -65,4 +74,9 @@ int MyBitMap::_findLeftOne(int level, int offset, int pos, int prevLevelCap)
         return nPos;
     }
     return _findLeftOne(level - 1, offset - prevLevelCap, nPos, (prevLevelCap << BIAS));
+}
+
+uint *MyBitMap::getData() const
+{
+    return data;
 }

@@ -28,6 +28,10 @@ protected:
     static uint getMask(int k);
 
     uint *data;
+public:
+    uint *getData() const;
+
+protected:
     int size;
     int rootBit;
     int rootLevel;
