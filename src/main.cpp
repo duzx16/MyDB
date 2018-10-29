@@ -16,17 +16,23 @@ int main()
     rm.createFile("persons", 10);
     rm.openFile("persons", file_handle);
     RM_Record record;
-    std::vector<RID> rids;
+    std::vector<RID> rid1, rid2;
     for (int j = 0; j < 2000; ++j)
     {
         RID rid = file_handle.insertRec(std::to_string(j).c_str());
         file_handle.getRec(rid, record);
-        if(j % 2 == 0) {
-            rids.push_back(rid);
+        if(j % 2 != 0) {
+            rid1.push_back(rid);
+        }
+        else if (j % 6 == 0){
+            rid2.push_back(rid);
         }
     }
-    for(auto &it: rids){
+    for(auto &it: rid1){
         file_handle.deleteRec(it);
+    }
+    for(auto &it: rid2){
+        file_handle.updateRec(RM_Record{"test", 10, it});
     }
     RM_FileScan fileScan;
     fileScan.openScan(file_handle, AttrType::NO_ATTR, 0, 0, CompOp::NO_OP, nullptr);
@@ -40,9 +46,6 @@ int main()
         printf(record.getData());
         printf("\n");
         i += 1;
-        if(i > 199) {
-            int a = 0;
-        }
     }
 //    for (int i = 0; i < 407; ++i)
 //    {

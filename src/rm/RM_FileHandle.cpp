@@ -83,6 +83,7 @@ int RM_FileHandle::deleteRec(const RID &rid)
         _header_page.firstSparePage = rid.getPageNum();
         _header_modified = true;
     }
+    _pf_file_handle.MarkDirty(rid.getPageNum());
     if ((rc = _pf_file_handle.UnpinPage(rid.getPageNum())) != 0)
     {
         return rc;
@@ -96,15 +97,19 @@ int RM_FileHandle::updateRec(const RM_Record &rec)
 
     int rc;
     PF_PageHandle page_handle;
-    _pf_file_handle.GetThisPage(rec.getRID().getPageNum(), page_handle);
-    char *page_data;
-    page_handle.GetData(page_data);
+    rc = _pf_file_handle.GetThisPage(rec.getRID().getPageNum(), page_handle);
+    if(rc != 0)
+    {
+        PF_PrintError(rc);
+    }
+    char *page_data = nullptr;
+    rc = page_handle.GetData(page_data);
     memcpy(page_data + getOffset(rec.getRID().getSlotNum()), rec.getData(),
            _header_page.recordSize);
     _pf_file_handle.MarkDirty(rec.getRID().getPageNum());
     if ((rc = _pf_file_handle.UnpinPage(rec.getRID().getPageNum())) != 0)
     {
-        return rc;
+        PF_PrintError(rc);
     }
     return 0;
 }

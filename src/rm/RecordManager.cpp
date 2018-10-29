@@ -12,7 +12,7 @@ unsigned bitmap_size(unsigned record_per_page)
 
 unsigned record_per_page(unsigned record_size)
 {
-    return (32 * PF_PAGE_SIZE - 124) / (record_size * 32 + 4);
+    return (32 * (PF_PAGE_SIZE - 8) - 124) / (record_size * 32 + 4);
 }
 
 RecordManager::RecordManager() : _pf_manager()
