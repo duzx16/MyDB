@@ -1,12 +1,10 @@
 #ifndef BUF_PAGE_MANAGER
 #define BUF_PAGE_MANAGER
 
-#include "../utils/MyHashMap.h"
-#include "../utils/MyBitMap.h"
-#include "FindReplace.h"
-#include "../utils/pagedef.h"
 #include "FileManager.h"
-#include "../utils/MyLinkList.h"
+
+class MyHashMap;
+class FindReplace;
 
 /*
  * BufPageManager
@@ -25,55 +23,15 @@ public:
      */
     BufType *addr;
 
-    BufType allocMem()
-    {
-        return new unsigned int[(PAGE_SIZE >> 2)];
-    }
+    BufType allocMem();
 
-    BufType fetchPage(int typeID, int pageID, int &index)
-    {
-        BufType b;
-        index = replace->find();
-        b = addr[index];
-        if (b == NULL)
-        {
-            b = allocMem();
-            addr[index] = b;
-        } else
-        {
-            if (dirty[index])
-            {
-                int k1, k2;
-                hash->getKeys(index, k1, k2);
-                fileManager->writePage(k1, k2, b, 0);
-                dirty[index] = false;
-            }
-        }
-        hash->replace(index, typeID, pageID);
-        return b;
-    }
+    BufType fetchPage(int typeID, int pageID, int &index);
 
     /*
      * 构造函数
      * @参数fm:文件管理器，缓存管理器需要利用文件管理器与磁盘进行交互
      */
-    explicit BufPageManager(FileManager *fm)
-    {
-        int c = CAP;
-        int m = MOD;
-        last = -1;
-        fileManager = fm;
-        //bpl = new MyLinkList(CAP, MAX_FILE_NUM);
-        dirty = new bool[CAP];
-        addr = new BufType[CAP];
-        hash = new MyHashMap(c, m);
-        replace = new FindReplace(c);
-        for (int i = 0; i < CAP; ++i)
-        {
-            dirty[i] = false;
-            addr[i] = NULL;
-        }
-    }
+    explicit BufPageManager(FileManager *fm);
 
 public:
     /*
@@ -89,15 +47,8 @@ public:
      * 注意:在调用函数allocPage之前，调用者必须确信(fileID,pageID)指定的文件页面不存在缓存中
      *           如果确信指定的文件页面不在缓存中，那么就不用在hash表中进行查找，直接调用替换算法，节省时间
      */
-    BufType allocPage(int fileID, int pageID, int &index, bool ifRead = false)
-    {
-        BufType b = fetchPage(fileID, pageID, index);
-        if (ifRead)
-        {
-            fileManager->readPage(fileID, pageID, b, 0);
-        }
-        return b;
-    }
+    BufType allocPage(int fileID, int pageID, int &index, bool ifRead = false);
+
 
     /*
      * @函数名getPage
@@ -112,35 +63,14 @@ public:
      *           如果能找到，那么表示文件页面在缓存中
      *           如果没有找到，那么就利用替换算法获取一个页面
      */
-    BufType getPage(int fileID, int pageID, int &index)
-    {
-        index = hash->findIndex(fileID, pageID);
-        if (index != -1)
-        {
-            access(index);
-            return addr[index];
-        } else
-        {
-            BufType b = fetchPage(fileID, pageID, index);
-            fileManager->readPage(fileID, pageID, b, 0);
-            return b;
-        }
-    }
+    BufType getPage(int fileID, int pageID, int &index);
 
     /*
      * @函数名access
      * @参数index:缓存页面数组中的下标，用来表示一个缓存页面
      * 功能:标记index代表的缓存页面被访问过，为替换算法提供信息
      */
-    void access(int index)
-    {
-        if (index == last)
-        {
-            return;
-        }
-        replace->access(index);
-        last = index;
-    }
+    void access(int index);
 
     /*
      * @函数名markDirty
@@ -148,53 +78,27 @@ public:
      * 功能:标记index代表的缓存页面被写过，保证替换算法在执行时能进行必要的写回操作，
      *           保证数据的正确性
      */
-    void markDirty(int index)
-    {
-        dirty[index] = true;
-        access(index);
-    }
+    void markDirty(int index);
 
     /*
      * @函数名release
      * @参数index:缓存页面数组中的下标，用来表示一个缓存页面
      * 功能:将index代表的缓存页面归还给缓存管理器，在归还前，缓存页面中的数据不标记写回
      */
-    void release(int index)
-    {
-        dirty[index] = false;
-        replace->free(index);
-        hash->remove(index);
-    }
+    void release(int index);
 
     /*
      * @函数名writeBack
      * @参数index:缓存页面数组中的下标，用来表示一个缓存页面
      * 功能:将index代表的缓存页面归还给缓存管理器，在归还前，缓存页面中的数据需要根据脏页标记决定是否写到对应的文件页面中
      */
-    void writeBack(int index)
-    {
-        if (dirty[index])
-        {
-            int f, p;
-            hash->getKeys(index, f, p);
-            fileManager->writePage(f, p, addr[index], 0);
-            dirty[index] = false;
-        }
-        replace->free(index);
-        hash->remove(index);
-    }
+    void writeBack(int index);
 
     /*
      * @函数名close
      * 功能:将所有缓存页面归还给缓存管理器，归还前需要根据脏页标记决定是否写到对应的文件页面中
      */
-    void close()
-    {
-        for (int i = 0; i < CAP; ++i)
-        {
-            writeBack(i);
-        }
-    }
+    void close();
 
     /*
      * @函数名getKey
@@ -202,16 +106,11 @@ public:
      * @参数fileID:函数返回时，用于存储指定缓存页面所属的文件号
      * @参数pageID:函数返回时，用于存储指定缓存页面对应的文件页号
      */
-    void getKey(int index, int &fileID, int &pageID)
-    {
-        hash->getKeys(index, fileID, pageID);
-    }
+    void getKey(int index, int &fileID, int &pageID);
 
-    static BufPageManager &getInstance()
-    {
-        static BufPageManager instance = BufPageManager(&FileManager::getInstance());
-        return instance;
-    }
+    static BufPageManager &getInstance();
+
+    ~BufPageManager();
 };
 
 #endif

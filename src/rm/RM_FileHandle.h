@@ -9,32 +9,32 @@
 #include "RM_Record.h"
 
 #include "RID.h"
+#include "../Constants.h"
 
 class RM_FileHandle {
 public:
     friend class RecordManager;
 
     RM_FileHandle() = default;                                  // Constructor
-    ~RM_FileHandle() = default;                                  // Destructor
+    ~RM_FileHandle();                                  // Destructor
 
-    void setRecordSize(unsigned size)
-    {
-        _header_page.recordSize = size;
-        _header_modified = true;
-    }
-
-    int getRec(const RID &rid, RM_Record &rec) const;
+    RM_Record getRec(const RID &rid) const;
 
     // Get a record
-    int insertRec(const char *pData, RID &rid);       // Insert a new record,
+    RID insertRec(const char *pData);       // Insert a new record,
     //   return record id
     int deleteRec(const RID &rid);                    // Delete a record
     int updateRec(const RM_Record &rec);              // Update a record
     int forcePages(unsigned pageNum) const; // Write dirty page(s) to disk
 private:
+    int insertPage();
+
+    unsigned getOffset(unsigned slot_num) const;
+
     HeaderPage _header_page;
     bool _header_modified;
     int _fileID;
+    bool _initialized = false;
 };
 
 #endif //MYDB_RM_FILEHANDLE_H

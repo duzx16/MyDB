@@ -11,6 +11,7 @@ struct HeaderPage {
     unsigned recordPerPage;
     unsigned firstSparePage;
     unsigned pageNum;
+    unsigned slotMapSize;
 };
 
 #endif //MYDB_HEADERPAGE_H

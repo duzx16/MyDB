@@ -1,3 +1,4 @@
+add_subdirectory(fileio)
 add_subdirectory(rm)
 
 add_library(${CMAKE_PROJECT_NAME}_lib ${SOURCE} ${HEADERS})
