@@ -8,8 +8,13 @@
 
 int RM_FileHandle::getRec(const RID &rid, RM_Record &record) const
 {
+    int rc;
     PF_PageHandle page_handle;
-    _pf_file_handle.GetThisPage(rid.getPageNum(), page_handle);
+    if((rc = _pf_file_handle.GetThisPage(rid.getPageNum(), page_handle)) != 0)
+    {
+        PF_PrintError(rc);
+        return -1;
+    }
     char *page_data;
     page_handle.GetData(page_data);
     record.init(reinterpret_cast<char *>(page_data) + getOffset(rid.getSlotNum()), _header_page.recordSize, rid);
@@ -26,7 +31,9 @@ RID RM_FileHandle::insertRec(const char *pData)
     }
     unsigned page_num = _header_page.firstSparePage;
     PF_PageHandle page_handle;
-    _pf_file_handle.GetThisPage(page_num, page_handle);
+    if((rc = _pf_file_handle.GetThisPage(page_num, page_handle)) != 0){
+        PF_PrintError(rc);
+    }
     char *page_data;
     page_handle.GetData(page_data);
     _pf_file_handle.MarkDirty(page_num);
@@ -61,7 +68,11 @@ int RM_FileHandle::deleteRec(const RID &rid)
 {
     int rc;
     PF_PageHandle page_handle;
-    _pf_file_handle.GetThisPage(rid.getPageNum(), page_handle);
+    if((rc = _pf_file_handle.GetThisPage(rid.getPageNum(), page_handle)) != 0)
+    {
+        PF_PrintError(rc);
+        return -1;
+    }
     char *page_data;
     page_handle.GetData(page_data);
     MyBitMap bitmap(_header_page.slotMapSize * 8, reinterpret_cast<unsigned *>(page_data + 8));
@@ -86,7 +97,8 @@ int RM_FileHandle::deleteRec(const RID &rid)
     _pf_file_handle.MarkDirty(rid.getPageNum());
     if ((rc = _pf_file_handle.UnpinPage(rid.getPageNum())) != 0)
     {
-        return rc;
+        PF_PrintError(rc);
+        return -1;
     }
 
     return 0;
@@ -118,7 +130,11 @@ int RM_FileHandle::insertPage()
 {
     int rc;
     PF_PageHandle page_handle;
-    _pf_file_handle.AllocatePage(page_handle);
+    if((rc = _pf_file_handle.AllocatePage(page_handle)) != 0)
+    {
+        PF_PrintError(rc);
+        return -1;
+    }
     char *page_data;
     page_handle.GetData(page_data);
     reinterpret_cast<int *>(page_data)[0] = _header_page.firstSparePage;

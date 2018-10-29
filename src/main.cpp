@@ -28,12 +28,12 @@ int main()
             rid2.push_back(rid);
         }
     }
-    for(auto &it: rid1){
-        file_handle.deleteRec(it);
-    }
-    for(auto &it: rid2){
-        file_handle.updateRec(RM_Record{"test", 10, it});
-    }
+//    for(auto &it: rid1){
+//        file_handle.deleteRec(it);
+//    }
+//    for(auto &it: rid2){
+//        file_handle.updateRec(RM_Record{"test", 10, it});
+//    }
     RM_FileScan fileScan;
     fileScan.openScan(file_handle, AttrType::NO_ATTR, 0, 0, CompOp::NO_OP, nullptr);
     int i = 0;
