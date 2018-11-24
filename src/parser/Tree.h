@@ -1,3 +1,5 @@
+#include <utility>
+
 //
 // Created by Zhengxiao Du on 11/24/18.
 //
@@ -10,6 +12,8 @@
 #include "../Constants.h"
 
 class Tree;
+//Sys Statement
+class ShowDatabases;
 // Table Statement
 class Select;
 class Insert;
@@ -26,17 +30,18 @@ class CreateIndex;
 class DropIndex;
 
 // DataType
-class ColumnsTree;
-class ColumnTree;
-class AttributesTree;
-class AttributeTree;
-class RelationsTree;
+class ColumnDecsList;
+class ColumnNode;
+class AttributeList;
+class AttributeNode;
+class IdentList;
 class WhereClauseTree;
 class ConditionsTree;
-class ComparisonTree;
-class ConstValuesTree;
-class ConstValueTree;
-class InsertValueTree;
+class Comparison;
+class ConstValueList;
+class ConstValueNode;
+class ConstValueLists;
+class SetClauseList;
 
 class Tree {
 public:
@@ -73,18 +78,27 @@ struct AttrValue {
     bool operator < (const AttrValue &val) const;
 };
 
+
+class ShowDatabases: public Tree {
+public:
+    ShowDatabases();
+    void visit() override;
+};
+
+
 class Select : public Tree {
 public:
-    Select(AttributesTree *attributes,
-               RelationsTree *relations,
+    Select(AttributeList *attributes,
+               IdentList *relations,
                WhereClauseTree *whereClause,
                const char* groupAttrName = "");
-    Select(RelationsTree *relations, WhereClauseTree *whereClause);
-    virtual ~Select();
-    void visit();
+    Select(IdentList *relations, WhereClauseTree *whereClause);
+
+    ~Select() override;
+    void visit() override;
 private:
-    AttributesTree *attributes;
-    RelationsTree *relations;
+    AttributeList *attributes;
+    IdentList *relations;
     WhereClauseTree *whereClause;
     std::string groupAttrName;
 };
@@ -92,27 +106,27 @@ private:
 
 class Insert : public Tree {
 public:
-    Insert(const char *relationName, InsertValueTree* insertValueTree);
-    virtual ~Insert();
-    void visit();
+    Insert(const char *relationName, ConstValueLists* insertValueTree);
+
+    ~Insert() override;
+    void visit() override;
 private:
     std::string relationName;
-    InsertValueTree* insertValueTree;
+    ConstValueLists* insertValueTree;
 };
 
 
 class Update : public Tree {
 public:
     Update(std::string relationName,
-               AttributeTree *attribute,
-               ConstValueTree *constValue,
+               SetClauseList *setClauses,
                WhereClauseTree *whereClause);
-    virtual ~Update();
-    void visit();
+
+    ~Update() override;
+    void visit() override;
 private:
     std::string relationName;
-    AttributeTree *attribute;
-    ConstValueTree *constValue;
+    SetClauseList *setClauses;
     WhereClauseTree *whereClause;
 };
 
@@ -120,8 +134,9 @@ private:
 class Delete : public Tree {
 public:
     Delete(const char *relationName, WhereClauseTree *whereClause);
-    virtual ~Delete();
-    void visit();
+
+    ~Delete() override;
+    void visit() override;
 private:
     std::string relationName;
     WhereClauseTree *whereClause;
@@ -130,8 +145,8 @@ private:
 
 class UseDatabase : public Tree {
 public:
-    UseDatabase(const char *dbName);
-    void visit();
+    explicit UseDatabase(const char *dbName);
+    void visit() override;
 private:
     std::string dbName;
 };
@@ -139,18 +154,20 @@ private:
 
 class CreateDatabase : public Tree {
 public:
-    CreateDatabase(const char *dbName);
-    virtual ~CreateDatabase();
-    void visit();
+    explicit CreateDatabase(const char *dbName);
+
+    ~CreateDatabase() override;
+    void visit() override;
 private:
     std::string dbName;
 };
 
 class DescTable : public Tree {
 public:
-    DescTable(const char* relName);
-    virtual ~DescTable();
-    void visit();
+    explicit DescTable(const char* relName);
+
+    ~DescTable() override;
+    void visit() override;
 private:
     std::string relName;
 };
@@ -158,20 +175,22 @@ private:
 
 class CreateTable : public Tree {
 public:
-    CreateTable(const char *tableName, ColumnsTree *columns);
-    virtual ~CreateTable();
-    void visit();
+    CreateTable(const char *tableName, ColumnDecsList *columns);
+
+    ~CreateTable() override;
+    void visit() override;
 private:
     std::string tableName;
-    ColumnsTree *columns;
+    ColumnDecsList *columns;
 };
 
 
 class DropDatabase : public Tree {
 public:
-    DropDatabase(const char *dbName);
-    virtual ~DropDatabase();
-    void visit();
+    explicit DropDatabase(const char *dbName);
+
+    ~DropDatabase() override;
+    void visit() override;
 private:
     std::string dbName;
 };
@@ -179,9 +198,10 @@ private:
 
 class DropTable : public Tree {
 public:
-    DropTable(const char *tableName);
-    virtual ~DropTable();
-    void visit();
+    explicit DropTable(const char *tableName);
+
+    ~DropTable() override;
+    void visit() override;
 private:
     std::string tableName;
 };
@@ -189,105 +209,109 @@ private:
 
 class CreateIndex: public Tree {
 public:
-    CreateIndex(const char *relName, AttributeTree *attr);
-    virtual ~CreateIndex();
-    void visit();
+    CreateIndex(const char *relName, AttributeNode *attr);
+
+    ~CreateIndex() override;
+    void visit() override;
 
 private:
     std::string relName;
-    AttributeTree *attribute;
+    AttributeNode *attribute;
 };
 
 
 class DropIndex: public Tree {
 public:
-    DropIndex(const char *relName, AttributeTree *attr);
-    virtual ~DropIndex();
-    void visit();
+    DropIndex(const char *relName, AttributeNode *attr);
+    ~DropIndex() override;
+    void visit() override;
 
 private:
     std::string relName;
-    AttributeTree *attribute;
+    AttributeNode *attribute;
 };
 
-class ColumnsTree : public Tree {
+class ColumnDecsList : public Tree {
 public:
-    ColumnsTree();
-    virtual ~ColumnsTree();
-    void addColumn(ColumnTree *);
+    ColumnDecsList();
+    virtual ~ColumnDecsList();
+    void addColumn(ColumnNode *);
     bool setPrimaryKey(const char* attr);
 
     int getColumnCount();
     AttrInfo *getAttrInfos();
     void deleteAttrInfos();
 private:
-    std::vector<ColumnTree *> columns;
+    std::vector<ColumnNode *> columns;
     AttrInfo *attrInfos;
 };
 
 
-class ColumnTree : public Tree {
+class ColumnNode : public Tree {
 public:
-    ColumnTree(const char *columnName, AttrType type, int size = 4,
-               int isPrimaryKey = 0, int notNull = 0);
-    virtual ~ColumnTree();
+    ColumnNode(const char *columnName, AttrType type, int size = 4,
+               int columnFlag = 0);
+
+    ~ColumnNode() override;
 
     AttrInfo getAttrInfo();
-    void setNotNull(int notNull);
     friend class ColumnsTree;
 private:
     std::string columnName;
     AttrType type;
     int size;
     int isPrimaryKey;
-    int notNull;
+    int columnFlag;
 };
 
 
-class AttributeTree : public Tree {
+class AttributeNode : public Tree {
 public:
-    AttributeTree(const char *relationName, const char *attributeName,
+    AttributeNode(const char *relationName, const char *attributeName,
                   AggregationType aggregationType = AggregationType::T_NONE);
-    AttributeTree(const char *attributeName, AggregationType aggregationType = AggregationType::T_NONE);
-    virtual ~AttributeTree();
+    explicit AttributeNode(const char *attributeName, AggregationType aggregationType = AggregationType::T_NONE);
 
-    bool operator ==(const AttributeTree &attribute) const;
+    ~AttributeNode() override;
+
+    bool operator ==(const AttributeNode &attribute) const;
 
     struct AttributeDescriptor {
         std::string relName;
         std::string attrName;
         AggregationType aggregationType;
-        AttributeDescriptor(std::string relName = "",
+        explicit AttributeDescriptor(std::string relName = "",
                             std::string attrName = "",
                             AggregationType aggregationType = AggregationType::T_NONE) :
-                relName(relName), attrName(attrName), aggregationType(aggregationType) {}
+                relName(std::move(relName)), attrName(attrName), aggregationType(aggregationType) {}
     };
 
     AttributeDescriptor getDescriptor() const;
 private:
-    std::string relation;
+    std::string table;
     std::string attribute;
     AggregationType aggregationType;
 };
 
 
-class AttributesTree : public Tree {
+class AttributeList : public Tree {
 public:
-    AttributesTree();
-    virtual ~AttributesTree();
-    void addAttribute(AttributeTree *attribute);
-    std::vector<AttributeTree::AttributeDescriptor> getDescriptors() const;
+    AttributeList();
+
+    ~AttributeList() override;
+    void addAttribute(AttributeNode *attribute);
+    std::vector<AttributeNode::AttributeDescriptor> getDescriptors() const;
 private:
-    std::vector<AttributeTree *> attributes;
+    std::vector<AttributeNode *> attributes;
 };
 
 
-class ConstValueTree : public Tree {
+class ConstValueNode : public Tree {
 public:
-    ConstValueTree(int i);
-    ConstValueTree(float f);
-    ConstValueTree(const char *s);
-    virtual ~ConstValueTree();
+    explicit ConstValueNode(int i);
+    explicit ConstValueNode(float f);
+    explicit ConstValueNode(const char *s);
+
+    ~ConstValueNode() override;
 
     AttrValue getDescriptor();
     void setNull() {isNull = true;}
@@ -302,50 +326,52 @@ private:
 };
 
 
-class ComparisonTree : public Tree {
+class Comparison : public Tree {
 public:
-    ComparisonTree(AttributeTree *attribute);   // is null
-    ComparisonTree(AttributeTree *attribute, CompOp op, ConstValueTree *constValue);
-    ComparisonTree(AttributeTree *attribute, CompOp op, AttributeTree *attribute2);
-    virtual ~ComparisonTree();
+    explicit Comparison(AttributeNode *attribute);   // is null
+    Comparison(AttributeNode *attribute, CompOp op, ConstValueNode *constValue);
+    Comparison(AttributeNode *attribute, CompOp op, AttributeNode *attribute2);
+
+    ~Comparison() override;
 
     struct ComparisonDescriptor {
-        AttributeTree::AttributeDescriptor attr;
+        AttributeNode::AttributeDescriptor attr;
         CompOp op;
         AttrValue val;
-        AttributeTree::AttributeDescriptor attr2;
+        AttributeNode::AttributeDescriptor attr2;
         bool isAttrCmp;
     };
 
     ComparisonDescriptor getDescriptor();
 
 private:
-    ConstValueTree *constValue;
-    AttributeTree *attribute;
-    AttributeTree *attribute2;
+    ConstValueNode *constValue;
+    AttributeNode *attribute;
+    AttributeNode *attribute2;
     CompOp op;
     bool isAttrCmp;
 };
 
 
-class RelationsTree : public Tree {
+class IdentList : public Tree {
 public:
-    RelationsTree();
-    virtual ~RelationsTree();
-    void addRelation(const char *relation);
-    std::vector<std::string> getRelations();
+    IdentList();
+
+    ~IdentList() override;
+    void addIdent(const char *ident);
 private:
-    std::vector<std::string> relations;
+    std::vector<std::string> idents;
 };
 
 
 class WhereClauseTree : public Tree {
 public:
-    WhereClauseTree(ConditionsTree *conditions);
+    explicit WhereClauseTree(ConditionsTree *conditions);
     WhereClauseTree();
-    virtual ~WhereClauseTree();
 
-    std::vector<ComparisonTree::ComparisonDescriptor> getComparision();
+    ~WhereClauseTree() override;
+
+    std::vector<Comparison::ComparisonDescriptor> getComparision();
 
 private:
     ConditionsTree *conditions;
@@ -355,45 +381,42 @@ private:
 class ConditionsTree : public Tree {
 public:
     ConditionsTree();
-    virtual ~ConditionsTree();
-    void addComparison(ComparisonTree *comparison);
-    std::vector<ComparisonTree::ComparisonDescriptor> getComparisions();
+
+    ~ConditionsTree() override;
+    void addComparison(Comparison *comparison);
+    std::vector<Comparison::ComparisonDescriptor> getComparisions();
 private:
-    std::vector<ComparisonTree *> comparisons;
+    std::vector<Comparison *> comparisons;
 };
 
 
-class ConstValuesTree : public Tree {
+class ConstValueList : public Tree {
 public:
-    ConstValuesTree();
-    virtual ~ConstValuesTree();
-    void addConstValue(ConstValueTree *constValue);
+    ConstValueList();
+
+    ~ConstValueList() override;
+    void addConstValue(ConstValueNode *constValue);
 
     std::vector<AttrValue> getConstValues();
 private:
-    std::vector<ConstValueTree *> constValues;
+    std::vector<ConstValueNode *> constValues;
 };
 
-class InsertValueTree : public Tree {
+class ConstValueLists : public Tree {
 public:
-    InsertValueTree(ConstValuesTree *constValues);
-    virtual ~InsertValueTree();
-    void addConstValues(ConstValuesTree* constValuesTree);
-    std::vector<ConstValuesTree*> values;
+    explicit ConstValueLists();
+
+    ~ConstValueLists() override;
+    void addConstValues(ConstValueList* constValuesTree);
+    std::vector<ConstValueList*> values;
 };
 
-class CheckTree : public Tree {
+class SetClauseList: public Tree {
 public:
-    CheckTree();
-    virtual ~CheckTree();
-};
-
-class ChecksTree : public Tree {
-public:
-    ChecksTree();
-    virtual ~ChecksTree();
-    void addCheckTree(CheckTree* tree);
-    std::vector<CheckTree*> checks;
+    SetClauseList();
+    void addSetClause(AttributeNode *, ConstValueNode *);
+private:
+    std::vector<std::pair<AttributeNode *, ConstValueNode *>> clauses;
 };
 
 #endif //DATABASE_TREE_H

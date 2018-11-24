@@ -43,6 +43,7 @@ CREATE          { /*printf("CREATE "); */ return CREATE; }
 DROP            { /*printf("DROP "); */ return DROP; }
 USE             { /*printf("USE "); */ return USE; }
 SHOW            { /*printf("SHOW "); */ return SHOW; }
+DATABASES       { /*printf("DATABASES "); */ return DATABASES; }
 DATABASE        { /*printf("DATABASE "); */ return DATABASE; }
 TABLE           { /*printf("TABLE "); */ return TABLE; }
 TABLES          { /*printf("TABLES "); */ return TABLES; }
@@ -51,6 +52,7 @@ DELETE          { /*printf("DELETE "); */ return DELETE; }
 INSERT          { /*printf("INSERT "); */ return INSERT; }
 UPDATE          { /*printf("UPDATE "); */ return UPDATE; }
 VALUES          { /*printf("VALUES "); */ return VALUES; }
+REFERENCES      { /*printf("VALUES "); */ return REFERENCES; }
 SET             { /*printf("SET "); */ return SET; }
 FROM            { /*printf("FROM "); */ return FROM; }
 INTO            { /*printf("INTO "); */ return INTO; }
@@ -62,6 +64,7 @@ MAX             { /*printf("MAX "); */ return MAX; }
 AND             { /*printf("AND "); */ return AND; }
 "NOT NULL"      { /*printf("NOT_NULL "); */ return NOTNULL; }
 "PRIMARY KEY"   { /*printf("PRIMARY_KEY "); */ return PRIMARY; }
+"FOREIGN KEY"   { /*printf("PRIMARY_KEY "); */ return PRIMARY; }
 "GROUP BY"      { /*printf("GROUP BY ")*/ ; return GROUP; }
 LIKE            { /*printf("LIKE "); */ return LIKE; }
 DESC            { /*printf("DESC "); */ return DESC; }
@@ -72,7 +75,9 @@ IS              { /*printf("IS "); */ return IS; }
 NULL            { /*printf("NULL "); */ return T_NULL; }
 int             { /*printf("int "); */ return KINT; }
 float           { /*printf("float "); */ return KFLOAT; }
+char            { /*printf("char "); */ return KCHAR; }
 varchar         { /*printf("varchar "); */ return KVARCHAR; }
+date            { /*printf("date "); */ return KDATE;  }
 {FLOAT}         { /*printf("FLOAT "); */ sscanf(yytext, "%f", &yylval.fvalue); return FLOAT; }
 {INTEGER}       { /*printf("INTEGER "); */ sscanf(yytext, "%d", &yylval.ivalue); return INTEGER; }
 {IDENTIFIER}    { yylval.string = get_text(yytext); /*printf("IDENTIFIER(%s) ", yylval.string);*/ return IDENTIFIER; }

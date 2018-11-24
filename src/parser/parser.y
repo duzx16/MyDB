@@ -8,6 +8,7 @@
 #endif
 
 #include <stdlib.h>
+#include <vector>
 #include "../Constants.h"
 #include "Tree.h"
 
@@ -19,22 +20,24 @@ class Tree;
 
 %union {
     int ivalue;
+    AttrType attrType;
     float fvalue;
     char *string;
     Tree *tree;
     Select *selectTree;
     Delete *deleteTree;
-    AttributesTree *attributesTree;
-    AttributeTree *attributeTree;
-    RelationsTree *tableListTree;
+    AttributeList *attributesTree;
+    AttributeNode *attributeTree;
+    IdentList *identList;
     WhereClauseTree *whereClauseTree;
     ConditionsTree *conditionsTree;
-    ComparisonTree *comparisonTree;
-    ConstValuesTree *constValuesTree;
-    ConstValueTree *constValueTree;
-    ColumnsTree *columnsTree;
-    ColumnTree *columnTree;
-    InsertValueTree *insertValueTree;
+    Comparison *comparisonTree;
+    ConstValueList *constValuesTree;
+    ConstValueNode *constValueTree;
+    ColumnDecsList *columnsTree;
+    ColumnNode *columnTree;
+    ConstValueLists *insertValueTree;
+    SetClauseList *setClauseList;
 }
 
 /* keyword */
@@ -44,7 +47,7 @@ class Tree;
 %token STAR FROM WHERE OPERATOR VALUES SET INTO
 
 /* COLUMN DESCPRITION */
-%token KINT KFLOAT KVARCHAR
+%token KINT KCHAR KFLOAT KVARCHAR KDATE PRIMARY FOREIGN REFERENCES
 
 
 /* number */
@@ -58,23 +61,25 @@ class Tree;
 /* aggretation */
 %token AVG SUM MIN MAX
 
-%token NOTNULL PRIMARY DESC GROUP LIKE INDEX CHECK IN T_NULL IS AND
+%token NOTNULL DESC GROUP LIKE INDEX CHECK IN T_NULL IS AND
 
 %type <tree> command
-%type <attributesTree> attributes attrList
+%type <ivalue> type_width
+%type <attributesTree> attributes
 %type <attributeTree> attribute
-%type <tableListTree> tableList
+%type <identList> tableList
 %type <whereClauseTree> whereclause
 %type <conditionsTree> conditions
 %type <comparisonTree> comparison
 %type <constValuesTree> constvalues
 %type <constValueTree> constvalue
-%type <columnsTree> columns
-%type <columnsTree> columnsTmp
+%type <columnsTree> column_decs
 %type <columnTree> column
-%type <columnTree> columnInt
 %type <insertValueTree> valueLists
-
+%type <setClauseList> setList
+%type <attrType> column_type
+%type <ivalue> column_constraints column_constraint
+%type <identList> column_list;
 %%
 
 sql:
@@ -95,6 +100,33 @@ command:
     | SHOW DATABASES
             {
 
+            }
+    | CREATE DATABASE IDENTIFIER
+            {
+                $$ = new CreateDatabase($3);
+                Tree::setInstance($$);
+                delete $3;
+                Tree::run();
+            }
+    | DROP DATABASE IDENTIFIER
+            {
+                $$ = new DropDatabase($3);
+                Tree::setInstance($$);
+                delete $3;
+                Tree::run();
+            }
+    | USE IDENTIFIER
+            {
+                $$ = new UseDatabase($2);
+                Tree::setInstance($$);
+                delete $2;
+                Tree::run();
+            }
+    | SHOW TABLES
+            {
+                $$ = new DescTable("");
+                Tree::setInstance($$);
+                Tree::run();
             }
     | SELECT STAR FROM tableList whereclause
             {
@@ -122,9 +154,9 @@ command:
                 delete $3;
                 Tree::run();
             }
-    | UPDATE IDENTIFIER SET attribute EQ constvalue whereclause
+    | UPDATE IDENTIFIER SET setList whereclause
             {
-                $$ = new Update($2, $4, $6, $7);
+                $$ = new Update($2, $4, $5);
                 Tree::setInstance($$);
                 delete $2;
                 Tree::run();
@@ -136,23 +168,9 @@ command:
                 delete $3;
                 Tree::run();
             }
-    | CREATE DATABASE IDENTIFIER
-            {
-                $$ = new CreateDatabase($3);
-                Tree::setInstance($$);
-                delete $3;
-                Tree::run();
-            }
-    | CREATE TABLE IDENTIFIER '(' columns ')'
+    | CREATE TABLE IDENTIFIER '(' column_decs ')'
             {
                 $$ = new CreateTable($3, $5);
-                Tree::setInstance($$);
-                delete $3;
-                Tree::run();
-            }
-    | DROP DATABASE IDENTIFIER
-            {
-                $$ = new DropDatabase($3);
                 Tree::setInstance($$);
                 delete $3;
                 Tree::run();
@@ -162,13 +180,6 @@ command:
                 $$ = new DropTable($3);
                 Tree::setInstance($$);
                 delete $3;
-                Tree::run();
-            }
-    | USE IDENTIFIER
-            {
-                $$ = new UseDatabase($2);
-                Tree::setInstance($$);
-                delete $2;
                 Tree::run();
             }
     | DESC IDENTIFIER
@@ -198,18 +209,13 @@ command:
                 Tree::setInstance($$);
                 Tree::run();
             }
-    | SHOW TABLES
-            {
-                $$ = new DescTable("");
-                Tree::setInstance($$);
-                Tree::run();
-            }
     ;
 
 valueLists:
     '(' constvalues ')'
             {
-                $$ = new InsertValueTree($2);
+                $$ = new ConstValueLists();
+                $$->addConstValues($2);
             }
     | valueLists ',' '(' constvalues ')'
             {
@@ -217,93 +223,87 @@ valueLists:
             }
     ;
 
-columns:
-    columnsTmp
+setList:
+    attribute EQ constvalue
             {
+                $$ = new SetClauseList();
+                $$->addSetClause($1, $3);
+            }
+    | setList ',' attribute EQ constvalue
+            {
+                $$->addSetClause($3, $5);
+            }
+
+column:
+    IDENTIFIER column_type type_width column_constraints
+            {
+                $$ = new ColumnNode($1, $2, $3, $4);
+                delete $1;
 
             }
-    | columnsTmp ',' PRIMARY '(' IDENTIFIER ')'
+    | FOREIGN '(' IDENTIFIER ')' REFERENCES IDENTIFIER '(' IDENTIFIER ')'
             {
-                bool found = $$->setPrimaryKey($5);
-                if(!found) {yyerror("Primary Key Set Failed!");}
-                delete $5;
+                //$$ = new ColumnNode($2, $3, $4);
+            }
+    | PRIMARY '(' column_list ')'
+            {
+                //$$ = new ColumnNode($3);
             }
     ;
 
-columnsTmp:
+column_list:
+    IDENTIFIER
+            {
+                $$ = new IdentList();
+                $$->addIdent($1);
+                delete $1;
+            }
+    | column_list ',' IDENTIFIER
+            {
+                $$->addIdent($3);
+                delete $3;
+            }
+
+column_type:
+    KINT {$$=AttrType::INT;}
+    | KCHAR  {$$=AttrType::STRING;}
+    | KVARCHAR  {$$=AttrType::VARCHAR;}
+    | KFLOAT {$$=AttrType::FLOAT;}
+    | KDATE {$$=AttrType::DATE;}
+    ;
+
+type_width:
+    '(' INTEGER ')' {$$ = $2;}
+    | {$$=0;}
+    ;
+
+column_constraints: column_constraints column_constraint {$$ = $1 | $2;}
+            | {$$=0;}
+            ;
+
+column_constraint: NOTNULL {$$ = COLUMN_FLAG_NOTNULL;}
+            ;
+
+
+column_decs:
     column
             {
-                $$ = new ColumnsTree();
+                $$ = new ColumnDecsList();
                 $$->addColumn($1);
             }
-    | columnsTmp ',' column
+    | column_decs ',' column
             {
                 $$->addColumn($3);
             }
     ;
 
-
-
-column:
-    columnInt
-            {
-                $$ = $1;
-            }
-    | columnInt NOTNULL
-            {
-                $1->setNotNull(1);
-                $$ = $1;
-            }
-    | IDENTIFIER KFLOAT
-            {
-                $$ = new ColumnTree($1, AttrType::FLOAT);
-                delete $1;
-            }
-    | IDENTIFIER KFLOAT NOTNULL
-            {
-                $$ = new ColumnTree($1, AttrType::FLOAT, 4, 0, 1);
-                delete $1;
-            }
-    | IDENTIFIER KVARCHAR '(' INTEGER ')'
-            {
-                $$ = new ColumnTree($1, AttrType::STRING, $4);
-                delete $1;
-            }
-    | IDENTIFIER KVARCHAR '(' INTEGER ')' NOTNULL
-            {
-                $$ = new ColumnTree($1, AttrType::STRING, $4, 0, 1);
-                delete $1;
-            }
-    ;
-
-columnInt:
-    IDENTIFIER KINT
-            {
-                $$ = new ColumnTree($1, AttrType::INT);
-                delete $1;
-            }
-    | IDENTIFIER KINT '(' INTEGER ')'
-            {
-                // TODO
-                $$ = new ColumnTree($1, AttrType::INT);
-                delete $1;
-            }
-    ;
-
 attributes:
-    attrList
-            {
-                $$ = $1;
-            }
-    ;
-
-attrList:
     attribute
             {
-                $$ = new AttributesTree();
+                $$ = new AttributeList();
                 $$->addAttribute($1);
             }
-    | attrList ',' attribute
+    | attributes ',' attribute
             {
                 $$->addAttribute($3);
             }
@@ -312,56 +312,56 @@ attrList:
 attribute:
     IDENTIFIER
             {
-                $$ = new AttributeTree($1);
+                $$ = new AttributeNode($1);
                 delete $1;
             }
     | SUM '(' IDENTIFIER ')'
             {
-                $$ =  new AttributeTree($3, AggregationType::T_SUM);
+                $$ =  new AttributeNode($3, AggregationType::T_SUM);
                 delete $3;
             }
     | AVG '(' IDENTIFIER ')'
             {
-                $$ =  new AttributeTree($3, AggregationType::T_AVG);
+                $$ =  new AttributeNode($3, AggregationType::T_AVG);
                 delete $3;
             }
     | MIN '(' IDENTIFIER ')'
             {
-                $$ =  new AttributeTree($3, AggregationType::T_MIN);
+                $$ =  new AttributeNode($3, AggregationType::T_MIN);
                 delete $3;
             }
     | MAX '(' IDENTIFIER ')'
             {
-                $$ =  new AttributeTree($3, AggregationType::T_MAX);
+                $$ =  new AttributeNode($3, AggregationType::T_MAX);
                 delete $3;
             }
     | IDENTIFIER '.' IDENTIFIER
             {
-                $$ = new AttributeTree($1, $3);
+                $$ = new AttributeNode($1, $3);
                 delete $1;
                 delete $3;
             }
     | SUM '(' IDENTIFIER '.' IDENTIFIER ')'
             {
-                $$ = new AttributeTree($3, $5, AggregationType::T_SUM);
+                $$ = new AttributeNode($3, $5, AggregationType::T_SUM);
                 delete $3;
                 delete $5;
             }
     | AVG '(' IDENTIFIER '.' IDENTIFIER ')'
             {
-                $$ = new AttributeTree($3, $5, AggregationType::T_AVG);
+                $$ = new AttributeNode($3, $5, AggregationType::T_AVG);
                 delete $3;
                 delete $5;
             }
     | MAX '(' IDENTIFIER '.' IDENTIFIER ')'
             {
-                $$ = new AttributeTree($3, $5, AggregationType::T_MAX);
+                $$ = new AttributeNode($3, $5, AggregationType::T_MAX);
                 delete $3;
                 delete $5;
             }
     | MIN '(' IDENTIFIER '.' IDENTIFIER ')'
             {
-                $$ = new AttributeTree($3, $5, AggregationType::T_MIN);
+                $$ = new AttributeNode($3, $5, AggregationType::T_MIN);
                 delete $3;
                 delete $5;
             }
@@ -370,13 +370,13 @@ attribute:
 tableList:
     IDENTIFIER
             {
-                $$ = new RelationsTree();
-                $$->addRelation($1);
+                $$ = new IdentList();
+                $$->addIdent($1);
                 delete $1;
             }
     | tableList ',' IDENTIFIER
             {
-                $$->addRelation($3);
+                $$->addIdent($3);
                 delete $3;
             }
     ;
@@ -407,66 +407,66 @@ conditions:
 comparison:
     attribute EQ constvalue
             {
-                $$ = new ComparisonTree($1, CompOp::EQ_OP, $3);
+                $$ = new Comparison($1, CompOp::EQ_OP, $3);
             }
     | attribute GT constvalue
             {
-                $$ = new ComparisonTree($1, CompOp::GT_OP, $3);
+                $$ = new Comparison($1, CompOp::GT_OP, $3);
             }
     | attribute LT constvalue
             {
-                $$ = new ComparisonTree($1, CompOp::LT_OP, $3);
+                $$ = new Comparison($1, CompOp::LT_OP, $3);
             }
     | attribute GE constvalue
             {
-                $$ = new ComparisonTree($1, CompOp::GE_OP, $3);
+                $$ = new Comparison($1, CompOp::GE_OP, $3);
             }
     | attribute LE constvalue
             {
-                $$ = new ComparisonTree($1, CompOp::LE_OP, $3);
+                $$ = new Comparison($1, CompOp::LE_OP, $3);
             }
     | attribute NE constvalue
             {
-                $$ = new ComparisonTree($1, CompOp::NE_OP, $3);
+                $$ = new Comparison($1, CompOp::NE_OP, $3);
             }
     | attribute LIKE constvalue
             {
-                $$ = new ComparisonTree($1, CompOp::LIKE_OP, $3);
+                $$ = new Comparison($1, CompOp::LIKE_OP, $3);
             }
     | attribute IS T_NULL
             {
-                $$ = new ComparisonTree($1);
+                $$ = new Comparison($1);
             }
     | attribute EQ attribute
             {
-                $$ = new ComparisonTree($1, CompOp::EQ_OP, $3);
+                $$ = new Comparison($1, CompOp::EQ_OP, $3);
             }
     | attribute GT attribute
             {
-                $$ = new ComparisonTree($1, CompOp::GT_OP, $3);
+                $$ = new Comparison($1, CompOp::GT_OP, $3);
             }
     | attribute LT attribute
             {
-                $$ = new ComparisonTree($1, CompOp::LT_OP, $3);
+                $$ = new Comparison($1, CompOp::LT_OP, $3);
             }
     | attribute GE attribute
             {
-                $$ = new ComparisonTree($1, CompOp::GE_OP, $3);
+                $$ = new Comparison($1, CompOp::GE_OP, $3);
             }
     | attribute LE attribute
             {
-                $$ = new ComparisonTree($1, CompOp::LE_OP, $3);
+                $$ = new Comparison($1, CompOp::LE_OP, $3);
             }
     | attribute NE attribute
             {
-                $$ = new ComparisonTree($1, CompOp::NE_OP, $3);
+                $$ = new Comparison($1, CompOp::NE_OP, $3);
             }
     ;
 
 constvalues:
     constvalue
             {
-                $$ = new ConstValuesTree();
+                $$ = new ConstValueList();
                 $$->addConstValue($1);
             }
     | constvalues ',' constvalue
@@ -476,10 +476,10 @@ constvalues:
     ;
 
 constvalue:
-    INTEGER         { $$ = new ConstValueTree($1); }
-    | FLOAT         { $$ = new ConstValueTree($1); }
-    | STRING        { $$ = new ConstValueTree($1); delete $1; }
-    | T_NULL          { $$ = new ConstValueTree(0); $$->setNull(); }
+    INTEGER         { $$ = new ConstValueNode($1); }
+    | FLOAT         { $$ = new ConstValueNode($1); }
+    | STRING        { $$ = new ConstValueNode($1); delete $1; }
+    | T_NULL          { $$ = new ConstValueNode(0); $$->setNull(); }
     ;
 
 %%

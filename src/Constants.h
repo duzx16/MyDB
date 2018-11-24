@@ -9,7 +9,7 @@
  * 一个页面中的字节数
  */
 typedef unsigned int* BufType;
-enum class AttrType{INT, FLOAT, STRING, NO_ATTR};
+enum class AttrType{INT, FLOAT, STRING, DATE, VARCHAR, NO_ATTR};
 enum class CompOp{EQ_OP, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, NO_OP, LIKE_OP};
 enum class AggregationType {
     T_NONE = 0,
@@ -20,6 +20,7 @@ enum class AggregationType {
 };
 
 #define MAX_NAME 42
+#define COLUMN_FLAG_NOTNULL 0x1
 
 struct AttrInfo {
     char attrName[MAX_NAME + 1];
