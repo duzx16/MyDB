@@ -169,7 +169,7 @@ public:
     ~DescTable() override;
     void visit() override;
 private:
-    std::string relName;
+    std::string tableName;
 };
 
 
@@ -227,7 +227,7 @@ public:
     void visit() override;
 
 private:
-    std::string relName;
+    std::string tableName;
     AttributeNode *attribute;
 };
 
@@ -236,7 +236,6 @@ public:
     ColumnDecsList();
     virtual ~ColumnDecsList();
     void addColumn(ColumnNode *);
-    bool setPrimaryKey(const char* attr);
 
     int getColumnCount();
     AttrInfo *getAttrInfos();
@@ -417,6 +416,25 @@ public:
     void addSetClause(AttributeNode *, ConstValueNode *);
 private:
     std::vector<std::pair<AttributeNode *, ConstValueNode *>> clauses;
+};
+
+class TbOptDec: public Tree {
+public:
+    TbOptDec(IdentList * column_list);
+    TbOptDec(const char * foreign_key, const char * table, const char * column);
+    ~TbOptDec() override;
+    IdentList * column_list;
+    std::string foreign_key;
+    std::string table;
+    std::string column;
+};
+
+class TbOptDecList: public Tree {
+public:
+    TbOptDecList() = default;
+    ~TbOptDecList() override;
+    void addTbDec(TbOptDec *dec);
+    std::vector<TbOptDec *> tbDecs;
 };
 
 #endif //DATABASE_TREE_H

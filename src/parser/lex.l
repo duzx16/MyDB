@@ -52,7 +52,7 @@ DELETE          { /*printf("DELETE "); */ return DELETE; }
 INSERT          { /*printf("INSERT "); */ return INSERT; }
 UPDATE          { /*printf("UPDATE "); */ return UPDATE; }
 VALUES          { /*printf("VALUES "); */ return VALUES; }
-REFERENCES      { /*printf("VALUES "); */ return REFERENCES; }
+REFERENCES      { /*printf("REFERENCES "); */ return REFERENCES; }
 SET             { /*printf("SET "); */ return SET; }
 FROM            { /*printf("FROM "); */ return FROM; }
 INTO            { /*printf("INTO "); */ return INTO; }
@@ -64,7 +64,7 @@ MAX             { /*printf("MAX "); */ return MAX; }
 AND             { /*printf("AND "); */ return AND; }
 "NOT NULL"      { /*printf("NOT_NULL "); */ return NOTNULL; }
 "PRIMARY KEY"   { /*printf("PRIMARY_KEY "); */ return PRIMARY; }
-"FOREIGN KEY"   { /*printf("PRIMARY_KEY "); */ return PRIMARY; }
+"FOREIGN KEY"   { /*printf("FOREIGN_KEY "); */ return FOREIGN; }
 "GROUP BY"      { /*printf("GROUP BY ")*/ ; return GROUP; }
 LIKE            { /*printf("LIKE "); */ return LIKE; }
 DESC            { /*printf("DESC "); */ return DESC; }

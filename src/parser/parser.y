@@ -8,9 +8,9 @@
 #endif
 
 #include <stdlib.h>
-#include <vector>
 #include "../Constants.h"
 #include "Tree.h"
+#include "parser.yy.cpp"
 
 int yylex();
 void yyerror(const char *);
@@ -38,6 +38,8 @@ class Tree;
     ColumnNode *columnTree;
     ConstValueLists *insertValueTree;
     SetClauseList *setClauseList;
+    TbOptDec *tbOptDec;
+    TbOptDecList *tbOptDecList;
 }
 
 /* keyword */
@@ -67,7 +69,7 @@ class Tree;
 %type <ivalue> type_width
 %type <attributesTree> attributes
 %type <attributeTree> attribute
-%type <identList> tableList
+%type <identList> tableList column_list
 %type <whereClauseTree> whereclause
 %type <conditionsTree> conditions
 %type <comparisonTree> comparison
@@ -79,7 +81,9 @@ class Tree;
 %type <setClauseList> setList
 %type <attrType> column_type
 %type <ivalue> column_constraints column_constraint
-%type <identList> column_list;
+%type <tbOptDec> tb_opt_dec
+%type <tbOptDecList> tb_opt_exist tb_opt_decs
+
 %%
 
 sql:
@@ -99,7 +103,9 @@ command:
             }
     | SHOW DATABASES
             {
-
+                $$ = new ShowDatabases();
+                Tree::setInstance($$);
+                Tree::run();
             }
     | CREATE DATABASE IDENTIFIER
             {
@@ -168,7 +174,7 @@ command:
                 delete $3;
                 Tree::run();
             }
-    | CREATE TABLE IDENTIFIER '(' column_decs ')'
+    | CREATE TABLE IDENTIFIER '(' column_decs tb_opt_exist ')'
             {
                 $$ = new CreateTable($3, $5);
                 Tree::setInstance($$);
@@ -241,14 +247,6 @@ column:
                 delete $1;
 
             }
-    | FOREIGN '(' IDENTIFIER ')' REFERENCES IDENTIFIER '(' IDENTIFIER ')'
-            {
-                //$$ = new ColumnNode($2, $3, $4);
-            }
-    | PRIMARY '(' column_list ')'
-            {
-                //$$ = new ColumnNode($3);
-            }
     ;
 
 column_list:
@@ -296,6 +294,35 @@ column_decs:
                 $$->addColumn($3);
             }
     ;
+
+tb_opt_exist:
+    ',' tb_opt_decs {$$ = $2;}
+    | {$$ = NULL;}
+    ;
+
+tb_opt_decs:
+    tb_opt_dec
+            {
+                $$ = new TbOptDecList();
+                $$->addTbDec($1);
+            }
+    | tb_opt_decs ',' tb_opt_dec
+            {
+                $$->addTbDec($3);
+            }
+
+tb_opt_dec:
+    FOREIGN '(' IDENTIFIER ')' REFERENCES IDENTIFIER '(' IDENTIFIER ')'
+            {
+                $$ = new TbOptDec($3, $6, $8);
+                delete $3;
+                delete $6;
+                delete $8;
+            }
+    | PRIMARY '(' column_list ')'
+            {
+                $$ = new TbOptDec($3);
+            }
 
 attributes:
     attribute
@@ -487,3 +514,18 @@ constvalue:
 void yyerror(const char *msg) {
     printf("YACC error: %s\n", msg);
 }
+
+char start_parse(const char *expr_input)
+{
+    char ret;
+    if(expr_input){
+        YY_BUFFER_STATE my_string_buffer = yy_scan_string(expr_input);
+        yy_switch_to_buffer( my_string_buffer ); // switch flex to the buffer we just created
+        ret = yyparse();
+        yy_delete_buffer(my_string_buffer );
+    }else{
+        ret = yyparse();
+    }
+    return ret;
+}
+

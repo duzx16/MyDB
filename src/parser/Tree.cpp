@@ -1,16 +1,34 @@
-#include <utility>
-
 //
 // Created by Zhengxiao Du on 2018/11/24.
 //
 
 #include "Tree.h"
-
+#include <utility>
 #include <cstdlib>
 #include <cstring>
 
 using std::string;
 using std::vector;
+
+#include <stdarg.h>
+
+static void MyDebugPrintf(const char *format, ...) {
+    va_list argPtr;
+    int count;
+
+    va_start(argPtr, format);                  /*  获取可变参数列表  */
+    fflush(stdout);                            /*  强制刷新输出缓冲区  */
+    count = vfprintf(stderr, format, argPtr);  /*  将信息输出到标准出错流设备  */
+    va_end(argPtr);                            /*  可变参数列表结束  */
+}
+
+#ifdef DEBUG   /*  如果定义了插桩信息宏，就将调试信息指向调试函数  */
+#define DebugPrintf  MyDebugPrintf
+
+#else           /*  如果未定义插桩信息宏，那么就将调试信息指向空NOP  */
+#define DebugPrintf
+
+#endif
 
 Tree *Tree::tree = nullptr;
 
@@ -39,6 +57,7 @@ Select::~Select() {
 }
 
 void Select::visit() {
+    DebugPrintf("select\n");
 //    vector<AttributeTree::AttributeDescriptor> attrs;
 //    if (attributes) {
 //        attrs = attributes->getDescriptors();
@@ -67,6 +86,7 @@ Insert::~Insert() {
 }
 
 void Insert::visit() {
+    DebugPrintf("insert\n");
 //    for(const auto& constValues : insertValueTree->values) {
 //        SystemManager::instance()->Insert(relationName, constValues->getConstValues());
 //    }
@@ -87,6 +107,7 @@ Update::~Update() {
 }
 
 void Update::visit() {
+    DebugPrintf("update\n");
 //    AttributeTree::AttributeDescriptor attr = attribute->getDescriptor();
 //    AttrValue val = constValue->getDescriptor();
 //    vector<Comparison::ComparisonDescriptor> coms = whereClause->getComparision();
@@ -104,6 +125,7 @@ Delete::~Delete() {
 }
 
 void Delete::visit() {
+    DebugPrintf("delete\n");
 //    vector<Comparison::ComparisonDescriptor> coms;
 //    if (whereClause != nullptr)
 //        coms = whereClause->getComparision();
@@ -118,6 +140,7 @@ CreateDatabase::CreateDatabase(const char *dbName) {
 CreateDatabase::~CreateDatabase() = default;
 
 void CreateDatabase::visit() {
+    DebugPrintf("create database %s\n", dbName.c_str());
 //    SystemManager::instance()->createDB(dbName.c_str());
 }
 
@@ -132,6 +155,7 @@ CreateTable::~CreateTable() {
 }
 
 void CreateTable::visit() {
+    DebugPrintf("create table %s\n", tableName.c_str());
 //    int attrCount = columns->getColumnCount();
 //    AttrInfo *attrInfos = columns->getAttrInfos();
 //    SystemManager::instance()->createTable(tableName.c_str(), attrCount, attrInfos);
@@ -150,13 +174,14 @@ CreateIndex::~CreateIndex() {
 }
 
 void CreateIndex::visit() {
+    DebugPrintf("create index %s\n", relName.c_str());
 //    auto attr = attribute->getDescriptor();
-//    SystemManager::instance()->createIndex(relName, attr);
+//    SystemManager::instance()->createIndex(tableName, attr);
 }
 
 
 DropIndex::DropIndex(const char *relName, AttributeNode *attr) {
-    this->relName = string(relName);
+    this->tableName = string(relName);
     this->attribute = attr;
 }
 
@@ -165,8 +190,9 @@ DropIndex::~DropIndex() {
 }
 
 void DropIndex::visit() {
+    DebugPrintf("drop index %s\n", tableName.c_str());
 //    auto attr = attribute->getDescriptor();
-//    SystemManager::instance()->dropIndex(relName, attr);
+//    SystemManager::instance()->dropIndex(tableName, attr);
 }
 
 
@@ -189,6 +215,7 @@ DropTable::DropTable(const char *tableName) {
 DropTable::~DropTable() = default;
 
 void DropTable::visit() {
+    DebugPrintf("drop table %s\n", tableName.c_str());
 //    SystemManager::instance()->dropTable(tableName.c_str());
 }
 
@@ -530,20 +557,22 @@ UseDatabase::UseDatabase(const char *dbName) {
 }
 
 void UseDatabase::visit() {
+    DebugPrintf("Use %s\n", dbName.c_str());
 //    SystemManager::instance()->openDB(dbName.c_str());
 }
 
 DescTable::DescTable(const char *relName) {
-    this->relName = string(relName);
+    this->tableName = string(relName);
 }
 
 DescTable::~DescTable() = default;
 
 void DescTable::visit() {
-//    if(relName.empty())
+    DebugPrintf("desc table %s\n", tableName.c_str());
+//    if(tableName.empty())
 //        SystemManager::instance()->help();
 //    else
-//        SystemManager::instance()->help(relName.c_str());
+//        SystemManager::instance()->help(tableName.c_str());
 }
 
 ConstValueLists::ConstValueLists() = default;
@@ -575,5 +604,42 @@ IdentList::~IdentList() = default;
 ShowDatabases::ShowDatabases() = default;
 
 void ShowDatabases::visit() {
+    DebugPrintf("show databases\n");
 //    Tree::visit();
+}
+
+ColumnDecsList::ColumnDecsList() = default;
+
+ColumnDecsList::~ColumnDecsList() {
+    for (auto v: columns) {
+        delete v;
+    }
+}
+
+void ColumnDecsList::addColumn(ColumnNode *column) {
+    columns.push_back(column);
+}
+
+TbOptDec::TbOptDec(IdentList *column_list) : column_list(column_list) {
+
+}
+
+TbOptDec::TbOptDec(const char *foreign_key, const char *table, const char *column) : column_list(nullptr),
+                                                                                     foreign_key(foreign_key),
+                                                                                     table(table), column(column) {
+
+}
+
+TbOptDec::~TbOptDec() {
+    delete column_list;
+}
+
+void TbOptDecList::addTbDec(TbOptDec *dec) {
+    tbDecs.push_back(dec);
+}
+
+TbOptDecList::~TbOptDecList() {
+    for(auto v: tbDecs) {
+        delete v;
+    }
 }
