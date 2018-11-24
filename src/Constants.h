@@ -10,7 +10,24 @@
  */
 typedef unsigned int* BufType;
 enum class AttrType{INT, FLOAT, STRING, NO_ATTR};
-enum class CompOp{EQ_OP, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, NO_OP};
+enum class CompOp{EQ_OP, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, NO_OP, LIKE_OP};
+enum class AggregationType {
+    T_NONE = 0,
+    T_AVG,
+    T_SUM,
+    T_MIN,
+    T_MAX
+};
+
+#define MAX_NAME 42
+
+struct AttrInfo {
+    char attrName[MAX_NAME + 1];
+    int attrLength;
+    AttrType attrType;
+    int isPrimaryKey;
+    int notNull;
+};
 
 //
 // redbase.h
@@ -18,22 +35,6 @@ enum class CompOp{EQ_OP, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, NO_OP};
 //
 #ifndef REDBASE_H
 #define REDBASE_H
-
-// Please DO NOT include any other files in this file.
-
-//
-// Globally-useful defines
-//
-#define MAXNAME       24                // maximum length of a relation
-// or attribute name
-#define MAXSTRINGLEN  255               // maximum length of a
-// string-type attribute
-#define MAXATTRS      40                // maximum number of attributes
-// in a relation
-
-#define YY_SKIP_YYWRAP 1
-#define yywrap() 1
-void yyerror(const char *);
 
 //
 // Return codes
