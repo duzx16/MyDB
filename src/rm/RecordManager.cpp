@@ -12,7 +12,7 @@ unsigned bitmap_size(unsigned record_per_page)
 
 unsigned record_per_page(unsigned record_size)
 {
-    return (32 * PF_PAGE_SIZE - 124) / (record_size * 32 + 4);
+    return (32 * (PF_PAGE_SIZE - 8) - 124) / (record_size * 32 + 4);
 }
 
 RecordManager::RecordManager() : _pf_manager()
@@ -23,19 +23,28 @@ RecordManager::RecordManager() : _pf_manager()
 int RecordManager::createFile(std::string filename, unsigned record_size)
 {
     int rc;
-    if ((rc = _pf_manager.CreateFile(filename.c_str())) != 0)
+    rc = _pf_manager.CreateFile(filename.c_str());
+    if (rc)
     {
+        PF_PrintError(rc);
         return rc;
     }
     // Create the Heade Page
     int file_id, index;
     PF_FileHandle file_handle;
-    if ((rc = _pf_manager.OpenFile(filename.c_str(), file_handle)) != 0)
+    rc = _pf_manager.OpenFile(filename.c_str(), file_handle);
+    if (rc)
     {
+        PF_PrintError(rc);
         return rc;
     }
     PF_PageHandle page_handle;
-    file_handle.AllocatePage(page_handle);
+    rc = file_handle.AllocatePage(page_handle);
+    if (rc)
+    {
+        PF_PrintError(rc);
+        return rc;
+    }
     char *data;
     page_handle.GetData(data);
     auto header = reinterpret_cast<HeaderPage *>(data);
@@ -51,12 +60,18 @@ int RecordManager::createFile(std::string filename, unsigned record_size)
     //Write back the header page
     long page_num;
     page_handle.GetPageNum(page_num);
-    file_handle.MarkDirty(page_num);
-    file_handle.UnpinPage(page_num);
+    rc=file_handle.MarkDirty(page_num);
+    rc=file_handle.UnpinPage(page_num);
+    if (rc)
+    {
+        PF_PrintError(rc);
+        return rc;
+    }
 
     //Close the file
     if ((rc = _pf_manager.CloseFile(file_handle)) != 0)
     {
+        PF_PrintError(rc);
         return rc;
     }
     return 0;
@@ -87,7 +102,12 @@ int RecordManager::openFile(std::string filename, RM_FileHandle &file_handle)
     file_handle._initialized = true;
 
     // Release the Header Page
-    file_handle._pf_file_handle.UnpinPage(0);
+    if((rc = file_handle._pf_file_handle.UnpinPage(0)) != 0)
+    {
+        PF_PrintError(rc);
+        return rc;
+    }
+
     return 0;
 }
 
@@ -109,6 +129,7 @@ int RecordManager::closeFile(RM_FileHandle &file_handle)
     //Close the file
     if ((rc = _pf_manager.CloseFile(file_handle._pf_file_handle)) != 0)
     {
+        PF_PrintError(rc);
         return rc;
     }
 
