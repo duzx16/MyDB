@@ -1,55 +1,15 @@
-#include "rm/RecordManager.h"
-#include "rm/RM_FileHandle.h"
-#include "rm/RM_FileScan.h"
-#include "fileio/BufPageManager.h"
-#include "utils/MyBitMap.h"
-#include <unistd.h>
-#include <vector>
+#include "ix/ix.h"
+#include "pf/pf.h"
+#include <cstdio>
 
-
-int main()
-{
-    MyBitMap::initConst();
-    chdir("/Users/Duzx/Downloads/DB_test");
-    RecordManager &rm = RecordManager::getInstance();
-    RM_FileHandle file_handle;
-    rm.createFile("persons", 10);
-    rm.openFile("persons", file_handle);
-    RM_Record record;
-    std::vector<RID> rids;
-    for (int j = 0; j < 2000; ++j)
-    {
-        RID rid = file_handle.insertRec(std::to_string(j).c_str());
-        file_handle.getRec(rid, record);
-        if(j % 2 == 0) {
-            rids.push_back(rid);
-        }
-    }
-    for(auto &it: rids){
-        file_handle.deleteRec(it);
-    }
-    RM_FileScan fileScan;
-    fileScan.openScan(file_handle, AttrType::NO_ATTR, 0, 0, CompOp::NO_OP, nullptr);
-    int i = 0;
-    while(true)
-    {
-        int rc = fileScan.getNextRec(record);
-        if(rc) {
-            break;
-        }
-        printf(record.getData());
-        printf("\n");
-        i += 1;
-        if(i > 199) {
-            int a = 0;
-        }
-    }
-//    for (int i = 0; i < 407; ++i)
-//    {
-//        RID rid(1, i);
-//        file_handle.getRec(rid, record);
-//        printf(record.getData());
-//        printf("\n");
-//    }
-    rm.closeFile(file_handle);
+int main() {
+	PF_Manager *pfManager = new PF_Manager();
+    IX_Manager *ixManager = new IX_Manager(*pfManager);
+	ixManager->CreateIndex("newFile", 34567, AttrType::INT, 4);
+	IX_IndexHandle *indexHandle = new IX_IndexHandle();
+	ixManager->OpenIndex("newFile", 34567, *indexHandle);
+	for (int i = 0; i < 10; ++i) {
+		indexHandle->InsertEntry(new int(0), RID(i, i));
+	}
+	return 0;
 }

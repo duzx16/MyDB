@@ -11,6 +11,7 @@
 typedef unsigned int* BufType;
 enum class AttrType{INT, FLOAT, STRING, NO_ATTR};
 enum class CompOp{EQ_OP, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, NO_OP};
+enum class ClientHint {NO_HINT};
 
 //
 // redbase.h
@@ -88,6 +89,5 @@ typedef char Boolean;
 #endif
 
 #endif
-
 
 #endif //MYDB_CONSTANTS_H
