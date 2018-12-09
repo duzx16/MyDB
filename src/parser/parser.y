@@ -29,24 +29,22 @@ class Tree;
     AttributeList *attributesTree;
     AttributeNode *attributeTree;
     IdentList *identList;
-    WhereClauseTree *whereClauseTree;
     ConditionsTree *conditionsTree;
-    Comparison *comparisonTree;
     ConstValueList *constValuesTree;
-    ConstValueNode *constValueTree;
     ColumnDecsList *columnsTree;
     ColumnNode *columnTree;
     ConstValueLists *insertValueTree;
     SetClauseList *setClauseList;
-    TbOptDec *tbOptDec;
-    TbOptDecList *tbOptDecList;
+    TableConstraint *tbOptDec;
+    TableConstraintList *tbOptDecList;
+    Expr * expr;
 }
 
 /* keyword */
 %token SELECT DELETE UPDATE INSERT
 %token CREATE DROP USE SHOW TABLES
 %token DATABASES DATABASE TABLE
-%token STAR FROM WHERE OPERATOR VALUES SET INTO
+%token FROM WHERE OPERATOR VALUES SET INTO
 
 /* COLUMN DESCPRITION */
 %token KINT KCHAR KFLOAT KVARCHAR KDATE PRIMARY FOREIGN REFERENCES
@@ -70,19 +68,17 @@ class Tree;
 %type <attributesTree> attributes
 %type <attributeTree> attribute
 %type <identList> tableList column_list
-%type <whereClauseTree> whereclause
-%type <conditionsTree> conditions
-%type <comparisonTree> comparison
+%type <conditionsTree> whereclause conditions
 %type <constValuesTree> constvalues
-%type <constValueTree> constvalue
 %type <columnsTree> column_decs
-%type <columnTree> column
+%type <columnTree> column_dec
 %type <insertValueTree> valueLists
 %type <setClauseList> setList
 %type <attrType> column_type
 %type <ivalue> column_constraints column_constraint
 %type <tbOptDec> tb_opt_dec
 %type <tbOptDecList> tb_opt_exist tb_opt_decs
+%type <expr> expr factor value comparison constvalue
 
 %%
 
@@ -103,7 +99,7 @@ command:
             }
     | SHOW DATABASES
             {
-                $$ = new ShowDatabases();
+                $$ = new ShowDatabase("");
                 Tree::setInstance($$);
                 Tree::run();
             }
@@ -121,11 +117,17 @@ command:
                 delete $3;
                 Tree::run();
             }
-    | USE IDENTIFIER
+    | USE DATABASE IDENTIFIER
             {
-                $$ = new UseDatabase($2);
+                $$ = new UseDatabase($3);
                 Tree::setInstance($$);
-                delete $2;
+                delete $3;
+                Tree::run();
+            }
+    | SHOW DATABASE IDENTIFIER
+            {
+                $$ = new ShowDatabase($3);
+                Tree::setInstance($$);
                 Tree::run();
             }
     | SHOW TABLES
@@ -134,7 +136,13 @@ command:
                 Tree::setInstance($$);
                 Tree::run();
             }
-    | SELECT STAR FROM tableList whereclause
+    | SHOW TABLE IDENTIFIER
+            {
+                $$ = new DescTable($3);
+                Tree::setInstance($$);
+                Tree::run();
+            }
+    | SELECT '*' FROM tableList whereclause
             {
                 $$ = new Select($4, $5);
                 Tree::setInstance($$);
@@ -230,17 +238,30 @@ valueLists:
     ;
 
 setList:
-    attribute EQ constvalue
+    attribute EQ expr
             {
                 $$ = new SetClauseList();
                 $$->addSetClause($1, $3);
             }
-    | setList ',' attribute EQ constvalue
+    | setList ',' attribute EQ expr
             {
                 $$->addSetClause($3, $5);
             }
+    ;
 
-column:
+column_decs:
+    column_dec
+            {
+                $$ = new ColumnDecsList();
+                $$->addColumn($1);
+            }
+    | column_decs ',' column_dec
+            {
+                $$->addColumn($3);
+            }
+    ;
+
+column_dec:
     IDENTIFIER column_type type_width column_constraints
             {
                 $$ = new ColumnNode($1, $2, $3, $4);
@@ -282,19 +303,6 @@ column_constraints: column_constraints column_constraint {$$ = $1 | $2;}
 column_constraint: NOTNULL {$$ = COLUMN_FLAG_NOTNULL;}
             ;
 
-
-column_decs:
-    column
-            {
-                $$ = new ColumnDecsList();
-                $$->addColumn($1);
-            }
-    | column_decs ',' column
-            {
-                $$->addColumn($3);
-            }
-    ;
-
 tb_opt_exist:
     ',' tb_opt_decs {$$ = $2;}
     | {$$ = NULL;}
@@ -303,7 +311,7 @@ tb_opt_exist:
 tb_opt_decs:
     tb_opt_dec
             {
-                $$ = new TbOptDecList();
+                $$ = new TableConstraintList();
                 $$->addTbDec($1);
             }
     | tb_opt_decs ',' tb_opt_dec
@@ -314,14 +322,18 @@ tb_opt_decs:
 tb_opt_dec:
     FOREIGN '(' IDENTIFIER ')' REFERENCES IDENTIFIER '(' IDENTIFIER ')'
             {
-                $$ = new TbOptDec($3, $6, $8);
+                $$ = new TableConstraint($3, $6, $8);
                 delete $3;
                 delete $6;
                 delete $8;
             }
     | PRIMARY '(' column_list ')'
             {
-                $$ = new TbOptDec($3);
+                $$ = new TableConstraint($3);
+            }
+    | CHECK '(' IDENTIFIER IN '(' constvalues ')' ')'
+            {
+                $$ = new TableConstraint($3, $6);
             }
 
 attributes:
@@ -411,7 +423,7 @@ tableList:
 whereclause:
     WHERE conditions
             {
-                $$ = new WhereClauseTree($2);
+                $$ = $2;
             }
     |
             {
@@ -432,61 +444,37 @@ conditions:
     ;
 
 comparison:
-    attribute EQ constvalue
+    expr EQ expr
             {
-                $$ = new Comparison($1, CompOp::EQ_OP, $3);
+                $$ = new Expr($1, CompOp::EQ_OP, $3);
             }
-    | attribute GT constvalue
+    | expr GT expr
             {
-                $$ = new Comparison($1, CompOp::GT_OP, $3);
+                $$ = new Expr($1, CompOp::GT_OP, $3);
             }
-    | attribute LT constvalue
+    | expr LT expr
             {
-                $$ = new Comparison($1, CompOp::LT_OP, $3);
+                $$ = new Expr($1, CompOp::LT_OP, $3);
             }
-    | attribute GE constvalue
+    | expr GE expr
             {
-                $$ = new Comparison($1, CompOp::GE_OP, $3);
+                $$ = new Expr($1, CompOp::GE_OP, $3);
             }
-    | attribute LE constvalue
+    | expr LE expr
             {
-                $$ = new Comparison($1, CompOp::LE_OP, $3);
+                $$ = new Expr($1, CompOp::LE_OP, $3);
             }
-    | attribute NE constvalue
+    | expr NE expr
             {
-                $$ = new Comparison($1, CompOp::NE_OP, $3);
+                $$ = new Expr($1, CompOp::NE_OP, $3);
             }
-    | attribute LIKE constvalue
+    | expr LIKE expr
             {
-                $$ = new Comparison($1, CompOp::LIKE_OP, $3);
+                $$ = new Expr($1, CompOp::LIKE_OP, $3);
             }
-    | attribute IS T_NULL
+    | expr IS T_NULL
             {
-                $$ = new Comparison($1);
-            }
-    | attribute EQ attribute
-            {
-                $$ = new Comparison($1, CompOp::EQ_OP, $3);
-            }
-    | attribute GT attribute
-            {
-                $$ = new Comparison($1, CompOp::GT_OP, $3);
-            }
-    | attribute LT attribute
-            {
-                $$ = new Comparison($1, CompOp::LT_OP, $3);
-            }
-    | attribute GE attribute
-            {
-                $$ = new Comparison($1, CompOp::GE_OP, $3);
-            }
-    | attribute LE attribute
-            {
-                $$ = new Comparison($1, CompOp::LE_OP, $3);
-            }
-    | attribute NE attribute
-            {
-                $$ = new Comparison($1, CompOp::NE_OP, $3);
+                $$ = new Expr($1, CompOp::IS_OP, new Expr());
             }
     ;
 
@@ -502,12 +490,44 @@ constvalues:
             }
     ;
 
-constvalue:
-    INTEGER         { $$ = new ConstValueNode($1); }
-    | FLOAT         { $$ = new ConstValueNode($1); }
-    | STRING        { $$ = new ConstValueNode($1); delete $1; }
-    | T_NULL          { $$ = new ConstValueNode(0); $$->setNull(); }
+expr:   expr '+' factor {
+            $$ = new Expr($1, ArithOp::ADD_OP, $3);
+        }
+    |   expr '-' factor{
+            $$ = new Expr($1, ArithOp::SUB_OP, $3);
+        }
+    |   factor {$$=$1;}
     ;
+
+factor: factor '*' value {
+            $$ = new Expr($1, ArithOp::MUL_OP, $3);
+        }
+    |  factor '/' value {
+           $$ = new Expr($1, ArithOp::DIV_OP, $3);
+        }
+    | value {$$=$1;}
+    ;
+
+value:
+    constvalue      {$$ = $1;}
+    | attribute     {
+        $$ = new Expr($1);
+    }
+    | '-' value     {
+        $$ = new Expr($2, ArithOp::MINUS_OP);
+    }
+    | '(' expr ')'  {
+        $$ = $2;
+    }
+    ;
+
+constvalue:
+    INTEGER         { $$ = new Expr($1); }
+    | FLOAT         { $$ = new Expr($1); }
+    | STRING        { $$ = new Expr($1); delete $1; }
+    | T_NULL        {
+        $$ = new Expr();
+    }
 
 %%
 

@@ -13,7 +13,7 @@
 using namespace std;
 
 //
-// Error table
+// Error foreign_table
 //
 static char *PF_WarnMsg[] = {
   (char*)"page pinned in buffer",
@@ -36,8 +36,8 @@ static char *PF_ErrorMsg[] = {
   (char*)"incomplete read of header from file",
   (char*)"incomplete write of header from file",
   (char*)"new page to be allocated already in buffer",
-  (char*)"hash table entry not found",
-  (char*)"page already in hash table",
+  (char*)"hash foreign_table entry not found",
+  (char*)"page already in hash foreign_table",
   (char*)"invalid file name"
 };
 

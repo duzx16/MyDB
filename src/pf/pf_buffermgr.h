@@ -102,7 +102,7 @@ private:
     RC  InitPageDesc (int fd, PageNum pageNum, int slot);
 
     PF_BufPageDesc *bufTable;                     // info on buffer pages
-    PF_HashTable   hashTable;                     // Hash table object
+    PF_HashTable   hashTable;                     // Hash foreign_table object
     int            numPages;                      // # of pages in the buffer
     int            pageSize;                      // Size of pages in the buffer
     int            first;                         // MRU page slot

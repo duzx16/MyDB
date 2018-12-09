@@ -20,7 +20,7 @@
 //       order to be used to access the pages of a file.
 //       It should be passed to PF_Manager::CloseFile() to close the file.
 //       A file handle object contains a pointer to the file data stored
-//       in the file table managed by PF_Manager.  It passes the file's unix
+//       in the file foreign_table managed by PF_Manager.  It passes the file's unix
 //       file descriptor to the buffer manager to access pages of the file.
 //
 PF_FileHandle::PF_FileHandle()

@@ -125,7 +125,7 @@ RC PF_Manager::DestroyFile (const char *fileName)
 // In:   fileName - name of file to open
 // Out:  fileHandle - refer to the open file
 //                    this function modifies local var's in fileHandle
-//       to point to the file data in the file table, and to point to the
+//       to point to the file data in the file foreign_table, and to point to the
 //       buffer manager object
 // Ret:  PF_FILEOPEN or other PF return code
 //

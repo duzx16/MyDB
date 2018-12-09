@@ -38,7 +38,10 @@ STRING          (\"[^\"]*\")|(\'[^\']*\')
 ")"             { /*printf(") "); */ return yytext[0]; }
 "."             { /*printf(". "); */ return yytext[0]; }
 ";"             { /*printf("; "); */ return yytext[0]; }
-"*"             { /*printf("* "); */ return STAR; }
+"+"             { /*printf("+ "); */ return yytext[0]; }
+"-"             { /*printf("- "); */ return yytext[0]; }
+"/"             { /*printf("/ "); */ return yytext[0]; }
+"*"             { /*printf("* "); */ return yytext[0]; }
 CREATE          { /*printf("CREATE "); */ return CREATE; }
 DROP            { /*printf("DROP "); */ return DROP; }
 USE             { /*printf("USE "); */ return USE; }

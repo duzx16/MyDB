@@ -12,15 +12,15 @@
 // PF_HashTable
 //
 // Desc: Constructor for PF_HashTable object, which allows search, insert,
-//       and delete of hash table entries.
-// In:   numBuckets - number of hash table buckets
+//       and delete of hash foreign_table entries.
+// In:   numBuckets - number of hash foreign_table buckets
 //
 PF_HashTable::PF_HashTable(int _numBuckets)
 {
   // Initialize numBuckets local variable from parameter
   this->numBuckets = _numBuckets;
 
-  // Allocate memory for hash table
+  // Allocate memory for hash foreign_table
   hashTable = new PF_HashEntry* [numBuckets];
 
   // Initialize all buckets to empty
@@ -47,14 +47,14 @@ PF_HashTable::~PF_HashTable()
     }
   }
 
-  // Finally delete the hash table
+  // Finally delete the hash foreign_table
   delete[] hashTable;
 }
 
 //
 // Find
 //
-// Desc: Find a hash table entry.
+// Desc: Find a hash foreign_table entry.
 // In:   fd - file descriptor
 //       pageNum - page number
 // Out:  slot - set to slot associated with fd and pageNum
@@ -87,7 +87,7 @@ RC PF_HashTable::Find(int fd, PageNum pageNum, int &slot)
 //
 // Insert
 //
-// Desc: Insert a hash table entry
+// Desc: Insert a hash foreign_table entry
 // In:   fd - file descriptor
 //       pagenum - page number
 //       slot - slot associated with fd and pageNum
@@ -128,7 +128,7 @@ RC PF_HashTable::Insert(int fd, PageNum pageNum, int slot)
 //
 // Delete
 //
-// Desc: Delete a hash table entry
+// Desc: Delete a hash foreign_table entry
 // In:   fd - file descriptor
 //       pagenum - page number
 // Ret:  PF return code
