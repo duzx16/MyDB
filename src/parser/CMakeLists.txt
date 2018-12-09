@@ -19,12 +19,14 @@ add_library(SqlParser
 
 set(SOURCE
         ${SOURCE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/Expr.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Tree.cpp
         PARENT_SCOPE
         )
 
 set(HEADERS
         ${HEADERS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/Expr.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Tree.h
         PARENT_SCOPE
         )

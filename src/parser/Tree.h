@@ -1,5 +1,9 @@
 #include <utility>
 
+#include <utility>
+
+#include <utility>
+
 //
 // Created by Zhengxiao Du on 11/24/18.
 //
@@ -10,37 +14,55 @@
 #include <string>
 #include <vector>
 #include "../Constants.h"
+#include "Expr.h"
 
 class Tree;
+
 //Sys Statement
-class ShowDatabases;
+class ShowDatabase;
+
 // Table Statement
 class Select;
+
 class Insert;
+
 class Update;
+
 class Delete;
+
 class CreateTable;
+
 class DropTable;
+
 // Database statement
 class CreateDatabase;
+
 class UseDatabase;
+
 class DropDatabase;
+
 // Index Statement
 class CreateIndex;
+
 class DropIndex;
 
 // DataType
 class ColumnDecsList;
+
 class ColumnNode;
+
 class AttributeList;
+
 class AttributeNode;
+
 class IdentList;
-class WhereClauseTree;
+
 class ConditionsTree;
-class Comparison;
+
 class ConstValueList;
-class ConstValueNode;
+
 class ConstValueLists;
+
 class SetClauseList;
 
 class Tree {
@@ -48,105 +70,128 @@ public:
     virtual void visit() {
         assert(false);
     }
+
     virtual ~Tree() = default;
+
     static void setInstance(Tree *t) {
-        if (tree != nullptr) {
-            delete tree;
-        }
+        delete tree;
+
         tree = t;
     }
+
     static void run() {
         if (tree != nullptr)
             tree->visit();
     }
+
     static Tree *tree;
 };
+//
+//struct AttrValue {
+//    AttrType type;
+//    int i;
+//    float f;
+//    std::string s;
+//    bool isNull;
+//
+//    // Definitions are in Tree.cpp
+//    bool operator==(const AttrValue &val) const;
+//
+//    bool operator!=(const AttrValue &val) const;
+//
+//    bool operator>=(const AttrValue &val) const;
+//
+//    bool operator<=(const AttrValue &val) const;
+//
+//    bool operator>(const AttrValue &val) const;
+//
+//    bool operator<(const AttrValue &val) const;
+//};
 
-struct AttrValue {
-    AttrType type;
-    int i;
-    float f;
-    std::string s;
-    bool isNull;
 
-    // Definitions are in Tree.cpp
-    bool operator ==(const AttrValue &val) const;
-    bool operator !=(const AttrValue &val) const;
-    bool operator >=(const AttrValue &val) const;
-    bool operator <=(const AttrValue &val) const;
-    bool operator > (const AttrValue &val) const;
-    bool operator < (const AttrValue &val) const;
-};
-
-
-class ShowDatabases: public Tree {
+class ShowDatabase : public Tree {
 public:
-    ShowDatabases();
+    explicit ShowDatabase(std::string DBname) : DBname(std::move(DBname)) {};
+
     void visit() override;
+
+private:
+    std::string DBname;
 };
 
 
 class Select : public Tree {
 public:
     Select(AttributeList *attributes,
-               IdentList *relations,
-               WhereClauseTree *whereClause,
-               const char* groupAttrName = "");
-    Select(IdentList *relations, WhereClauseTree *whereClause);
+           IdentList *relations,
+           ConditionsTree *whereClause,
+           const char *groupAttrName = "");
+
+    Select(IdentList *relations, ConditionsTree *whereClause);
 
     ~Select() override;
+
     void visit() override;
+
 private:
     AttributeList *attributes;
     IdentList *relations;
-    WhereClauseTree *whereClause;
+    ConditionsTree *whereClause;
     std::string groupAttrName;
 };
 
 
 class Insert : public Tree {
 public:
-    Insert(const char *relationName, ConstValueLists* insertValueTree);
+    Insert(const char *relationName, ConstValueLists *insertValueTree);
 
     ~Insert() override;
+
     void visit() override;
+
 private:
     std::string relationName;
-    ConstValueLists* insertValueTree;
+    ConstValueLists *insertValueTree;
 };
 
 
 class Update : public Tree {
 public:
     Update(std::string relationName,
-               SetClauseList *setClauses,
-               WhereClauseTree *whereClause);
+           SetClauseList *setClauses,
+           ConditionsTree *whereClause);
 
     ~Update() override;
+
     void visit() override;
+
 private:
     std::string relationName;
     SetClauseList *setClauses;
-    WhereClauseTree *whereClause;
+    ConditionsTree *whereClause;
 };
 
 
 class Delete : public Tree {
 public:
-    Delete(const char *relationName, WhereClauseTree *whereClause);
+    Delete(const char *relationName, ConditionsTree *whereClause);
 
     ~Delete() override;
+
     void visit() override;
+
 private:
     std::string relationName;
-    WhereClauseTree *whereClause;
+    ConditionsTree *whereClause;
 };
 
 
 class UseDatabase : public Tree {
 public:
     explicit UseDatabase(const char *dbName);
+
     void visit() override;
+
 private:
     std::string dbName;
 };
@@ -157,17 +202,21 @@ public:
     explicit CreateDatabase(const char *dbName);
 
     ~CreateDatabase() override;
+
     void visit() override;
+
 private:
     std::string dbName;
 };
 
 class DescTable : public Tree {
 public:
-    explicit DescTable(const char* relName);
+    explicit DescTable(const char *relName);
 
     ~DescTable() override;
+
     void visit() override;
+
 private:
     std::string tableName;
 };
@@ -178,7 +227,9 @@ public:
     CreateTable(const char *tableName, ColumnDecsList *columns);
 
     ~CreateTable() override;
+
     void visit() override;
+
 private:
     std::string tableName;
     ColumnDecsList *columns;
@@ -190,7 +241,9 @@ public:
     explicit DropDatabase(const char *dbName);
 
     ~DropDatabase() override;
+
     void visit() override;
+
 private:
     std::string dbName;
 };
@@ -201,17 +254,20 @@ public:
     explicit DropTable(const char *tableName);
 
     ~DropTable() override;
+
     void visit() override;
+
 private:
     std::string tableName;
 };
 
 
-class CreateIndex: public Tree {
+class CreateIndex : public Tree {
 public:
     CreateIndex(const char *relName, AttributeNode *attr);
 
     ~CreateIndex() override;
+
     void visit() override;
 
 private:
@@ -220,10 +276,12 @@ private:
 };
 
 
-class DropIndex: public Tree {
+class DropIndex : public Tree {
 public:
     DropIndex(const char *relName, AttributeNode *attr);
+
     ~DropIndex() override;
+
     void visit() override;
 
 private:
@@ -234,12 +292,17 @@ private:
 class ColumnDecsList : public Tree {
 public:
     ColumnDecsList();
+
     virtual ~ColumnDecsList();
+
     void addColumn(ColumnNode *);
 
     int getColumnCount();
+
     AttrInfo *getAttrInfos();
+
     void deleteAttrInfos();
+
 private:
     std::vector<ColumnNode *> columns;
     AttrInfo *attrInfos;
@@ -254,7 +317,9 @@ public:
     ~ColumnNode() override;
 
     AttrInfo getAttrInfo();
+
     friend class ColumnsTree;
+
 private:
     std::string columnName;
     AttrType type;
@@ -263,28 +328,31 @@ private:
     int columnFlag;
 };
 
-
+// For select attribute
 class AttributeNode : public Tree {
 public:
     AttributeNode(const char *relationName, const char *attributeName,
                   AggregationType aggregationType = AggregationType::T_NONE);
+
     explicit AttributeNode(const char *attributeName, AggregationType aggregationType = AggregationType::T_NONE);
 
     ~AttributeNode() override;
 
-    bool operator ==(const AttributeNode &attribute) const;
+    bool operator==(const AttributeNode &attribute) const;
 
     struct AttributeDescriptor {
         std::string relName;
         std::string attrName;
         AggregationType aggregationType;
+
         explicit AttributeDescriptor(std::string relName = "",
-                            std::string attrName = "",
-                            AggregationType aggregationType = AggregationType::T_NONE) :
-                relName(std::move(relName)), attrName(attrName), aggregationType(aggregationType) {}
+                                     std::string attrName = "",
+                                     AggregationType aggregationType = AggregationType::T_NONE) :
+                relName(std::move(relName)), attrName(std::move(attrName)), aggregationType(aggregationType) {}
     };
 
     AttributeDescriptor getDescriptor() const;
+
 private:
     std::string table;
     std::string attribute;
@@ -297,58 +365,13 @@ public:
     AttributeList();
 
     ~AttributeList() override;
+
     void addAttribute(AttributeNode *attribute);
+
     std::vector<AttributeNode::AttributeDescriptor> getDescriptors() const;
+
 private:
     std::vector<AttributeNode *> attributes;
-};
-
-
-class ConstValueNode : public Tree {
-public:
-    explicit ConstValueNode(int i);
-    explicit ConstValueNode(float f);
-    explicit ConstValueNode(const char *s);
-
-    ~ConstValueNode() override;
-
-    AttrValue getDescriptor();
-    void setNull() {isNull = true;}
-
-    friend class ComparisonTree;
-private:
-    int i;
-    float f;
-    std::string s;
-    AttrType type;
-    bool isNull;
-};
-
-
-class Comparison : public Tree {
-public:
-    explicit Comparison(AttributeNode *attribute);   // is null
-    Comparison(AttributeNode *attribute, CompOp op, ConstValueNode *constValue);
-    Comparison(AttributeNode *attribute, CompOp op, AttributeNode *attribute2);
-
-    ~Comparison() override;
-
-    struct ComparisonDescriptor {
-        AttributeNode::AttributeDescriptor attr;
-        CompOp op;
-        AttrValue val;
-        AttributeNode::AttributeDescriptor attr2;
-        bool isAttrCmp;
-    };
-
-    ComparisonDescriptor getDescriptor();
-
-private:
-    ConstValueNode *constValue;
-    AttributeNode *attribute;
-    AttributeNode *attribute2;
-    CompOp op;
-    bool isAttrCmp;
 };
 
 
@@ -357,23 +380,11 @@ public:
     IdentList();
 
     ~IdentList() override;
+
     void addIdent(const char *ident);
+
 private:
     std::vector<std::string> idents;
-};
-
-
-class WhereClauseTree : public Tree {
-public:
-    explicit WhereClauseTree(ConditionsTree *conditions);
-    WhereClauseTree();
-
-    ~WhereClauseTree() override;
-
-    std::vector<Comparison::ComparisonDescriptor> getComparision();
-
-private:
-    ConditionsTree *conditions;
 };
 
 
@@ -382,10 +393,11 @@ public:
     ConditionsTree();
 
     ~ConditionsTree() override;
-    void addComparison(Comparison *comparison);
-    std::vector<Comparison::ComparisonDescriptor> getComparisions();
+
+    void addComparison(Expr *comparison);
+
 private:
-    std::vector<Comparison *> comparisons;
+    std::vector<Expr *> comparisons;
 };
 
 
@@ -394,47 +406,65 @@ public:
     ConstValueList();
 
     ~ConstValueList() override;
-    void addConstValue(ConstValueNode *constValue);
 
-    std::vector<AttrValue> getConstValues();
+    void addConstValue(Expr *constValue);
+
+//    std::vector<AttrValue> getConstValues();
+
 private:
-    std::vector<ConstValueNode *> constValues;
+    std::vector<Expr *> constValues;
 };
 
+// For insert values
 class ConstValueLists : public Tree {
 public:
     explicit ConstValueLists();
 
     ~ConstValueLists() override;
-    void addConstValues(ConstValueList* constValuesTree);
-    std::vector<ConstValueList*> values;
+
+    void addConstValues(ConstValueList *constValuesTree);
+
+    std::vector<ConstValueList *> values;
 };
 
-class SetClauseList: public Tree {
+class SetClauseList : public Tree {
 public:
     SetClauseList();
-    void addSetClause(AttributeNode *, ConstValueNode *);
+
+    void addSetClause(AttributeNode *, Expr *);
+
 private:
-    std::vector<std::pair<AttributeNode *, ConstValueNode *>> clauses;
+    std::vector<std::pair<AttributeNode *, Expr *>> clauses;
 };
 
-class TbOptDec: public Tree {
+class TableConstraint : public Tree {
 public:
-    TbOptDec(IdentList * column_list);
-    TbOptDec(const char * foreign_key, const char * table, const char * column);
-    ~TbOptDec() override;
-    IdentList * column_list;
-    std::string foreign_key;
-    std::string table;
-    std::string column;
+    explicit TableConstraint(IdentList *column_list);
+
+    TableConstraint(const char *column_name, const char *table, const char *column);
+
+    TableConstraint(char *column_name, ConstValueList *const_values);
+
+    ~TableConstraint() override;
+
+    ConstraintType type;
+    ConstValueList *const_values = nullptr;
+    IdentList *column_list = nullptr;
+    std::string column_name;
+    std::string foreign_table;
+    std::string foreign_column;
 };
 
-class TbOptDecList: public Tree {
+class TableConstraintList : public Tree {
 public:
-    TbOptDecList() = default;
-    ~TbOptDecList() override;
-    void addTbDec(TbOptDec *dec);
-    std::vector<TbOptDec *> tbDecs;
+    TableConstraintList() = default;
+
+    ~TableConstraintList() override;
+
+    void addTbDec(TableConstraint *dec);
+
+    std::vector<TableConstraint *> tbDecs;
 };
+
 
 #endif //DATABASE_TREE_H

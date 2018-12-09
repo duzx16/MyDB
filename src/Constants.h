@@ -8,15 +8,29 @@
 /*
  * 一个页面中的字节数
  */
-typedef unsigned int* BufType;
-enum class AttrType{INT, FLOAT, STRING, DATE, VARCHAR, NO_ATTR};
-enum class CompOp{EQ_OP, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, NO_OP, LIKE_OP};
+typedef unsigned int *BufType;
+enum class AttrType {
+    INT, FLOAT, STRING, DATE, VARCHAR, NO_ATTR
+};
+enum class CompOp {
+    EQ_OP, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, IS_OP, LIKE_OP, NO_OP
+};
+enum class ArithOp {
+    ADD_OP, SUB_OP, MUL_OP, DIV_OP, MINUS_OP, NO_OP
+};
+
 enum class AggregationType {
     T_NONE = 0,
     T_AVG,
     T_SUM,
     T_MIN,
     T_MAX
+};
+
+enum class ConstraintType {
+    PRIMARY_CONSTRAINT,
+    FOREIGN_CONSTRAINT,
+    CHECK_CONSTRAINT
 };
 
 #define MAX_NAME 42

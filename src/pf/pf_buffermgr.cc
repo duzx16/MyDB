@@ -112,10 +112,10 @@ PF_BufferMgr::PF_BufferMgr(int _numPages) : hashTable(PF_HASH_TBL_SIZE)
    WriteLog(psMessage);
 #endif
 
-   // Allocate memory for buffer page description table
+   // Allocate memory for buffer page description foreign_table
    bufTable = new PF_BufPageDesc[numPages];
 
-   // Initialize the buffer table and allocate memory for buffer pages.
+   // Initialize the buffer foreign_table and allocate memory for buffer pages.
    // Initially, the free list contains all pages
    for (int i = 0; i < numPages; i++) {
       if ((bufTable[i].pData = new char[pageSize]) == NULL) {
@@ -209,7 +209,7 @@ RC PF_BufferMgr::GetPage(int fd, PageNum pageNum, char **ppBuffer,
       if ((rc = InternalAlloc(slot)))
          return (rc);
 
-      // read the page, insert it into the hash table,
+      // read the page, insert it into the hash foreign_table,
       // and initialize the page description entry
       if ((rc = ReadPage(fd, pageNum, bufTable[slot].pData)) ||
             (rc = hashTable.Insert(fd, pageNum, slot)) ||
@@ -285,7 +285,7 @@ RC PF_BufferMgr::AllocatePage(int fd, PageNum pageNum, char **ppBuffer)
    if ((rc = InternalAlloc(slot)))
       return (rc);
 
-   // Insert the page into the hash table,
+   // Insert the page into the hash foreign_table,
    // and initialize the page description entry
    if ((rc = hashTable.Insert(fd, pageNum, slot)) ||
          (rc = InitPageDesc(fd, pageNum, slot))) {
@@ -329,7 +329,7 @@ RC PF_BufferMgr::MarkDirty(int fd, PageNum pageNum)
 
    // The page must be found and pinned in the buffer
    if ((rc = hashTable.Find(fd, pageNum, slot))){
-      if ((rc == PF_HASHNOTFOUND))
+      if (rc == PF_HASHNOTFOUND)
          return (PF_PAGENOTINBUF);
       else
          return (rc);              // unexpected error
@@ -365,7 +365,7 @@ RC PF_BufferMgr::UnpinPage(int fd, PageNum pageNum)
 
    // The page must be found and pinned in the buffer
    if ((rc = hashTable.Find(fd, pageNum, slot))){
-      if ((rc == PF_HASHNOTFOUND))
+      if (rc == PF_HASHNOTFOUND)
          return (PF_PAGENOTINBUF);
       else
          return (rc);              // unexpected error
@@ -445,7 +445,7 @@ RC PF_BufferMgr::FlushPages(int fd)
                bufTable[slot].bDirty = FALSE;
             }
 
-            // Remove page from the hash table and add the slot to the free list
+            // Remove page from the hash foreign_table and add the slot to the free list
             if ((rc = hashTable.Delete(fd, bufTable[slot].pageNum)) ||
                   (rc = Unlink(slot)) ||
                   (rc = InsertFree(slot)))
@@ -606,10 +606,10 @@ RC PF_BufferMgr::ResizeBuffer(int iNewSize)
    // First try and clear out the old buffer!
    ClearBuffer();
 
-   // Allocate memory for a new buffer table
+   // Allocate memory for a new buffer foreign_table
    PF_BufPageDesc *pNewBufTable = new PF_BufPageDesc[iNewSize];
 
-   // Initialize the new buffer table and allocate memory for buffer
+   // Initialize the new buffer foreign_table and allocate memory for buffer
    // pages.  Initially, the free list contains all pages
    for (i = 0; i < iNewSize; i++) {
       if ((pNewBufTable[i].pData = new char[pageSize]) == NULL) {
@@ -625,7 +625,7 @@ RC PF_BufferMgr::ResizeBuffer(int iNewSize)
    pNewBufTable[0].prev = pNewBufTable[iNewSize - 1].next = INVALID_SLOT;
 
    // Now we must remember the old first and last slots and (of course)
-   // the buffer table itself.  Then we use insert methods to insert
+   // the buffer foreign_table itself.  Then we use insert methods to insert
    // each of the entries into the new buffertable
    int oldFirst = first;
    PF_BufPageDesc *pOldBufTable = bufTable;
@@ -635,7 +635,7 @@ RC PF_BufferMgr::ResizeBuffer(int iNewSize)
    first = last = INVALID_SLOT;
    free = 0;
 
-   // Setup the new buffer table
+   // Setup the new buffer foreign_table
    bufTable = pNewBufTable;
 
    // We must first remove from the hashtable any possible entries
@@ -650,7 +650,7 @@ RC PF_BufferMgr::ResizeBuffer(int iNewSize)
       slot = next;
    }
 
-   // Now we traverse through the old buffer table and copy any old
+   // Now we traverse through the old buffer foreign_table and copy any old
    // entries into the new one
    slot = oldFirst;
    while (slot != INVALID_SLOT) {
@@ -660,7 +660,7 @@ RC PF_BufferMgr::ResizeBuffer(int iNewSize)
       if ((rc = InternalAlloc(newSlot)))
          return (rc);
 
-      // Insert the page into the hash table,
+      // Insert the page into the hash foreign_table,
       // and initialize the page description entry
       if ((rc = hashTable.Insert(pOldBufTable[slot].fd,
             pOldBufTable[slot].pageNum, newSlot)) ||
@@ -675,7 +675,7 @@ RC PF_BufferMgr::ResizeBuffer(int iNewSize)
       slot = next;
    }
 
-   // Finally, delete the old buffer table
+   // Finally, delete the old buffer foreign_table
    delete [] pOldBufTable;
 
    return 0;
@@ -802,7 +802,7 @@ RC PF_BufferMgr::InternalAlloc(int &slot)
          bufTable[slot].bDirty = FALSE;
       }
 
-      // Remove page from the hash table and slot from the used buffer list
+      // Remove page from the hash foreign_table and slot from the used buffer list
       if ((rc = hashTable.Delete(bufTable[slot].fd, bufTable[slot].pageNum)) ||
             (rc = Unlink(slot)))
          return (rc);
@@ -950,10 +950,10 @@ RC PF_BufferMgr::AllocateBlock(char *&buffer)
    if ((rc = InternalAlloc(slot)) != OK_RC)
       return rc;
 
-   // Create artificial page number (just needs to be unique for hash table)
+   // Create artificial page number (just needs to be unique for hash foreign_table)
    PageNum pageNum = PageNum(bufTable[slot].pData);
 
-   // Insert the page into the hash table, and initialize the page description entry
+   // Insert the page into the hash foreign_table, and initialize the page description entry
    if ((rc = hashTable.Insert(MEMORY_FD, pageNum, slot) != OK_RC) ||
          (rc = InitPageDesc(MEMORY_FD, pageNum, slot)) != OK_RC) {
       // Put the slot back on the free list before returning the error
