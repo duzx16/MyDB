@@ -6,7 +6,7 @@
 #include "../pf/pf.h"
 
 #define NODE_KEYS 6
-#define RID_BUCKET_SIZE 300
+#define RID_BUCKET_SIZE 400
 
 struct IndexInfo {
 	AttrType attrType;
@@ -42,13 +42,17 @@ struct NodePagePacket {
 	InternalNode internalNode;
 };
 struct RIDPagePacket {
-	int nextOccp;
-	int pool[RID_BUCKET_SIZE];
-	int poolSize;
+	int size;
 	RID r[RID_BUCKET_SIZE];
 	RC insertRID(const RID rid);
 	RC deleteRID(const RID rid);
 };
-
+struct RIDPositionInfo {
+	LeafNode leafNode;
+	int posInLeaf;
+	RIDPagePacket ridPagePacket;
+	int ridPagePos;
+	RID getCurRID() { return ridPagePacket.r[ridPagePos]; }
+};
 
 #endif

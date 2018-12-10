@@ -140,13 +140,43 @@ PageNum IX_IndexHandle::InsertEntryFromPage(void *pData, PageNum &pageNum, PageN
 	}
 }
 RC IX_IndexHandle::DeleteEntry(void *pData, const RID &rid) {
-	PageNum ridPageNum = DeleteEntryFromPage(pData, indexInfo->rootPageNum, -1, -1);
-	RC rc = deleteFromRIDPage(rid, ridPageNum);
+	RC rc = DeleteEntryFromPage(pData, indexInfo->rootPageNum, rid, NULL);
 	ForcePages();
 	return rc;
 }
 
-PageNum IX_IndexHandle::DeleteEntryFromPage(void *pData, PageNum& pageNum, PageNum fatherPage, int nodePos) {}
+RC IX_IndexHandle::DeleteEntryFromPage(void *pData, PageNum& pageNum, const RID &rid, void *&leafHeadData) {
+	char* pageData;
+	PF_PageHandle pageHandle;
+	fileHandle.GetThisPage(pageNum, pageHandle);
+	pageHandle.GetData(pageData);
+	NodePagePacket* nodePagePacket = (NodePagePacket*) pageData;
+	void *_leafHeadData = NULL;
+	if (nodePagePacket->nodeType == 0) {// internalNode
+		InternalNode *internalNode = &(nodePagePacket->internalNode);
+		for (int i = 0; i <= internalNode->keyCount; ++i) {
+			if (i == internalNode->keyCount || cmp(pData, internalNode->pData[i + 1]) < 0) {
+				DeleteEntryFromPage(pData, internalNode->son[i], rid, _leafHeadData);
+				if (_leafHeadData != NULL && i > 0)
+					internalNode->pData[i] = _leafHeadData;
+				break;
+			}
+		}
+		leafHeadData = NULL;
+	}
+	else {// leafNode
+		LeafNode* leafNode = &(nodePagePacket->leafNode);
+		for (int i = 0; i < leafNode->size; ++i) {
+			if (cmp(pData, (leafNode->data[i]).pData) == 0) {
+				deleteFromRIDPage(rid, pageNum);
+				break;
+			}
+		}
+		leafHeadData = (leafNode->data[i]).pData;
+		fileHandle.MarkDirty(pageNum);
+	}
+	// todo : merge under-flow nodes
+}
 
 RC IX_IndexHandle::ForcePages() {
 	fileHandle.ForcePages();
@@ -241,4 +271,127 @@ LeafNode IX_IndexHandle::FindLeafNode(void *pData) {
 	pageHandle.GetData(pageData);
 	fileHandle.UnpinPage(leafPage);
 	return ((NodePagePacket*)pageData)->leafNode;
+}
+
+RC IX_IndexHandle::PrintFullLinkList() {
+	PF_PageHandle pageHandle;
+	char *pageData;
+	fileHandle.GetThisPage(indexInfo->rootPageNum, pageHandle);
+	LeafNode *leafNode;
+	while (true) {
+		pageHandle.GetData(pageData);
+		NodePagePacket* nodePagePacket = (NodePagePacket*) pageData;
+		if (nodePagePacket->nodeType == 0)
+			fileHandle.GetThisPage((nodePagePacket->internalNode).son[0], pageHandle);
+		else {
+			leafNode = &(nodePagePacket->leafNode); 
+			break;
+		}
+	}
+	while (leafNode->rightPage != -1) {
+		for (int i = 0; i < leafNode->size; ++i)
+			printf("data = %d, RIDPage = %d\n", *((int*)((leafNode->data[i]).pdata)), (leafNode->data[i]).ridPageNum);
+		fileHandle.GetThisPage(leafNode->rightPage, pageHandle);
+		pageHandle.GetData(pageData);
+		leafNode = ((NodePagePacket*) pageData)->leafNode;
+	}
+}
+
+void IX_IndexHandle::GetGeqRIDPos(void *pData, RIDPositionInfo &ridPositionInfo, bool returnFirstRID) {
+	PF_PageHandle pageHandle;
+	char *pageData;
+	fileHandle.GetThisPage(indexInfo->rootPageNum, pageHandle);
+	LeafNode *leafNode;
+	PageNum curPage;
+	while (true) {
+		pageHandle.GetData(pageData);
+		NodePagePacket* nodePagePacket = (NodePagePacket*) pageData;
+		if (nodePagePacket->nodeType == 0)
+			fileHandle.GetThisPage((nodePagePacket->internalNode).son[0], pageHandle);
+		else {
+			pageHandle.GetPageNum(curPage);
+			leafNode = &(nodePagePacket->leafNode); 
+			break;
+		}
+	}
+	while (true) {
+		for (int i = 0; i < leafNode->size; ++i) {
+			if (cmp(pData, (leafNode->data[i]).pdata) <= 0 || returnFirstRID) {
+				ridPositionInfo.leafNode = *leafNode;
+				ridPositionInfo.posInLeaf = i;
+				fileHandle.GetThisPage((leafNode->data[i]).ridPageNum, pageHandle);
+				pageHandle.GetData(pageData);
+				ridPositionInfo.ridPagePacket = *((RIDPagePacket*)pageData);
+				ridPositionInfo.ridPagePos = 0;
+				break;
+			}
+		}
+		if (leafNode->rightPage == -1) {
+			ridPositionInfo.ridPagePos = -1;
+			break;
+		}
+		else {
+			fileHandle.GetThisPage(leafNode->rightPage, pageHandle);
+			pageHandle.GetData(pageData);
+			leafNode = &(((NodePagePacket*)pageData)->leafNode);
+		}
+	}
+}
+
+void IX_IndexHandle::GetNextRIDPositionInfo(RIDPositionInfo &ridPositionInfo, int dir, bool EQ_OP) {
+	char *pageData;
+	PF_PageHandle pageHandle;
+	if (ridPositionInfo.ridPagePos < ridPositionInfo.ridPagePacket.size - 1)
+		++ridPositionInfo.ridPagePos;
+	else {
+		if (EQ_OP) {
+			ridPositionInfo.ridPagePos = -1;
+		}
+		else if (dir == 1) {// right
+			if (ridPositionInfo.posInLeaf < ridPositionInfo.leafNode.size - 1) {
+				ridPositionInfo.ridPagePos = 0;
+				fileHandle.GetThisPage(ridPositionInfo.leafNode.data[++ridPositionInfo.posInLeaf].ridPageNum, pageHandle);
+				pageHandle.GetData(pageData);
+				ridPositionInfo.ridPagePacket = *((RIDPagePacket*)pageData);
+			}
+			else {
+				if (ridPositionInfo.leafNode.rightPage == -1) {
+					ridPositionInfo.ridPagePos = -1;
+				}
+				else {
+					fileHandle.GetThisPage(ridPositionInfo.leafNode.rightPage, pageHandle);
+					pageHandle.GetData(pageData);
+					leafNode = ((NodePagePacket*)pageData)->leafNode;
+					ridPositionInfo.posInLeaf = 0;
+					fileHandle.GetThisPage(ridPositionInfo.leafNode.data[0].ridPageNum, pageHandle);
+					pageHandle.GetData(pageData);
+					ridPositionInfo.ridPagePacket = *((RIDPagePacket*)pageData);
+					ridPositionInfo.ridPagePos = 0;
+				}
+			}
+		}
+		else {// left
+			if (ridPositionInfo.posInLeaf > 0) {
+				ridPositionInfo.ridPagePos = 0;
+				fileHandle.GetThisPage(ridPositionInfo.leafNode.data[--ridPositionInfo.posInleaf].ridPageNum, pageHandle);
+				pageHandle.GetData(pageData);
+				ridPositionInfo.ridPagePacket = *((RIDPagePacket*)pageData);
+			}
+			else {
+				if (ridPositionInfo.leafNode.leftPage == -1) {
+					ridPositionInfo.ridPagePos = -1;
+				}
+				else {
+					fileHandle.GetThisPage(ridPositionInfo.leafNode.leftPage, pageHandle);
+					pageHandle.GetData(pageData);
+					leafNode = ((NodePagePacket*)pageData)->leafNode;
+					ridPositionInfo.posInLeaf = 0;
+					fileHandle.GetThisPage(ridPositionInfo.leafNode.data[0].ridPageNum, pageHandle);
+					pageHandle.GetData(pageData);
+					ridPositionInfo.ridPagePacket = *((RIDPagePacket*)pageData);
+					ridPositionInfo.ridPagePos = 0;
+				}
+			}
+		}
+	}
 }

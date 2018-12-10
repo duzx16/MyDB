@@ -2,34 +2,34 @@
 #include "ix.h"
 
 RC RIDPagePacket::insertRID(const RID rid) {
-	bool notCover[RID_BUCKET_SIZE] = {};
-	for (int i = 0; i < poolSize; ++i)
-		notCover[pool[i]] = true;
-	for (int i = 0; i < nextOccp; ++i)
-		if (!notCover[i] && (rid.getPageNum() == r[i].getPageNum()) && (rid.getSlotNum() == r[i].getSlotNum()))
+	for (int i = 0; i < size; ++i) {
+		if (rid.getPageNum() == r[i].getPageNum && rid.getSlotNum() == r[i].getSlotNum()) {
 			return IX_ENTRY_EXISTS;
-	int size = nextOccp - poolSize;
-	if (size < RID_BUCKET_SIZE) {
-		if (poolSize > 0)
-			r[pool[--poolSize]] = rid;
-		else
-			r[nextOccp++] = rid;
+		}
+	}
+	if (size + 1 == RID_BUCKET_SIZE) {
+		return IX_BUCKET_FULL;
+	}
+	else {
+		r[size++] = rid;
 		return 0;
 	}
-	else
-		return IX_BUCKET_FULL;
 }
 
 RC RIDPagePacket::deleteRID(const RID rid) {
-	bool notCover[RID_BUCKET_SIZE] = {};
-	for (int i = 0; i < poolSize; ++i)
-		notCover[pool[i]] = true;
-	for (int i = 0; i < nextOccp; ++i)
-		if (!notCover[i] && (rid.getPageNum() == r[i].getPageNum()) && (rid.getSlotNum() == r[i].getSlotNum())) {
-			pool[poolSize++] = i;
-			return 0;
+	int pos = -1;
+	for (int i = 0; i < size; ++i) {
+		if (rid.getPageNum() == r[i].getPageNum && rid.getSlotNum() == r[i].getSlotNum()) {
+			pos = i;
+			break;
 		}
-	return IX_ENTRY_DOES_NOT_EXIST;
+	}
+	if (pos == -1)
+		return IX_ENTRY_DOES_NOT_EXIST;
+	for (int i = pos; i < size - 1; ++i)
+		r[i] = r[i + 1];
+	--size;
+	return 0;
 }
 
 void LeafNode::split(LeafNode* splitNode, PageNum newPage, PageNum thisPage) {

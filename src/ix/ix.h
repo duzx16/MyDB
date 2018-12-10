@@ -55,6 +55,8 @@ public:
 	void init(const char* indexFileName, PF_Manager *_pfm);
 	void CloseIndex();
 	LeafNode FindLeafNode(void *pData);
+	
+	void PrintFullLinkList(); // print full link list just for attrtype = int
 private:
 	IndexInfo *indexInfo;
 	PF_FileHandle fileHandle;
@@ -66,6 +68,8 @@ private:
 	PageNum InsertEntryFromPage(void *pData, PageNum &pageNum, PageNum fatherPage, int nodePos);
 	PageNum DeleteEntryFromPage(void *pData, PageNum &pageNum, PageNum fatherPage, int nodePos); 
 	PageNum FindLeafPageFromPage(void *pData, PageNum pageNum);
+	void GetNextRIDPositionInfo(RIDPositionInfo &ridPositionInfo, int dir, bool EQ_OP);
+	void GetGeqRIDPos(void *pData, RIDPositionInfo &ridPositionInfo, bool returnFirstRID);
 };
 
 //
@@ -80,7 +84,13 @@ public:
                       void        *value,
                       ClientHint  pinHint = ClientHint::NO_HINT);
     RC GetNextEntry  (RID &rid);                      // Get next matching entry
-    RC CloseScan     ();                              // Terminate index scan
+    RC CloseScan     ();     	// Terminate index scan
+private:
+	IX_IndexHandle indexHandle;
+	RIDPositionInfo ridPositionInfo;
+	int dir;
+	void *skipValue;
+	bool EQ_OP;
 };
 
 //
