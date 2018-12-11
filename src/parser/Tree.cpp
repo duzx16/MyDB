@@ -145,13 +145,15 @@ void CreateDatabase::visit() {
 }
 
 /* CreateTableTree */
-CreateTable::CreateTable(const char *tableName, ColumnDecsList *columns) {
+CreateTable::CreateTable(const char *tableName, ColumnDecsList *columns, TableConstraintList *tableConstraints) {
     this->tableName = string(tableName);
     this->columns = columns;
+    this->tableConstraints = tableConstraints;
 }
 
 CreateTable::~CreateTable() {
     delete columns;
+    delete tableConstraints;
 }
 
 void CreateTable::visit() {
@@ -278,12 +280,12 @@ ColumnNode::ColumnNode(const char *columnName, AttrType type, int size,
 
 ColumnNode::~ColumnNode() = default;
 
-AttrInfo ColumnNode::getAttrInfo() {
+AttrInfo ColumnNode::getAttrInfo() const {
     AttrInfo attrInfo;
     strcpy(attrInfo.attrName, columnName.c_str());
-    attrInfo.attrType = (AttrType) type;
+    attrInfo.attrType = type;
     attrInfo.attrLength = size;
-    attrInfo.isPrimaryKey = isPrimaryKey;
+    attrInfo.notNull = int((columnFlag & COLUMN_FLAG_NOTNULL) != 0);
     return attrInfo;
 }
 
@@ -567,6 +569,24 @@ ColumnDecsList::~ColumnDecsList() {
 
 void ColumnDecsList::addColumn(ColumnNode *column) {
     columns.push_back(column);
+}
+
+int ColumnDecsList::getColumnCount() {
+    return columns.size();
+}
+
+AttrInfo *ColumnDecsList::getAttrInfos() {
+    if (attrInfos == nullptr) {
+        attrInfos = new AttrInfo[columns.size()];
+        for (int i = 0; i < columns.size(); ++i) {
+            attrInfos[i] = columns[i]->getAttrInfo();
+        }
+    }
+    return attrInfos;
+}
+
+void ColumnDecsList::deleteAttrInfos() {
+    delete attrInfos;
 }
 
 // Primary key

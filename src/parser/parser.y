@@ -184,7 +184,7 @@ command:
             }
     | CREATE TABLE IDENTIFIER '(' column_decs tb_opt_exist ')'
             {
-                $$ = new CreateTable($3, $5);
+                $$ = new CreateTable($3, $5, $6);
                 Tree::setInstance($$);
                 delete $3;
                 Tree::run();
