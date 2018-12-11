@@ -40,7 +40,6 @@ struct AttrInfo {
     char attrName[MAX_NAME + 1];
     int attrLength;
     AttrType attrType;
-    int isPrimaryKey;
     int notNull;
 };
 
