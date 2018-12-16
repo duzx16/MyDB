@@ -5,7 +5,7 @@
 #include "../rm/RID.h"
 #include "../pf/pf.h"
 
-#define NODE_KEYS 6
+#define D 3
 #define RID_BUCKET_SIZE 400
 
 struct IndexInfo {
@@ -20,17 +20,18 @@ struct LeafData {
 };
 struct LeafNode {
 	int size;
-	LeafData data[NODE_KEYS + 1];
+	LeafData data[D << 1];
 	PageNum leftPage, rightPage;
 	void init() { size = 0; leftPage = rightPage = -1; }
 	void insertDataIntoPos(void *pData, PageNum pageNum, int pos);
+	void deleteDataAtPos(int pos);
 	void split(LeafNode* splitNode, PageNum newPage, PageNum thisPage);
 };
 struct InternalNode {
 	int keyCount;
-	PageNum son[NODE_KEYS + 2];
+	PageNum son[2 * D + 1];
 	void init() { keyCount = 0; for (int i = 0; i < NODE_KEYS + 2; ++i) son[i] = -1; }
-	void* pData[NODE_KEYS + 2];
+	void* pData[2 * D + 1];
 	void InsertKeyAfterPos(void *pData, PageNum pageNum, int pos);
 	void ChangeKey(void *pData, int pos);
 	void Split(InternalNode* splitNode);

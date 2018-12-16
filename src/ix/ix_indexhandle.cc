@@ -58,8 +58,8 @@ PageNum IX_IndexHandle::InsertEntryFromPage(void *pData, PageNum &pageNum, PageN
 		fileHandle.MarkDirty(newRIDPageNum);
 		leafNode->insertDataIntoPos(pData, newRIDPageNum, pos);
 		fileHandle.MarkDirty(pageNum);
-		// up overflow, split
-		if (leafNode->size > NODE_KEYS) {
+		// overflow, split
+		if (leafNode->size > 2 * D) {
 			PageNum splitNodePageNum;
 			PF_PageHandle splitNodePageHandle;
 			fileHandle.AllocatePage(splitNodePageHandle);
@@ -106,7 +106,7 @@ PageNum IX_IndexHandle::InsertEntryFromPage(void *pData, PageNum &pageNum, PageN
 			if (i == internalNode->keyCount + 1)
 				result = InsertEntryFromPage(pData, internalNode->son[internalNode->keyCount], pageNum, internalNode->keyCount);
 		}
-		if (internalNode->keyCount > NODE_KEYS) {
+		if (internalNode->keyCount + 1 > D * 2) {
 			PageNum splitNodePageNum;
 			PF_PageHandle splitNodePageHandle;
 			fileHandle.AllocatePage(splitNodePageHandle);
@@ -139,12 +139,105 @@ PageNum IX_IndexHandle::InsertEntryFromPage(void *pData, PageNum &pageNum, PageN
 		return result;
 	}
 }
+
 RC IX_IndexHandle::DeleteEntry(void *pData, const RID &rid) {
-	RC rc = DeleteEntryFromPage(pData, indexInfo->rootPageNum, rid, NULL);
+	void *_;
+	RC rc = DeleteEntryFromPage(pData, indexInfo->rootPageNum, rid, _);
 	ForcePages();
 	return rc;
 }
 
+int IX_IndexHandle::getRIDPageSize(const PageNum pageNum) {
+	char *pageData;
+	getPageData(pageNum, pageData);
+	return ((RIDPagePacket*)pageData)->size;
+}
+
+int IX_IndexHandle::getLeafNodeSize(const PageNum pageNum) {
+	char *pageData;
+	getPageData(pageNum, pageData);
+	return (((NodePagePacket*)pageData)->leafNode).size;
+}
+
+void IX_IndexHandle::getPageData(const PageNum pageNum, char*& pageData) {
+	PF_PageHandle pageHandle;
+	fileHandle.GetThisPage(pageNum, pageHandle);
+	pageHandle.GetData(pageData);
+}
+
+void IX_IndexHandle::getLeafNode(const PageNum pageNum, LeafNode*& leafNode) {
+	char *pageData;
+	getPageData(pageNum, pageData);
+	leafNode = &(((NodePagePacket*)pageData)->leafNode);
+}
+
+void IX_IndexHandle::getInternalNode(const PageNum pageNum, InternalNode*& internalNode) {
+	char *pageData;
+	getPageData(pageNum, pageData);
+	internalNode = &(((NodePagePacket*)pageData)->internalNode);
+}
+
+RC IX_IndexHandle::DeleteEntryFromPage(void *pData, PageNum& pageNum, PageNum fatherPageNum, const RID &rid, int thisPos) {
+	char *pageData, *fatherPageData;
+	getPageData(pageNum, pageData);
+	NodePagePacket* nodePagePacket = (NodePagePacket*)pageData;
+	if (nodePagePacket->nodeType == 0) {
+		// internal node, find correct son pos
+		InternalNode *internalNode = &(nodePagePacket->internalNode);
+		for (int i = 1; i <= keyCount + 1; ++i) {
+			if (i == keyCount + 1 || cmp(pData, internalNode->pData[i]) < 0) {
+				// recursion
+				DeleteEntryFromPage(pData, internalNode->son[i - 1], rid, i - 1);
+				break;
+			}
+		}
+		// under-flow detection
+		if (internalNode->keyCount + 1 < D && pageNum != indexInfo->rootPageNum) {
+			getPageData(fatherPageNum, fatherPageData);
+			InternalNode *pa = &(((NodePagePacket*)fatherPageData)->internalNode);
+			
+		}
+		
+	}
+	else {
+		// leaf node
+		LeafNode *leafNode = &(nodePagePacket->leafNode);
+		for (int i = 0; i < leafNode->size; ++i) {
+			if (cmp(pData, (leafNode->data[i]).pData) == 0) {
+				// find index val, delete rid
+				deleteFromRIDPage(rid, (leafNode->data[i]).ridPageNum);
+				if (getRIDPageSize((leafNode->data[i]).ridPageNum) == 0) {
+					// reallocate page & delete index val in the tree
+					fileHandle.DisposePage((leafNode->data[i]).ridPageNum);
+					leafNode->deleteDataAtPos(i);
+					fileHandle.MarkDirty(pageNum);
+					// check under-flow condition
+					if (leafNode->size < D && pageNum != indexInfo->rootPageNum) {
+						if (leafNode->leftPage != -1 && getLeafNodeSize(leafNode->leftPage) > D) {
+							// redistribute from left page
+							LeafNode* leftLeafNode;
+							getLeafNode(leafNode->leftPage, leftLeafNode);
+							LeafData data = leftLeafNode->data[leftLeafNode->size - 1];
+							leftLeafNode->deleteDataAtPos(leftLeafNode->size - 1);
+							fileHandle.MarkDirty(leafNode->leftPage);
+							leafNode->insertDataIntoPos(data.pdata, data.ridPageNum, leafNode->size);
+							fileHandle.MarkDirty(pageNum);
+						}
+						else if (leftNode->rightPage != -1 && getLeafNodeSize(leafNode->rightPage) > D) {
+							// redistribute from right page
+						}
+						else if (leafNode->rightPage != -1) {
+							// merge with left page
+						}
+						else {
+							// merge with right page
+						}
+					}
+				}
+			}
+		}
+	}
+}
 RC IX_IndexHandle::DeleteEntryFromPage(void *pData, PageNum& pageNum, const RID &rid, void *&leafHeadData) {
 	char* pageData;
 	PF_PageHandle pageHandle;
@@ -167,12 +260,13 @@ RC IX_IndexHandle::DeleteEntryFromPage(void *pData, PageNum& pageNum, const RID 
 	else {// leafNode
 		LeafNode* leafNode = &(nodePagePacket->leafNode);
 		for (int i = 0; i < leafNode->size; ++i) {
-			if (cmp(pData, (leafNode->data[i]).pData) == 0) {
+			if (cmp(pData, (leafNode->data[i]).pdata) == 0) {
 				deleteFromRIDPage(rid, pageNum);
+				leafHeadData = (leafNode->data[i]).pData;
 				break;
 			}
 		}
-		leafHeadData = (leafNode->data[i]).pData;
+		
 		fileHandle.MarkDirty(pageNum);
 	}
 	// todo : merge under-flow nodes

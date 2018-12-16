@@ -33,8 +33,8 @@ RC RIDPagePacket::deleteRID(const RID rid) {
 }
 
 void LeafNode::split(LeafNode* splitNode, PageNum newPage, PageNum thisPage) {
-	size = (NODE_KEYS + 2) >> 1;
-	splitNode->size = (NODE_KEYS + 1) >> 1;
+	size = D + 1;
+	splitNode->size = D;
 	for (int i = 0; i < splitNode->size; ++i)
 		splitNode->data[i] = data[size + i];
 	rightPage = newPage;
@@ -48,6 +48,12 @@ void LeafNode::insertDataIntoPos(void *pdata, PageNum pageNum, int pos) {
 	data[pos].pdata = pdata;
 	data[pos].ridPageNum = pageNum;
 	++size;
+}
+
+void LeafNode::deleteDataAtPos(int pos) {
+	for (int i = pos; i <= size - 2; ++i)
+		data[i] = data[i + 1];
+	--size;
 }
 
 void InternalNode::InsertKeyAfterPos(void *pdata, PageNum pageNum, int pos) {
