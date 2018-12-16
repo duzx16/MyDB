@@ -65,6 +65,10 @@ class ConstValueLists;
 
 class SetClauseList;
 
+class TableConstraint;
+
+class TableConstraintList;
+
 class Tree {
 public:
     virtual void visit() {
@@ -115,7 +119,6 @@ public:
 
     void visit() override;
 
-private:
     std::string DBname;
 };
 
@@ -133,7 +136,6 @@ public:
 
     void visit() override;
 
-private:
     AttributeList *attributes;
     IdentList *relations;
     ConditionsTree *whereClause;
@@ -149,7 +151,6 @@ public:
 
     void visit() override;
 
-private:
     std::string relationName;
     ConstValueLists *insertValueTree;
 };
@@ -165,7 +166,6 @@ public:
 
     void visit() override;
 
-private:
     std::string relationName;
     SetClauseList *setClauses;
     ConditionsTree *whereClause;
@@ -180,7 +180,6 @@ public:
 
     void visit() override;
 
-private:
     std::string relationName;
     ConditionsTree *whereClause;
 };
@@ -192,7 +191,6 @@ public:
 
     void visit() override;
 
-private:
     std::string dbName;
 };
 
@@ -205,7 +203,6 @@ public:
 
     void visit() override;
 
-private:
     std::string dbName;
 };
 
@@ -217,22 +214,21 @@ public:
 
     void visit() override;
 
-private:
     std::string tableName;
 };
 
 
 class CreateTable : public Tree {
 public:
-    CreateTable(const char *tableName, ColumnDecsList *columns);
+    CreateTable(const char *tableName, ColumnDecsList *columns, TableConstraintList *tableConstraints);
 
     ~CreateTable() override;
 
     void visit() override;
 
-private:
     std::string tableName;
     ColumnDecsList *columns;
+    TableConstraintList *tableConstraints;
 };
 
 
@@ -244,7 +240,6 @@ public:
 
     void visit() override;
 
-private:
     std::string dbName;
 };
 
@@ -257,7 +252,6 @@ public:
 
     void visit() override;
 
-private:
     std::string tableName;
 };
 
@@ -270,7 +264,6 @@ public:
 
     void visit() override;
 
-private:
     std::string relName;
     AttributeNode *attribute;
 };
@@ -284,7 +277,6 @@ public:
 
     void visit() override;
 
-private:
     std::string tableName;
     AttributeNode *attribute;
 };
@@ -293,7 +285,7 @@ class ColumnDecsList : public Tree {
 public:
     ColumnDecsList();
 
-    virtual ~ColumnDecsList();
+    ~ColumnDecsList() override;
 
     void addColumn(ColumnNode *);
 
@@ -305,7 +297,7 @@ public:
 
 private:
     std::vector<ColumnNode *> columns;
-    AttrInfo *attrInfos;
+    AttrInfo *attrInfos = nullptr;
 };
 
 
@@ -316,15 +308,14 @@ public:
 
     ~ColumnNode() override;
 
-    AttrInfo getAttrInfo();
+    AttrInfo getAttrInfo() const;
 
-    friend class ColumnsTree;
+    friend class ColumnDecsList;
 
 private:
     std::string columnName;
     AttrType type;
     int size;
-    int isPrimaryKey;
     int columnFlag;
 };
 
@@ -383,7 +374,6 @@ public:
 
     void addIdent(const char *ident);
 
-private:
     std::vector<std::string> idents;
 };
 
