@@ -222,6 +222,11 @@ RC IX_IndexHandle::DeleteEntryFromPage(void *pData, PageNum& pageNum, PageNum fa
 							fileHandle.MarkDirty(leafNode->leftPage);
 							leafNode->insertDataIntoPos(data.pdata, data.ridPageNum, leafNode->size);
 							fileHandle.MarkDirty(pageNum);
+							InternalNode *pa;
+							getInternalNode(fatherPageNum, pa);
+							if (thisPos > 0) {
+								pa->pData[thisPos] = leafNode->
+							}
 						}
 						else if (leftNode->rightPage != -1 && getLeafNodeSize(leafNode->rightPage) > D) {
 							// redistribute from right page
