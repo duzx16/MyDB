@@ -3,6 +3,7 @@ add_subdirectory(pf)
 add_subdirectory(fileio)
 add_subdirectory(rm)
 add_subdirectory(parser)
+add_subdirectory(sm)
 
 add_definitions(-DDEBUG)
 
