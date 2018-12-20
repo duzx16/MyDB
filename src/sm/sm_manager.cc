@@ -3,6 +3,8 @@
 #include <io.h>
 #include <direct.h>
 #include <cstring>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 SM_Manager::SM_Manager() {
 	ixm = new IX_Manager(pfManager);
@@ -123,14 +125,14 @@ RC SM_Manager::GetTableInfo(const char *tableName, ColumnDecsList &columns, Tabl
 			tableConstraints.addTbDec(
 				new TableConstraint(
 					tableCons.column_name.c_str(),
-					&(tableCons.const_values)
+					&tableCons.const_values
 				)
 			)
 		}
 	}
 }
 
-RC SM_Manager::DropTable() {
+RC SM_Manager::DropTable(const char *relName) {
 	
 }
 
