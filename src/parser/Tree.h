@@ -312,7 +312,6 @@ public:
 
     friend class ColumnDecsList;
 
-private:
     std::string columnName;
     AttrType type;
     int size;

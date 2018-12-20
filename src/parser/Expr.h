@@ -7,6 +7,17 @@
 
 #include "../Constants.h"
 #include <string>
+#include <vector>
+
+#define EXPR_NO_SUCH_TABLE -1
+#define EXPR_NO_SUCH_ATTRIBUTE -2
+#define EXPR_AMBIGUOUS
+
+struct AttrBindException {
+    std::string table;
+    std::string attribute;
+    int type;
+};
 
 enum class NodeType {
     ARITH_NODE,
@@ -19,6 +30,8 @@ enum class NodeType {
 class AttributeNode;
 
 class ColumnDecsList;
+
+class TableConstraintList;
 
 class Expr {
 public:
@@ -40,9 +53,12 @@ public:
 
     void calculate(char *data);
 
-    void init_type();
+    void type_check();
 
-    void converToFloat();
+    void convert_to_float();
+
+    void connect_attribute(const std::vector<std::string> &relNames, const std::vector<ColumnDecsList *> &columnLists,
+                          const std::vector<TableConstraintList *> &constraintLists);
 
     ~Expr();
 
@@ -64,7 +80,7 @@ public:
         ArithOp arith = ArithOp::NO_OP;
         CompOp comp;
         LogicOp logic;
-        AttrType attr;
+        AttrType constType;
     } oper;
 
     NodeType nodeType = NodeType::CONST_NODE;

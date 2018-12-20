@@ -10,21 +10,21 @@ Expr::Expr(int i) {
     is_null = false;
     value.i = i;
     nodeType = NodeType::CONST_NODE;
-    oper.attr = AttrType::INT;
+    oper.constType = AttrType::INT;
 }
 
 Expr::Expr(float f) {
     is_null = false;
     value.f = f;
     nodeType = NodeType::CONST_NODE;
-    oper.attr = AttrType::FLOAT;
+    oper.constType = AttrType::FLOAT;
 }
 
 Expr::Expr(const char *s) {
     is_null = false;
     value_s = std::string(s, 1, strlen(s) - 2);;
     nodeType = NodeType::CONST_NODE;
-    oper.attr = AttrType::STRING;
+    oper.constType = AttrType::STRING;
 }
 
 Expr::~Expr() {
@@ -270,12 +270,12 @@ void Expr::calculate(char *data) {
     }
 }
 
-void Expr::init_type() {
+void Expr::type_check() {
     if (left != nullptr) {
-        left->init_type();
+        left->type_check();
     }
     if (right != nullptr) {
-        right->init_type();
+        right->type_check();
     }
     switch (this->nodeType) {
         case NodeType::ARITH_NODE:
@@ -288,10 +288,10 @@ void Expr::init_type() {
                         (right != nullptr and right->dataType == AttrType::FLOAT)) {
                         dataType = AttrType::FLOAT;
                         if (left != nullptr and left->dataType != AttrType::FLOAT) {
-                            left->converToFloat();
+                            left->convert_to_float();
                         }
                         if (right != nullptr and right->dataType != AttrType::FLOAT) {
-                            right->converToFloat();
+                            right->convert_to_float();
                         }
                     } else {
                         dataType = AttrType::INT;
@@ -306,24 +306,26 @@ void Expr::init_type() {
             }
             break;
         case NodeType::LOGIC_NODE:
+            dataType = AttrType::BOOL;
             break;
         case NodeType::ATTR_NODE:
+            dataType = attrInfo.attrType;
             break;
         case NodeType::COMP_NODE:
             dataType = AttrType::BOOL;
             break;
         case NodeType::CONST_NODE:
-            dataType = oper.attr;
+            dataType = oper.constType;
             break;
     }
 }
 
-void Expr::converToFloat() {
+void Expr::convert_to_float() {
     if (left != nullptr) {
-        left->converToFloat();
+        left->convert_to_float();
     }
     if (right != nullptr) {
-        right->converToFloat();
+        right->convert_to_float();
     }
     switch (this->nodeType) {
         case NodeType::ARITH_NODE:
@@ -337,7 +339,7 @@ void Expr::converToFloat() {
         case NodeType::COMP_NODE:
             break;
         case NodeType::CONST_NODE:
-            switch (oper.attr) {
+            switch (oper.constType) {
                 case AttrType::INT:
                 case AttrType::DATE:
                     dataType = AttrType::FLOAT;
@@ -355,6 +357,57 @@ void Expr::converToFloat() {
                     break;
             }
             break;
+    }
+}
+
+void
+Expr::connect_attribute(const std::vector<std::string> &relNames, const std::vector<ColumnDecsList *> &columnLists,
+                        const std::vector<TableConstraintList *> &constraintLists) {
+    if (nodeType == NodeType::ATTR_NODE) {
+        if (!attribute->table.empty()) {
+            for (int i = 0; i < relNames.size(); ++i) {
+                if (relNames[i] == attribute->table) {
+                    int offset = 0;
+                    for (const auto &column: columnLists[i]->columns) {
+                        if (column->columnName == attribute->attribute) {
+                            attrInfo.attrType = column->type;
+                            attrInfo.attrOffset = offset;
+                            attrInfo.attrLength = column->size;
+                            return;
+                        } else {
+                            offset += column->size;
+                        }
+                    }
+                    throw AttrBindException{"", attribute->attribute, EXPR_NO_SUCH_ATTRIBUTE};
+                }
+            }
+            throw AttrBindException{attribute->table, "", EXPR_NO_SUCH_TABLE};
+        } else {
+            attrInfo.attrOffset = -1;
+            for (int i = 0; i < relNames.size(); ++i) {
+                int offset = 0;
+                for (const auto &column: columnLists[i]->columns) {
+                    if (column->columnName == attribute->attribute) {
+                        if (attrInfo.attrOffset != -1) {
+                            throw AttrBindException{"", attribute->attribute, EXPR_AMBIGUOUS};
+                        } else {
+                            attrInfo.attrType = column->type;
+                            attrInfo.attrOffset = offset;
+                            attrInfo.attrLength = column->size;
+                        }
+                    } else {
+                        offset += column->size;
+                    }
+                }
+            }
+        }
+    } else {
+        if (left != nullptr) {
+            left->connect_attribute(relNames, columnLists, constraintLists);
+        }
+        if (right != nullptr) {
+            right->connect_attribute(relNames, columnLists, constraintLists);
+        }
     }
 }
 
