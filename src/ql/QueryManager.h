@@ -6,16 +6,28 @@
 #define MYDB_QL_MANAGER_H
 
 #include "../parser/Tree.h"
+#include "../rm/RM_Record.h"
+#include "../rm/RM_FileHandle.h"
+#include <functional>
 
 class QL_Manager {
+private:
+    using CallbackFunc = std::function<void(RM_FileHandle &, const RM_Record &)>;
+
+    void bindAttribute(Expr *expr, const std::string &relationName);
+
+    void printException(const AttrBindException &exception);
+
+    void iterateRecords(std::string relationName, Expr *condition, CallbackFunc callback);
+
 public:
-    int Select(AttributeList *attributes, IdentList *relations, Expr *whereClause, std::string groupAttrName);
+    int exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause, std::string groupAttrName);
 
-    int Insert(std::string relationName, ConstValueLists *insertValueTree);
+    int exeInsert(std::string relationName, ConstValueLists *insertValueTree);
 
-    int Update(std::string relationName, SetClauseList *setClauses, Expr *whereClause);
+    int exeUpdate(std::string relationName, SetClauseList *setClauses, Expr *whereClause);
 
-    int Delete(std::string relationName, Expr *whereClause);
+    int exeDelete(std::string relationName, Expr *whereClause);
 };
 
 

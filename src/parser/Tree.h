@@ -407,7 +407,6 @@ public:
 
     void addSetClause(AttributeNode *, Expr *);
 
-private:
     std::vector<std::pair<AttributeNode *, Expr *>> clauses;
 };
 

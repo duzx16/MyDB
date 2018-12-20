@@ -11,7 +11,7 @@
 
 #define EXPR_NO_SUCH_TABLE -1
 #define EXPR_NO_SUCH_ATTRIBUTE -2
-#define EXPR_AMBIGUOUS
+#define EXPR_AMBIGUOUS -3
 
 struct AttrBindException {
     std::string table;
