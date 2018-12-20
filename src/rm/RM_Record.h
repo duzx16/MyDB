@@ -10,49 +10,39 @@
 
 struct RM_Record {
 public:
-    RM_Record() : _data(nullptr), _size(0)
-    {
+    RM_Record() : _data(nullptr), _size(0) {
 
     }
 
-    RM_Record(const char *data, unsigned size, const RID &rid) : _rid(rid)
-    {
+    RM_Record(const char *data, unsigned size, const RID &rid) : _rid(rid), _size(size) {
         _data = new char[size];
         memcpy(_data, data, size);
     }
 
-    RID getRID() const
-    {
+    RID getRID() const {
         return _rid;
     }
 
-    char *getData() const
-    {
+    char *getData() const {
         return _data;
     }
 
-    unsigned getSize() const
-    {
+    unsigned getSize() const {
         return _size;
     }
 
-    void init(const char *data, unsigned size, const RID &rid)
-    {
+    void init(const char *data, unsigned size, const RID &rid) {
         this->_rid = rid;
-        if (_data)
-        {
-            delete[]_data;
-        }
+
+        delete[]_data;
+
         _data = new char[size];
         memcpy(_data, data, size);
     }
 
-    ~RM_Record()
-    {
-        if (_data)
-        {
-            delete[]_data;
-        }
+    ~RM_Record() {
+        delete[]_data;
+
     }
 
 private:

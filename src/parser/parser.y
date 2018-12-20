@@ -29,7 +29,6 @@ class Tree;
     AttributeList *attributesTree;
     AttributeNode *attributeTree;
     IdentList *identList;
-    ConditionsTree *conditionsTree;
     ConstValueList *constValuesTree;
     ColumnDecsList *columnsTree;
     ColumnNode *columnTree;
@@ -68,7 +67,6 @@ class Tree;
 %type <attributesTree> attributes
 %type <attributeTree> attribute
 %type <identList> tableList column_list
-%type <conditionsTree> whereclause conditions
 %type <constValuesTree> constvalues
 %type <columnsTree> column_decs
 %type <columnTree> column_dec
@@ -78,7 +76,7 @@ class Tree;
 %type <ivalue> column_constraints column_constraint
 %type <tbOptDec> tb_opt_dec
 %type <tbOptDecList> tb_opt_exist tb_opt_decs
-%type <expr> expr factor value comparison constvalue
+%type <expr> expr factor value comparison constvalue whereclause conditions
 
 %%
 
@@ -434,12 +432,11 @@ whereclause:
 conditions:
     comparison
             {
-                $$ = new ConditionsTree();
-                $$->addComparison($1);
+                $$ = $1;
             }
     | conditions AND comparison
             {
-                $$->addComparison($3);
+                $$ = new Expr($1, LogicOp::AND_OP, $3);
             }
     ;
 

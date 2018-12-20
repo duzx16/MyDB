@@ -33,7 +33,7 @@ static void MyDebugPrintf(const char *format, ...) {
 Tree *Tree::tree = nullptr;
 
 /* SelectTree */
-Select::Select(IdentList *relations, ConditionsTree *whereClause) {
+Select::Select(IdentList *relations, Expr *whereClause) {
     this->attributes = nullptr;
     this->relations = relations;
     this->whereClause = whereClause;
@@ -42,7 +42,7 @@ Select::Select(IdentList *relations, ConditionsTree *whereClause) {
 
 Select::Select(AttributeList *attributes,
                IdentList *relations,
-               ConditionsTree *whereClause,
+               Expr *whereClause,
                const char *groupAttrName) {
     this->attributes = attributes;
     this->relations = relations;
@@ -95,7 +95,7 @@ void Insert::visit() {
 /* UpdateTree */
 Update::Update(string relationName,
                SetClauseList *setClauseList,
-               ConditionsTree *whereClause) {
+               Expr *whereClause) {
     this->relationName = std::move(relationName);
     this->setClauses = setClauseList;
     this->whereClause = whereClause;
@@ -115,7 +115,7 @@ void Update::visit() {
 }
 
 /* DeleteTree */
-Delete::Delete(const char *relationName, ConditionsTree *whereClause) {
+Delete::Delete(const char *relationName, Expr *whereClause) {
     this->relationName = string(relationName);
     this->whereClause = whereClause;
 }
@@ -281,7 +281,7 @@ ColumnNode::ColumnNode(const char *columnName, AttrType type, int size,
 ColumnNode::~ColumnNode() = default;
 
 AttrInfo ColumnNode::getAttrInfo() const {
-    AttrInfo attrInfo;
+    AttrInfo attrInfo{};
     strcpy(attrInfo.attrName, columnName.c_str());
     attrInfo.attrType = type;
     attrInfo.attrLength = size;
@@ -332,18 +332,6 @@ bool AttributeNode::operator==(const AttributeNode &attribute) const {
 }
 
 AttributeNode::~AttributeNode() = default;
-
-/* ConditionsTree */
-ConditionsTree::ConditionsTree() = default;
-
-ConditionsTree::~ConditionsTree() {
-    for (const auto &comparision : comparisons)
-        delete comparision;
-}
-
-void ConditionsTree::addComparison(Expr *comparison) {
-    comparisons.push_back(comparison);
-}
 
 ///* Comparison */
 //Comparison::Comparison(AttributeNode *attribute) {
@@ -587,6 +575,18 @@ AttrInfo *ColumnDecsList::getAttrInfos() {
 
 void ColumnDecsList::deleteAttrInfos() {
     delete attrInfos;
+}
+
+std::pair<AttrInfo, int> ColumnDecsList::findColumn(std::string name) {
+    int offset = 0;
+    for (const auto &it: columns) {
+        if (it->columnName == name) {
+            return {it->getAttrInfo(), offset};
+        } else {
+            offset += it->size;
+        }
+    }
+    return {AttrInfo{}, -1};
 }
 
 // Primary key

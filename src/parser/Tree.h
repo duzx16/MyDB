@@ -57,8 +57,6 @@ class AttributeNode;
 
 class IdentList;
 
-class ConditionsTree;
-
 class ConstValueList;
 
 class ConstValueLists;
@@ -127,10 +125,10 @@ class Select : public Tree {
 public:
     Select(AttributeList *attributes,
            IdentList *relations,
-           ConditionsTree *whereClause,
+           Expr *whereClause,
            const char *groupAttrName = "");
 
-    Select(IdentList *relations, ConditionsTree *whereClause);
+    Select(IdentList *relations, Expr *whereClause);
 
     ~Select() override;
 
@@ -138,7 +136,7 @@ public:
 
     AttributeList *attributes;
     IdentList *relations;
-    ConditionsTree *whereClause;
+    Expr *whereClause;
     std::string groupAttrName;
 };
 
@@ -160,7 +158,7 @@ class Update : public Tree {
 public:
     Update(std::string relationName,
            SetClauseList *setClauses,
-           ConditionsTree *whereClause);
+           Expr *whereClause);
 
     ~Update() override;
 
@@ -168,20 +166,20 @@ public:
 
     std::string relationName;
     SetClauseList *setClauses;
-    ConditionsTree *whereClause;
+    Expr *whereClause;
 };
 
 
 class Delete : public Tree {
 public:
-    Delete(const char *relationName, ConditionsTree *whereClause);
+    Delete(const char *relationName, Expr *whereClause);
 
     ~Delete() override;
 
     void visit() override;
 
     std::string relationName;
-    ConditionsTree *whereClause;
+    Expr *whereClause;
 };
 
 
@@ -295,8 +293,10 @@ public:
 
     void deleteAttrInfos();
 
-private:
+    std::pair<AttrInfo, int> findColumn(std::string name);
+
     std::vector<ColumnNode *> columns;
+private:
     AttrInfo *attrInfos = nullptr;
 };
 
@@ -344,7 +344,6 @@ public:
 
     AttributeDescriptor getDescriptor() const;
 
-private:
     std::string table;
     std::string attribute;
     AggregationType aggregationType;
@@ -376,20 +375,6 @@ public:
 
     std::vector<std::string> idents;
 };
-
-
-class ConditionsTree : public Tree {
-public:
-    ConditionsTree();
-
-    ~ConditionsTree() override;
-
-    void addComparison(Expr *comparison);
-
-private:
-    std::vector<Expr *> comparisons;
-};
-
 
 class ConstValueList : public Tree {
 public:

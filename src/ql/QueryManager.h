@@ -7,7 +7,8 @@
 
 
 class QL_Manager {
-
+public:
+    
 };
 
 

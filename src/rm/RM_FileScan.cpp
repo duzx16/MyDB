@@ -7,45 +7,14 @@
 #include "../pf/pf.h"
 
 int
-RM_FileScan::openScan(const RM_FileHandle &fileHandle, AttrType attrType, int attrLength, int attrOffset, CompOp compOp,
-                      void *value) {
+RM_FileScan::openScan(const RM_FileHandle &fileHandle, Expr *condition) {
     _file_handle = &fileHandle;
-    _attr_type = attrType;
-    _attr_offset = attrOffset;
-    _attr_length = attrLength;
-    _comp_op = compOp;
-    _value = value;
+    _condition = condition;
     _current_page = 0;
     _current_bitdata = nullptr;
     return 0;
 }
 
-template<typename T>
-bool comp_function(T a, T b, CompOp compOp) {
-    switch (compOp) {
-        case CompOp::EQ_OP:
-            return a == b;
-        case CompOp::GE_OP:
-            return not(a < b);
-        case CompOp::GT_OP:
-            return not(a < b) and not(a == b);
-        case CompOp::LE_OP:
-            return a < b or a == b;
-        case CompOp::LT_OP:
-            return a < b;
-        case CompOp::NE_OP:
-            return not(a == b);
-        case CompOp::NO_OP:
-            return true;
-        case CompOp::IS_OP:
-            // todo implement this
-            break;
-        case CompOp::LIKE_OP:
-            // todo implement this
-            break;
-    }
-    return false;
-}
 
 int RM_FileScan::getNextRec(RM_Record &rec) {
     while (true) {
@@ -76,27 +45,8 @@ int RM_FileScan::getNextRec(RM_Record &rec) {
         _file_handle->getRec(RID{_current_page, slot_num}, rec);
         _current_bitmap.setBit(slot_num, 0);
         char *data = rec.getData();
-        void *aim_value = data + _attr_offset;
-        bool condition = false;
-        switch (_attr_type) {
-            case AttrType::INT: {
-                int a = *reinterpret_cast<int *>(aim_value);
-                int b = *reinterpret_cast<int *>(_value);
-                condition = comp_function(a, b, _comp_op);
-                break;
-            }
-            case AttrType::FLOAT: {
-                float a = *reinterpret_cast<int *>(aim_value);
-                float b = *reinterpret_cast<int *>(_value);
-                condition = comp_function(a, b, _comp_op);
-                break;
-            }
-            case AttrType::STRING:
-                break;
-            default:
-                condition = true;
-        }
-        if (condition) {
+        _condition->calculate(data);
+        if (_condition->value.b) {
             break;
         }
     }
