@@ -94,36 +94,36 @@ bool comp_function(const std::string &a, const std::string &b, CompOp compOp) {
     if (compOp == CompOp::LIKE_OP) {
         std::string regexStr;
         char status = 'A';
-        for (size_t i = 0; i < b.length(); i++) {
+        for (char i : b) {
             if (status == 'A') {
                 // common status
-                if (b[i] == '\\') {
+                if (i == '\\') {
                     status = 'B';
-                } else if (b[i] == '[') {
+                } else if (i == '[') {
                     regexStr += "[";
                     status = 'C';
-                } else if (b[i] == '%') {
+                } else if (i == '%') {
                     regexStr += ".*";
-                } else if (b[i] == '_') {
+                } else if (i == '_') {
                     regexStr += ".";
                 } else {
-                    regexStr += b[i];
+                    regexStr += i;
                 }
             } else if (status == 'B') {
                 // after '\'
-                if (b[i] == '%' || b[i] == '_' || b[i] == '!') {
-                    regexStr += b[i];
+                if (i == '%' || i == '_' || i == '!') {
+                    regexStr += i;
                 } else {
                     regexStr += "\\";
-                    regexStr += b[i];
+                    regexStr += i;
                 }
                 status = 'A';
             } else {
                 // after '[' inside []
-                if (b[i] == '!') {
+                if (i == '!') {
                     regexStr += "^";
                 } else {
-                    regexStr += b[i];
+                    regexStr += i;
                 }
                 status = 'A';
             }
@@ -287,10 +287,10 @@ void Expr::init_type() {
                     if ((left != nullptr and left->dataType == AttrType::FLOAT) or
                         (right != nullptr and right->dataType == AttrType::FLOAT)) {
                         dataType = AttrType::FLOAT;
-                        if (left != nullptr) {
+                        if (left != nullptr and left->dataType != AttrType::FLOAT) {
                             left->converToFloat();
                         }
-                        if (right != nullptr) {
+                        if (right != nullptr and right->dataType != AttrType::FLOAT) {
                             right->converToFloat();
                         }
                     } else {
@@ -320,10 +320,10 @@ void Expr::init_type() {
 
 void Expr::converToFloat() {
     if (left != nullptr) {
-        left->init_type();
+        left->converToFloat();
     }
     if (right != nullptr) {
-        right->init_type();
+        right->converToFloat();
     }
     switch (this->nodeType) {
         case NodeType::ARITH_NODE:
