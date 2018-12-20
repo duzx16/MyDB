@@ -5,6 +5,7 @@
 #include "RM_FileScan.h"
 #include "RM_FileHandle.h"
 #include "../pf/pf.h"
+#include "../parser/Expr.h"
 
 int
 RM_FileScan::openScan(const RM_FileHandle &fileHandle, Expr *condition) {
@@ -56,4 +57,41 @@ int RM_FileScan::getNextRec(RM_Record &rec) {
 int RM_FileScan::closeScan() {
     delete[] _current_bitdata;
     return 0;
+}
+
+int
+RM_FileScan::openScan(const RM_FileHandle &fileHandle, AttrType attrType, int attrLength, int attrOffset, CompOp compOp,
+                      void *value) {
+    Expr *left = new Expr();
+    left->attrInfo.attrLength = attrLength;
+    left->attrInfo.attrOffset = attrOffset;
+    left->attrInfo.attrType = attrType;
+    left->attrInfo.notNull = false;
+    left->nodeType = NodeType::ATTR_NODE;
+
+    Expr *right = new Expr();
+    right->oper.constType = attrType;
+    switch (attrType) {
+        case AttrType::INT:
+        case AttrType::DATE:
+            right->value.i = *reinterpret_cast<int *>(value);
+            break;
+        case AttrType::FLOAT:
+            right->value.f = *reinterpret_cast<float *>(value);
+            break;
+        case AttrType::STRING:
+            right->value_s = std::string(reinterpret_cast<char *>(value));
+            break;
+        case AttrType::VARCHAR:
+            break;
+        case AttrType::BOOL:
+            right->value.b = *reinterpret_cast<bool *>(value);
+            break;
+        case AttrType::NO_ATTR:
+            break;
+    }
+    right->nodeType = NodeType::CONST_NODE;
+
+    Expr *condition = new Expr(left, compOp, right);
+    return openScan(fileHandle, condition);
 }

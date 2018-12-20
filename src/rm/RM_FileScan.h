@@ -23,6 +23,14 @@ public:
                  Expr *condition
     );
 
+    int openScan(const RM_FileHandle &fileHandle,  // Initialize file scan
+                 AttrType attrType,
+                 int attrLength,
+                 int attrOffset,
+                 CompOp compOp,
+                 void *value
+    );
+
     int getNextRec(RM_Record &rec);                  // Get next matching record
     int closeScan();                                // Terminate file scan
 };
