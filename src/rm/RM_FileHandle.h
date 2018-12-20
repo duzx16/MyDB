@@ -18,6 +18,7 @@ public:
     friend class RM_FileScan;
 
     RM_FileHandle() = default;                                  // Constructor
+    RM_FileHandle(const RM_FileHandle &) = delete;
     ~RM_FileHandle();                                  // Destructor
 
     int getRec(const RID &rid, RM_Record & record) const;
@@ -27,6 +28,7 @@ public:
     //   return record id
     int deleteRec(const RID &rid);                    // Delete a record
     int updateRec(const RM_Record &rec);              // Update a record
+    bool is_initialized() const;
 private:
     int insertPage();
 

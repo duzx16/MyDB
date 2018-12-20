@@ -359,7 +359,6 @@ public:
 
     std::vector<AttributeNode::AttributeDescriptor> getDescriptors() const;
 
-private:
     std::vector<AttributeNode *> attributes;
 };
 

@@ -5,6 +5,8 @@
 #ifndef MYDB_CONSTANTS_H
 #define MYDB_CONSTANTS_H
 
+#include <string>
+
 /*
  * 一个页面中的字节数
  */
@@ -40,7 +42,8 @@ enum class ConstraintType {
 #define COLUMN_FLAG_NOTNULL 0x1
 
 struct AttrInfo {
-    char attrName[MAX_NAME + 1]{};
+    std::string attrName;
+    std::string tableName;
     int attrLength{};
     AttrType attrType = AttrType::NO_ATTR;
     int notNull{};

@@ -6,12 +6,10 @@
 #include "RecordManager.h"
 #include "../utils/MyBitMap.h"
 
-int RM_FileHandle::getRec(const RID &rid, RM_Record &record) const
-{
+int RM_FileHandle::getRec(const RID &rid, RM_Record &record) const {
     int rc;
     PF_PageHandle page_handle;
-    if((rc = _pf_file_handle.GetThisPage(rid.getPageNum(), page_handle)) != 0)
-    {
+    if ((rc = _pf_file_handle.GetThisPage(rid.getPageNum(), page_handle)) != 0) {
         PF_PrintError(rc);
         return -1;
     }
@@ -22,16 +20,14 @@ int RM_FileHandle::getRec(const RID &rid, RM_Record &record) const
     return 0;
 }
 
-RID RM_FileHandle::insertRec(const char *pData)
-{
+RID RM_FileHandle::insertRec(const char *pData) {
     int rc;
-    if (_header_page.firstSparePage <= 0)
-    {
+    if (_header_page.firstSparePage <= 0) {
         insertPage();
     }
     unsigned page_num = _header_page.firstSparePage;
     PF_PageHandle page_handle;
-    if((rc = _pf_file_handle.GetThisPage(page_num, page_handle)) != 0){
+    if ((rc = _pf_file_handle.GetThisPage(page_num, page_handle)) != 0) {
         PF_PrintError(rc);
     }
     char *page_data;
@@ -43,20 +39,16 @@ RID RM_FileHandle::insertRec(const char *pData)
     memcpy(page_data + getOffset(slot_num), pData,
            _header_page.recordSize);
     bitmap.setBit(slot_num, 0);
-    if (bitmap.findLeftOne() >= _header_page.recordPerPage)
-    {
-        if (reinterpret_cast<int *>(page_data)[1] > 0)
-        {
+    if (bitmap.findLeftOne() >= _header_page.recordPerPage) {
+        if (reinterpret_cast<int *>(page_data)[1] > 0) {
             _header_page.firstSparePage = reinterpret_cast<int *>(page_data)[1];
-        } else
-        {
+        } else {
             _header_page.firstSparePage = 0;
         }
         reinterpret_cast<int *>(page_data)[1] = 0;
     }
 
-    if ((rc = _pf_file_handle.UnpinPage(page_num)) != 0)
-    {
+    if ((rc = _pf_file_handle.UnpinPage(page_num)) != 0) {
         printf("%d\n", rc);
     }
     _header_page.recordNum += 1;
@@ -64,12 +56,10 @@ RID RM_FileHandle::insertRec(const char *pData)
     return {page_num, slot_num};
 }
 
-int RM_FileHandle::deleteRec(const RID &rid)
-{
+int RM_FileHandle::deleteRec(const RID &rid) {
     int rc;
     PF_PageHandle page_handle;
-    if((rc = _pf_file_handle.GetThisPage(rid.getPageNum(), page_handle)) != 0)
-    {
+    if ((rc = _pf_file_handle.GetThisPage(rid.getPageNum(), page_handle)) != 0) {
         PF_PrintError(rc);
         return -1;
     }
@@ -77,26 +67,21 @@ int RM_FileHandle::deleteRec(const RID &rid)
     page_handle.GetData(page_data);
     MyBitMap bitmap(_header_page.slotMapSize * 8, reinterpret_cast<unsigned *>(page_data + 8));
     bool full = false;
-    if (bitmap.findLeftOne() >= _header_page.recordPerPage)
-    {
+    if (bitmap.findLeftOne() >= _header_page.recordPerPage) {
         full = true;
     }
     bitmap.setBit(rid.getSlotNum(), 1);
-    if (full)
-    {
-        if (_header_page.firstSparePage > 0)
-        {
+    if (full) {
+        if (_header_page.firstSparePage > 0) {
             reinterpret_cast<int *>(page_data)[1] = (_header_page.firstSparePage);
-        } else
-        {
+        } else {
             reinterpret_cast<int *>(page_data)[1] = 0;
         }
         _header_page.firstSparePage = rid.getPageNum();
         _header_modified = true;
     }
     _pf_file_handle.MarkDirty(rid.getPageNum());
-    if ((rc = _pf_file_handle.UnpinPage(rid.getPageNum())) != 0)
-    {
+    if ((rc = _pf_file_handle.UnpinPage(rid.getPageNum())) != 0) {
         PF_PrintError(rc);
         return -1;
     }
@@ -104,14 +89,12 @@ int RM_FileHandle::deleteRec(const RID &rid)
     return 0;
 }
 
-int RM_FileHandle::updateRec(const RM_Record &rec)
-{
+int RM_FileHandle::updateRec(const RM_Record &rec) {
 
     int rc;
     PF_PageHandle page_handle;
     rc = _pf_file_handle.GetThisPage(rec.getRID().getPageNum(), page_handle);
-    if(rc != 0)
-    {
+    if (rc != 0) {
         PF_PrintError(rc);
     }
     char *page_data = nullptr;
@@ -119,19 +102,16 @@ int RM_FileHandle::updateRec(const RM_Record &rec)
     memcpy(page_data + getOffset(rec.getRID().getSlotNum()), rec.getData(),
            _header_page.recordSize);
     _pf_file_handle.MarkDirty(rec.getRID().getPageNum());
-    if ((rc = _pf_file_handle.UnpinPage(rec.getRID().getPageNum())) != 0)
-    {
+    if ((rc = _pf_file_handle.UnpinPage(rec.getRID().getPageNum())) != 0) {
         PF_PrintError(rc);
     }
     return 0;
 }
 
-int RM_FileHandle::insertPage()
-{
+int RM_FileHandle::insertPage() {
     int rc;
     PF_PageHandle page_handle;
-    if((rc = _pf_file_handle.AllocatePage(page_handle)) != 0)
-    {
+    if ((rc = _pf_file_handle.AllocatePage(page_handle)) != 0) {
         PF_PrintError(rc);
         return -1;
     }
@@ -143,8 +123,7 @@ int RM_FileHandle::insertPage()
     long page_num;
     page_handle.GetPageNum(page_num);
     _pf_file_handle.MarkDirty(page_num);
-    if ((rc = _pf_file_handle.UnpinPage(page_num)) != 0)
-    {
+    if ((rc = _pf_file_handle.UnpinPage(page_num)) != 0) {
         return rc;
     }
     _header_page.pageNum += 1;
@@ -152,16 +131,17 @@ int RM_FileHandle::insertPage()
     return 0;
 }
 
-unsigned RM_FileHandle::getOffset(unsigned slot_num) const
-{
+unsigned RM_FileHandle::getOffset(unsigned slot_num) const {
     return 8 + _header_page.slotMapSize + slot_num * _header_page.recordSize;
 }
 
-RM_FileHandle::~RM_FileHandle()
-{
-    if (_initialized)
-    {
+RM_FileHandle::~RM_FileHandle() {
+    if (_initialized) {
         RecordManager::getInstance().closeFile(*this);
     }
+}
+
+bool RM_FileHandle::is_initialized() const {
+    return _initialized;
 }
 

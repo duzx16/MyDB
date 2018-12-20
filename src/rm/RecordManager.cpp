@@ -5,27 +5,22 @@
 #include "RecordManager.h"
 
 
-unsigned bitmap_size(unsigned record_per_page)
-{
+unsigned bitmap_size(unsigned record_per_page) {
     return ((record_per_page + 31u) >> 5u) * 4;
 }
 
-unsigned record_per_page(unsigned record_size)
-{
+unsigned record_per_page(unsigned record_size) {
     return (32 * (PF_PAGE_SIZE - 8) - 124) / (record_size * 32 + 4);
 }
 
-RecordManager::RecordManager() : _pf_manager()
-{
+RecordManager::RecordManager() : _pf_manager() {
 
 }
 
-int RecordManager::createFile(std::string filename, unsigned record_size)
-{
+int RecordManager::createFile(std::string filename, unsigned record_size) {
     int rc;
     rc = _pf_manager.CreateFile(filename.c_str());
-    if (rc)
-    {
+    if (rc) {
         PF_PrintError(rc);
         return rc;
     }
@@ -33,15 +28,13 @@ int RecordManager::createFile(std::string filename, unsigned record_size)
     int file_id, index;
     PF_FileHandle file_handle;
     rc = _pf_manager.OpenFile(filename.c_str(), file_handle);
-    if (rc)
-    {
+    if (rc) {
         PF_PrintError(rc);
         return rc;
     }
     PF_PageHandle page_handle;
     rc = file_handle.AllocatePage(page_handle);
-    if (rc)
-    {
+    if (rc) {
         PF_PrintError(rc);
         return rc;
     }
@@ -60,35 +53,30 @@ int RecordManager::createFile(std::string filename, unsigned record_size)
     //Write back the header page
     long page_num;
     page_handle.GetPageNum(page_num);
-    rc=file_handle.MarkDirty(page_num);
-    rc=file_handle.UnpinPage(page_num);
-    if (rc)
-    {
+    rc = file_handle.MarkDirty(page_num);
+    rc = file_handle.UnpinPage(page_num);
+    if (rc) {
         PF_PrintError(rc);
         return rc;
     }
 
     //Close the file
-    if ((rc = _pf_manager.CloseFile(file_handle)) != 0)
-    {
+    if ((rc = _pf_manager.CloseFile(file_handle)) != 0) {
         PF_PrintError(rc);
         return rc;
     }
     return 0;
 }
 
-int RecordManager::destroyFile(std::string filename)
-{
+int RecordManager::destroyFile(std::string filename) {
     return _pf_manager.DestroyFile(filename.c_str());
 }
 
-int RecordManager::openFile(std::string filename, RM_FileHandle &file_handle)
-{
+int RecordManager::openFile(std::string filename, RM_FileHandle &file_handle) {
     int rc;
 
     // Create the Heade Page
-    if ((rc = _pf_manager.OpenFile(filename.c_str(), file_handle._pf_file_handle)) != 0)
-    {
+    if ((rc = _pf_manager.OpenFile(filename.c_str(), file_handle._pf_file_handle)) != 0) {
         return rc;
     }
 
@@ -102,8 +90,7 @@ int RecordManager::openFile(std::string filename, RM_FileHandle &file_handle)
     file_handle._initialized = true;
 
     // Release the Header Page
-    if((rc = file_handle._pf_file_handle.UnpinPage(0)) != 0)
-    {
+    if ((rc = file_handle._pf_file_handle.UnpinPage(0)) != 0) {
         PF_PrintError(rc);
         return rc;
     }
@@ -111,11 +98,9 @@ int RecordManager::openFile(std::string filename, RM_FileHandle &file_handle)
     return 0;
 }
 
-int RecordManager::closeFile(RM_FileHandle &file_handle)
-{
+int RecordManager::closeFile(RM_FileHandle &file_handle) {
     int rc;
-    if (file_handle._header_modified)
-    {
+    if (file_handle._header_modified) {
         PF_PageHandle page_handle;
         file_handle._pf_file_handle.GetFirstPage(page_handle);
         char *data;
@@ -127,8 +112,7 @@ int RecordManager::closeFile(RM_FileHandle &file_handle)
     }
 
     //Close the file
-    if ((rc = _pf_manager.CloseFile(file_handle._pf_file_handle)) != 0)
-    {
+    if ((rc = _pf_manager.CloseFile(file_handle._pf_file_handle)) != 0) {
         PF_PrintError(rc);
         return rc;
     }
@@ -137,8 +121,7 @@ int RecordManager::closeFile(RM_FileHandle &file_handle)
     return 0;
 }
 
-RecordManager &RecordManager::getInstance()
-{
+RecordManager &RecordManager::getInstance() {
     static RecordManager instance;
     return instance;
 }

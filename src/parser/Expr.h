@@ -8,6 +8,7 @@
 #include "../Constants.h"
 #include <string>
 #include <vector>
+#include <functional>
 
 #define EXPR_NO_SUCH_TABLE -1
 #define EXPR_NO_SUCH_ATTRIBUTE -2
@@ -51,14 +52,16 @@ public:
 
     explicit Expr(AttributeNode *);
 
-    void calculate(char *data);
+    void postorder(std::function<void(Expr *)> callback, std::function<bool(Expr *)> stop_condition = nullptr);
+
+    void calculate(char *data, const std::string &relationName="");
 
     void type_check();
 
     void convert_to_float();
 
-    void connect_attribute(const std::vector<std::string> &relNames, const std::vector<ColumnDecsList *> &columnLists,
-                          const std::vector<TableConstraintList *> &constraintLists);
+    void init_calculate();
+
 
     ~Expr();
 
@@ -73,6 +76,7 @@ public:
     AttributeNode *attribute = nullptr;
     AttrInfo attrInfo;
     bool is_null = true;
+    bool calculated = false;
 
 
     Expr *left = nullptr, *right = nullptr;
