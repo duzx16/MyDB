@@ -1,10 +1,14 @@
 #include "sm.h"
 #include "sm_internal.h"
 #include <io.h>
+
+#if defined(_WIN32)
 #include <direct.h>
 #include <cstring>
+#elif defined(__linux__)
 #include <sys/stat.h>
 #include <sys/types.h>
+#endif
 
 SM_Manager::SM_Manager() {
 	ixm = new IX_Manager(pfManager);
@@ -17,24 +21,15 @@ SM_Manager::~SM_Manager() {
 
 RC SM_Manager::OpenDb(const char* dbName) {
 	mkdir(dbName);
-	curDbName = dbName;
-	ChangeWorkingDir(dbName);
-}
-
-void SM_Manager::ChangeWorkingDir() {
-	
+	chdir(dbName);
 }
 
 void SM_Manager::GenerateTableMetadataDir(const char *tableName, char *s) {
-	strcat(s, dbName);
-	strcat(s, "/");
 	strcat(s, tableName);
 	strcat(s, "_Metadata");
 }
 
 void SM_Manager::GenerateTableRecordDir(const char *tableName, char *s) {
-	strcat(s, dbName);
-	strcat(s, "/");
 	strcat(s, tableName);
 	strcat(s, "_Record");
 }
@@ -245,5 +240,15 @@ RC SM_Manager::Help(const char *relName) {
 }
 
 RC SM_Manager::Print(const char *relName) {
+	// print table attrInfo
+	char s[1010];
+	GenerateTableMetadataDir(relName, s);
+	PF_FileHandle fileHandle;
+	pfManager.OpenFile(s, fileHandle);
+	PF_PageHandle pageHandle;
+	fileHandle.GetThisPage(0, pageHandle);
+	char *pageData;
+	pageHandle.GetData(pageData);
+	TableInfo *tableInfo = (TableInfo*) pageData;
 	
 }

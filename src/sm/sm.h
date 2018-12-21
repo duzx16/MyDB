@@ -31,9 +31,7 @@ public:
 private:
 	IX_Manager *ixm;
 	RM_Manager *rmm;
-	char *curDbName;
 	PF_Manager pfManager;
-	void ChangeWorkingDir(const char *dbName);
 	void GenerateTableMetadataDir(const char *tableName, char *s);
 	void GenerateTableRecordDir(const char *tableName, char *s);
 };

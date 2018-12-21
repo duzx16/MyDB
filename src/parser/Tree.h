@@ -1,9 +1,4 @@
 #include <utility>
-
-#include <utility>
-
-#include <utility>
-
 //
 // Created by Zhengxiao Du on 11/24/18.
 //
@@ -13,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include <cassert>
 #include "../Constants.h"
 #include "Expr.h"
 

@@ -3,6 +3,7 @@
 //
 
 #include "Expr.h"
+#include <cstring>
 
 Expr::Expr(int i) {
     is_null = false;
