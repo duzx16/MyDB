@@ -5,6 +5,8 @@
 #include "../parser/Tree.h"
 #include "../pf/pf.h"
 #include "../ix/ix.h"
+#include "../rm/RecordManager.h"
+
 
 class SM_Manager {
 public:
@@ -30,7 +32,7 @@ public:
     RC Print       (const char *relName);               // Print relation
 private:
 	IX_Manager *ixm;
-	RM_Manager *rmm;
+	RecordManager *rmm;
 	PF_Manager pfManager;
 	void GenerateTableMetadataDir(const char *tableName, char *s);
 	void GenerateTableRecordDir(const char *tableName, char *s);

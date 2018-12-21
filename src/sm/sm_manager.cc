@@ -12,7 +12,8 @@
 
 SM_Manager::SM_Manager() {
 	ixm = new IX_Manager(pfManager);
-	rmm = new RM_Manager(pfManager);
+	rmm = &(RecordManager::getInstance());
+	rmm->setPFManager(pfManager);
 }
 
 SM_Manager::~SM_Manager() {
@@ -58,19 +59,20 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
 	tableInfo->tableConsCount = (tableConstraints->tbDecs).size();
 	for (int i = 0; i < tableInfo->tableConsCount; ++i) {
 		TableCons *tableCons = &(tableInfo->tableCons[i]);
-		TableCons *tableConsFrom = &(tableConstraints->tbDecs[i]);
+		TableConstraint *tableConsFrom = tableConstraints->tbDecs[i];
 		tableCons->type = tableConsFrom->type;
 		tableCons->column_name = tableConsFrom->column_name;
 		tableCons->foreign_table = tableConsFrom->foreign_table;
 		tableCons->foreign_column = tableConsFrom->foreign_column;
 		if (tableConsFrom->const_values != nullptr) {
-			for (auto _ : (tableConsFrom->const_values).values) {
-				(tableCons->const_values).values.push_back(_);
+			for (auto expr : tableConsFrom->const_values->constValues) {
+				// insert Expr expr into exprs
+				tableCons->exprs[tableCons->exprSize++] = getExprTreeFromExpr(expr);
 			}
 		}
 		if (tableConsFrom->column_list != nullptr) {
-			for (auto _ : (tableConsFrom->column_list).idents) {
-				(tableCons->column_list).idents.push_back(_);
+			for (auto _ : tableConsFrom->column_list->idents) {
+				(tableCons->column_list).addIdent(_.c_str());
 			}
 		}
 	}
@@ -117,12 +119,15 @@ RC SM_Manager::GetTableInfo(const char *tableName, ColumnDecsList &columns, Tabl
 			);
 		}
 		else if (tableCons.type == ConstraintType::CHECK_CONSTRAINT) {
+			ConstValueList *const_values = new ConstValueList();
+			for (int j = 0; j < tableCons.exprSize; ++j)
+				const_values->addConstValue(getExprFromExprTree(tableCons.exprs[j]));
 			tableConstraints.addTbDec(
 				new TableConstraint(
 					tableCons.column_name.c_str(),
-					&tableCons.const_values
+					const_values
 				)
-			)
+			);
 		}
 	}
 }
@@ -133,7 +138,7 @@ RC SM_Manager::DropTable(const char *relName) {
 
 RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
 	char s[1010];
-	GenerateTableMetadataDir(tableName, s);
+	GenerateTableMetadataDir(relName, s);
 	PF_FileHandle fileHandle;
 	pfManager.OpenFile(s, fileHandle);
 	PF_PageHandle pageHandle;
@@ -171,9 +176,9 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
 	RM_FileHandle rmFileHandle;
 	memset(s, 0, sizeof(s));
 	GenerateTableRecordDir(relName, s);
-	if (rmm->OpenFile(s, rmFileHandle) == 0) {
+	if (rmm->openFile(s, rmFileHandle) == 0) {
 		RM_FileScan rmFileScan;
-		rmFileScan.OpenScan(
+		rmFileScan.openScan(
 			rmFileHandle,
 			(tableInfo->attrInfos[pos]).attrType,
 			(tableInfo->attrInfos[pos]).attrLength,
@@ -182,12 +187,10 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
 			nullptr
 		);
 		RM_Record rec;
-		while (rmFileScan.GetNextRec(rec) == 0) {
+		while (rmFileScan.getNextRec(rec) == 0) {
 			// insert entry into index
-			char *pdata;
-			RID rid;
-			rec.GetData(pdata);
-			rec.GetRid(rid);
+			char *pdata = rec.getData();
+			RID rid = rec.getRID();
 			indexHandle.InsertEntry(pdata, rid);
 		}
 		indexHandle.ForcePages();
@@ -198,7 +201,7 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
 
 RC SM_Manager::DropIndex(const char *relName, const char *attrName) {
 	char s[1010];
-	GenerateTableMetadataDir(tableName, s);
+	GenerateTableMetadataDir(relName, s);
 	PF_FileHandle fileHandle;
 	pfManager.OpenFile(s, fileHandle);
 	PF_PageHandle pageHandle;

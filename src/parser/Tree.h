@@ -397,7 +397,6 @@ public:
 
 //    std::vector<AttrValue> getConstValues();
 
-private:
     std::vector<Expr *> constValues;
 };
 
@@ -429,7 +428,7 @@ public:
 
     TableConstraint(const char *column_name, const char *table, const char *column);
 
-    TableConstraint(char *column_name, ConstValueList *const_values);
+    TableConstraint(const char *column_name, ConstValueList *const_values);
 
     ~TableConstraint() override;
 

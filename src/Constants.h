@@ -18,7 +18,9 @@ enum class CompOp {
 enum class ArithOp {
     ADD_OP, SUB_OP, MUL_OP, DIV_OP, MINUS_OP, NO_OP
 };
-
+enum class ClientHint {
+	NO_HINT
+};
 enum class AggregationType {
     T_NONE = 0,
     T_AVG,

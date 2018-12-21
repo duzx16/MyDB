@@ -607,7 +607,7 @@ TableConstraint::TableConstraint(const char *column_name, const char *table, con
 }
 
 // Check key
-TableConstraint::TableConstraint(char *column_name, ConstValueList *const_values) : type(
+TableConstraint::TableConstraint(const char *column_name, ConstValueList *const_values) : type(
         ConstraintType::CHECK_CONSTRAINT), column_name(column_name), const_values(const_values) {
 
 }

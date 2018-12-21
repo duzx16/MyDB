@@ -21,8 +21,9 @@ public:
     int openFile(std::string filename, RM_FileHandle &file_handle);
     int closeFile(RM_FileHandle &file_handle);
     static RecordManager & getInstance();
+	void setPFManager(PF_Manager &pfm) { _pf_manager = pfm; }
 private:
-    RecordManager();
+	RecordManager();
     PF_Manager _pf_manager;
 };
 
