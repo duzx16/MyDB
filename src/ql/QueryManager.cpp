@@ -13,36 +13,26 @@
 #include "../rm/RecordManager.h"
 #include "../rm/RM_FileScan.h"
 
-int QL_Manager::openTable(std::string relName, Table &table) {
-    table.tableName = relName;
-    int rc = sm.GetTableInfo(relName.c_str(), table.columns, table.tableConstraints);
-    if (rc != 0) {
-        fprintf(stderr, "The relation table %s does not exist\n", relName.c_str());
-        return -1;
-    }
-    return 0;
-}
-
 int
 QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause, std::string groupAttrName) {
     std::vector<std::unique_ptr<Table>> tables;
     int rc = 0;
-    for (const auto &ident : relations->idents) {
-        auto *table = new Table();
-        rc = openTable(ident, *table);
-        if (rc != 0) {
-            delete table;
-            break;
+    try {
+        for (const auto &ident : relations->idents) {
+            auto *table = new Table(ident);
+            tables.push_back(std::unique_ptr<Table>(table));
         }
-        tables.push_back(std::unique_ptr<Table>(table));
     }
-    if (rc == 0) {
-        try {
-            bindAttribute(whereClause, tables);
-        } catch (AttrBindException &exception) {
-            printException(exception);
-            return QL_TABLE_FAIL;
-        }
+    catch (const std::string &error) {
+        cerr << error;
+        return QL_TABLE_FAIL;
+    }
+
+    try {
+        bindAttribute(whereClause, tables);
+    } catch (AttrBindException &exception) {
+        printException(exception);
+        return QL_TABLE_FAIL;
     }
     //todo complete select
     return 0;
@@ -54,9 +44,11 @@ int QL_Manager::exeInsert(std::string relationName, ConstValueLists *insertValue
 
 int QL_Manager::exeUpdate(std::string relationName, SetClauseList *setClauses, Expr *whereClause) {
     std::vector<std::unique_ptr<Table>> tables;
-    tables.push_back(std::make_unique<Table>());
-    int rc = openTable(std::move(relationName), *tables[0]);
-    if (rc != 0) {
+    try {
+        tables.push_back(std::make_unique<Table>(relationName));
+    }
+    catch (const std::string &error) {
+        cerr << error;
         return QL_TABLE_FAIL;
     }
     try {
@@ -76,9 +68,11 @@ int QL_Manager::exeUpdate(std::string relationName, SetClauseList *setClauses, E
 
 int QL_Manager::exeDelete(std::string relationName, Expr *whereClause) {
     std::vector<std::unique_ptr<Table>> tables;
-    tables.push_back(std::make_unique<Table>());
-    int rc = openTable(relationName, *tables[0]);
-    if (rc != 0) {
+    try {
+        tables.push_back(std::make_unique<Table>(relationName));
+    }
+    catch (const std::string &error) {
+        cerr << error;
         return QL_TABLE_FAIL;
     }
     try {
@@ -92,10 +86,9 @@ int QL_Manager::exeDelete(std::string relationName, Expr *whereClause) {
                    [&toBeDeleted](RM_FileHandle &fileHandle, const RM_Record &record) -> void {
                        toBeDeleted.push_back(record.getRID());
                    });
-    tables[0]->tryOpenFile();
     RM_FileHandle &fileHandle = tables[0]->getFileHandler();
     for (auto &it: toBeDeleted) {
-        fileHandle.deleteRec(it);
+        tables[0]->deleteData(it);
     }
     return 0;
 }
@@ -119,10 +112,7 @@ void QL_Manager::printException(const AttrBindException &exception) {
 }
 
 int QL_Manager::iterateRecords(Table &table, Expr *condition, QL_Manager::CallbackFunc callback) {
-    int rc = table.tryOpenFile();
-    if (rc != 0) {
-        return QL_TABLE_FAIL;
-    }
+    int rc;
     RM_FileScan fileScan;
     fileScan.openScan(table.getFileHandler(), condition);
     while (true) {

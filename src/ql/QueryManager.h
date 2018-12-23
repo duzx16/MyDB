@@ -20,8 +20,6 @@ private:
 
     using CallbackFunc = std::function<void(RM_FileHandle &, const RM_Record &)>;
 
-    int openTable(std::string relName, Table &table);
-
     void printException(const AttrBindException &exception);
 
     int iterateRecords(Table &table, Expr *condition, CallbackFunc callback);

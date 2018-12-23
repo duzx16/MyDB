@@ -46,7 +46,8 @@ struct AttrInfo {
     std::string tableName;
     int attrLength{};
     AttrType attrType = AttrType::NO_ATTR;
-    int notNull{};
+    bool notNull{};
+    bool withIndex;
     int attrOffset{};
 };
 

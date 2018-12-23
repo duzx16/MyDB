@@ -31,6 +31,7 @@ public:
     RC Help        ();                                  // Help for database
     RC Help        (const char *relName);               // Help for relation
     RC Print       (const char *relName);               // Print relation
+    static SM_Manager & getInstance();
 };
 
 #define SM_REL_EXISTS            (START_SM_WARN + 0)

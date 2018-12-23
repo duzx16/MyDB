@@ -282,7 +282,7 @@ ColumnNode::~ColumnNode() = default;
 
 AttrInfo ColumnNode::getAttrInfo() const {
     AttrInfo attrInfo{};
-    strcpy(attrInfo.attrName, columnName.c_str());
+    attrInfo.attrName = columnName.c_str();
     attrInfo.attrType = type;
     attrInfo.attrLength = size;
     attrInfo.notNull = int((columnFlag & COLUMN_FLAG_NOTNULL) != 0);
