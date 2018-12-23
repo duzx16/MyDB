@@ -318,6 +318,7 @@ private:
 // For select attribute
 class AttributeNode : public Tree {
 public:
+	AttributeNode() {}
     AttributeNode(const char *relationName, const char *attributeName,
                   AggregationType aggregationType = AggregationType::T_NONE);
 

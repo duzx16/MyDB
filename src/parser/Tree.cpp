@@ -6,6 +6,7 @@
 #include <utility>
 #include <cstdlib>
 #include <cstring>
+#include "../sm/sm.h"
 
 using std::string;
 using std::vector;
@@ -142,6 +143,7 @@ CreateDatabase::~CreateDatabase() = default;
 void CreateDatabase::visit() {
     DebugPrintf("create database %s\n", dbName.c_str());
 //    SystemManager::instance()->createDB(dbName.c_str());
+	(SM_Manager::getInstance())->CreateDb(dbName.c_str());
 }
 
 /* CreateTableTree */
@@ -162,6 +164,8 @@ void CreateTable::visit() {
 //    AttrInfo *attrInfos = columns->getAttrInfos();
 //    SystemManager::instance()->createTable(tableName.c_str(), attrCount, attrInfos);
 //    columns->deleteAttrInfos();
+	(SM_Manager::getInstance())->CreateTable(tableName.c_str(), columns, tableConstraints);
+	DebugPrintf("create foreign_table %s end\n", tableName.c_str());
 }
 
 
@@ -207,6 +211,7 @@ DropDatabase::~DropDatabase() = default;
 
 void DropDatabase::visit() {
 //    SystemManager::instance()->dropDB(dbName.c_str());
+	(SM_Manager::getInstance())->DropDb(dbName.c_str());
 }
 
 /* DropTableTree */
@@ -219,6 +224,7 @@ DropTable::~DropTable() = default;
 void DropTable::visit() {
     DebugPrintf("drop foreign_table %s\n", tableName.c_str());
 //    SystemManager::instance()->dropTable(tableName.c_str());
+	(SM_Manager::getInstance())->DropTable(tableName.c_str());
 }
 
 ///* ColumnsTree */
@@ -511,6 +517,7 @@ UseDatabase::UseDatabase(const char *dbName) {
 void UseDatabase::visit() {
     DebugPrintf("Use %s\n", dbName.c_str());
 //    SystemManager::instance()->openDB(dbName.c_str());
+	(SM_Manager::getInstance())->OpenDb(dbName.c_str());
 }
 
 DescTable::DescTable(const char *relName) {
@@ -525,6 +532,11 @@ void DescTable::visit() {
 //        SystemManager::instance()->help();
 //    else
 //        SystemManager::instance()->help(tableName.c_str());
+	if (tableName.length() == 0)
+		(SM_Manager::getInstance())->Help();
+	else
+		(SM_Manager::getInstance())->Help(tableName.c_str());
+	DebugPrintf("desc foreign_table end\n");
 }
 
 ConstValueLists::ConstValueLists() = default;

@@ -12,6 +12,8 @@ class SM_Manager {
 public:
     SM_Manager  ();  // Constructor
     ~SM_Manager ();                                  // Destructor
+	RC CreateDb    (const char *dbName);                // Create database
+	RC DropDb      (const char *dbName);                // Drop database
     RC OpenDb      (const char *dbName);                // Open database
     RC CloseDb     ();                                  // Close database
 	RC CreateTable (const char *tableName,
@@ -30,6 +32,7 @@ public:
     RC Help        ();                                  // Help for database
     RC Help        (const char *relName);               // Help for relation
     RC Print       (const char *relName);               // Print relation
+	static SM_Manager* getInstance();
 private:
 	IX_Manager *ixm;
 	RecordManager *rmm;

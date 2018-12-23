@@ -32,7 +32,7 @@ public:
                      AttrType   attrType,
                      int        attrLength) {}
     RC DestroyIndex (const char *fileName,          // Destroy index
-                     int        indexNo);
+                     int        indexNo) {}
     RC OpenIndex    (const char *fileName,          // Open index
                      int        indexNo,
                      IX_IndexHandle &indexHandle) {}

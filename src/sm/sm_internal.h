@@ -3,43 +3,40 @@
 
 #include "sm.h"
 
-#define MAX_ATTRS 21
-#define EXPR_MAX_SIZE 21
-struct ExprNode {
-	int left, right;
+#define TABLE_COUNT 21
+
+struct TableList {
+	char tables[TABLE_COUNT][MAX_NAME];
+	int tableCount;
+	void operator = (const TableList &);
+};
+struct ConstNode {
 	int value_i = 0;
     float value_f = 0.0;
-    bool value_b = false;
-	AttributeNode attribute;
+	char value_s[MAX_STRING_LEN];
+	AttrType attrType = AttrType::NO_ATTR;
 	bool is_null = true;
-	ArithOp arithOp = ArithOp::NO_OP;
-    CompOp compOp = CompOp::NO_OP;
-    NodeType nodeType = NodeType::CONST_NODE;
-    AttrType attrType = AttrType::NO_ATTR;
-	ExprNode() = default;
-	// CONST_NODE
-	ExprNode(int i);
-	ExprNode(float f);
-	ExprNode(const char *s);
-	// ARITH_NODE
-	ExprNode(int left, ArithOp arithOp, int right);
-	// COMP_NODE
-	ExprNode(int left, CompOp compOp, int right);
-	// ATTR_NODE
-	ExprNode(AttributeNode attribute);
+	ConstNode() = default;
+	ConstNode(int i);
+	ConstNode(float f);
+	ConstNode(const char *s);
+	void operator = (const ConstNode &);
 };
-struct ExprTree {
-	ExprNode exprs[EXPR_MAX_SIZE];
-	int count;
+struct ColumnList {
+	char columns[MAX_ATTRS][MAX_NAME];
+	int columnCount;
+	void addColumn(const char* column);
+	void operator = (const ColumnList &);
 };
 struct TableCons {
 	ConstraintType type;
-    ExprTree exprs[MAX_ATTRS];
-	int exprSize;
-    IdentList column_list;
-    std::string column_name;
-    std::string foreign_table;
-    std::string foreign_column;
+    ConstNode constNodes[MAX_ATTRS];
+	int constSize;
+	ColumnList columnList;
+	char column_name[MAX_NAME];
+	char foreign_table[MAX_NAME];
+	char foreign_column[MAX_NAME];
+	void operator = (const TableCons &);
 };
 struct TableInfo {
 	int attrInfoCount;
@@ -47,11 +44,14 @@ struct TableInfo {
 	int indexedAttrSize;
 	int indexedAttr[MAX_ATTRS];
 	int tableConsCount;
-	TableCons tableCons[MAX_ATTRS];
+	void operator = (const TableInfo &);
 };
 
-int getExprNode(Expr *expr, int &curSize, ExprNode *exprs);
-ExprTree getExprTreeFromExpr(const Expr* expr);
-Expr* getExprFromExprTree(ExprTree &exprTree);
-Expr* getExprFromExprNode(int id, ExprNode *exprs);
+ConstNode* getConstNodeFromExpr(Expr *expr);
+Expr* getExprFromConstNode(ConstNode *constNode);
+void printAttrType(AttrType attrType);
+void printConstraintType(ConstraintType constraintType);
+void printConstNodeExpr(Expr *expr);
+void Debug(const char* file, int line, int err);
+IdentList* getIdentListFromColumnList(ColumnList *columnList);
 #endif

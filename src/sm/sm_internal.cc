@@ -1,131 +1,141 @@
 #include "sm_internal.h"
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
 
-ExprNode::ExprNode(int i) {
+ConstNode::ConstNode(int i) {
 	is_null = false;
     value_i = i;
-    nodeType = NodeType::CONST_NODE;
     attrType = AttrType::INT;
 }
 
-ExprNode::ExprNode(float f) {
+ConstNode::ConstNode(float f) {
 	is_null = false;
     value_f = f;
-    nodeType = NodeType::CONST_NODE;
     attrType = AttrType::FLOAT;
 }
 
-ExprNode::ExprNode(const char *s) {
+ConstNode::ConstNode(const char *s) {
 	is_null = false;
-    value_s = std::string(s, 1, strlen(s) - 2);;
-    nodeType = NodeType::CONST_NODE;
+	memset(value_s, 0, sizeof value_s);
+	strcpy(value_s, s);
     attrType = AttrType::STRING;
 }
 
-ExprNode::ExprNode(int left, ArithOp arithOp, int right) {
-	is_null = false;
-    this->left = left;
-    this->right = right;
-    this->arithOp = op;
-    this->nodeType = NodeType::ARITH_NODE;
+ConstNode* getConstNodeFromExpr(Expr *expr) {
+	if (expr->attrType == AttrType::INT) {
+		return new ConstNode(expr->value_i);
+	}
+	else if (expr->attrType == AttrType::FLOAT) {
+		return new ConstNode(expr->value_f);
+	}
+	else if (expr->attrType == AttrType::STRING) {
+		return new ConstNode((expr->value_s).c_str());
+	}
+	else {
+		return new ConstNode();
+	}
 }
 
-ExprNode::ExprNode(int left, CompOp arithOp, int right) {
-	is_null = false;
-    this->left = left;
-    this->right = right;
-    this->compOp = op;
-    this->nodeType = NodeType::COMP_NODE;
+Expr* getExprFromConstNode(ConstNode *constNode) {
+	if (constNode->attrType == AttrType::INT) {
+		return new Expr(constNode->value_i);
+	}
+	else if (constNode->attrType == AttrType::FLOAT) {
+		return new Expr(constNode->value_f);
+	}
+	else if (constNode->attrType == AttrType::STRING) {
+		return new Expr(constNode->value_s);
+	}
+	else {
+		return new Expr();
+	}
 }
 
-ExprNode::ExprNode(AttributeNode attribute) {
-	is_null = false;
-    this->attribute = attributeNode;
-    this->nodeType = NodeType::ATTR_NODE;
+void printAttrType(AttrType attrType) {
+	switch (attrType) {
+		case AttrType::INT: { printf("INT"); break; }
+		case AttrType::FLOAT: { printf("FLOAT"); break; }
+		case AttrType::STRING: { printf("STRING"); break; }
+		case AttrType::DATE: { printf("DATE"); break; }
+		case AttrType::VARCHAR: { printf("VARCHAR"); break; }
+		case AttrType::NO_ATTR: { printf("NO_ATTR"); break; }
+		default: {}
+	}
 }
 
-int getExprNode(Expr *expr, int &curSize, ExprNode *exprs) {
-	int d = curSize++;
-	ExprNode exprNode = &(exprs[d]);
-	if (expr->nodeType == NodeType::CONST_NODE) {
-		if (expr->attrType == AttrType::INT) {
-			ExprNode _(expr->value_i);
-			exprNode = _;
-		}
-		if (expr->attrType == AttrType::FLOAT) {
-			ExprNode _(expr->value_f);
-			exprNode = _;
-		}
-		if (expr->attrType == AttrType::STRING) {
-			ExprNode _(expr->value_s);
-			exprNode = _;
-		}
-		if (expr->attrType == AttrType::NO_ATTR) {
-			ExprNode _();
-			exprNode = _;
-		}
+void printConstraintType(ConstraintType constraintType) {
+	switch (constraintType) {
+		case ConstraintType::PRIMARY_CONSTRAINT:{ printf("PRIMARY_CONSTRAINT"); break; }
+		case ConstraintType::FOREIGN_CONSTRAINT: { printf("FOREIGN_CONSTRAINT"); break; }
+		case ConstraintType::CHECK_CONSTRAINT: { printf("CHECK_CONSTRAINT"); break; }
+		default: {}
 	}
-	else if (expr->nodeType == NodeType::ARITH_NODE) {
-		int left = -1, right = -1;
-		if (expr->left != nullptr)
-			left = getExprNode(expr->left, curSize, exprs);
-		if (expr->right != nullptr)
-			right = getExprNode(expr->right, curSize, exprs);
-		ExprNode _(left, expr->arithOp, right);
-		exprNode = _;
-	}
-	else if (expr->nodeType == NodeType::COMP_NODE) {
-		int left = -1, right = -1;
-		if (expr->left != nullptr)
-			left = getExprNode(expr->left, curSize, exprs);
-		if (expr->right != nullptr)
-			right = getExprNode(expr->right, curSize, exprs);
-		ExprNode _(left, expr->compOp, right);
-		exprNode = _;
-	}
-	else if (expr->nodeType == NodeType::ATTR_NODE) {
-		ExprNode _(expr->attribute);
-		exprNode = _;
-	}
-	return d;
-}
-ExprTree getExprTreeFromExpr(Expr *expr) {
-	ExprTree exprTree;
-	getExprNode(expr, exprTree.count, exprTree.exprs);
-	return exprTree;
-}
-Expr* getExprFromExprTree(ExprTree &exprTree) {
-	return getExprFromExprNode(0, exprTree.exprs);
 }
 
-Expr* getExprFromExprNode(int id, ExprNode *exprs) {
-	ExprNode *exprNode = &(exprs[id]);
-	if (exprNode->nodeType == NodeType::CONST_NODE) {
-		if (exprNode->attrType == AttrType::INT) {
-			return new Expr(exprNode->value_i);
-		}
-		if (exprNode->attrType == AttrType::FLOAT) {
-			return new Expr(exprNode->value_f);
-		}
-		if (exprNode->attrType == AttrType::STRING) {
-			return new Expr((exprNode->value_s).c_str());
-		}
-		if (exprNode->attrType == AttrType::NO_ATTR) {
-			return new Expr();
-		}
+void printConstNodeExpr(Expr *expr) {
+	switch (expr->attrType) {
+		case AttrType::INT:{ printf("%d", expr->value_i); break; }
+		case AttrType::FLOAT: { printf("%f", expr->value_f); break; }
+		case AttrType::STRING: { printf("'%s'", (expr->value_s).c_str()); break; }
+		case AttrType::NO_ATTR: { printf("NULL"); break; }
+		default: {}
 	}
-	else if (exprNode->nodeType == NodeType::ARITH_NODE) {
-		Expr *left, *right;
-		left = (exprNode->left == -1) ? nullptr : getExprFromExprNode(exprNode->left, exprs);
-		right = (exprNode->right == -1) ? nullptr : getExprFromExprNode(exprNode->right, exprs);
-		return new Expr(left, exprNode->arithOp, right);
+}
+void Debug(const char* file, int line, int err) {
+	if (err != 0) {
+		printf("Error in file %s, line = %d code = %d\n", file, line, err);
 	}
-	else if (exprNode->nodeType == NodeType::COMP_NODE) {
-		Expr *left, *right;
-		left = (exprNode->left == -1) ? nullptr : getExprFromExprNode(exprNode->left, exprs);
-		right = (exprNode->right == -1) ? nullptr : getExprFromExprNode(exprNode->right, exprs);
-		return new Expr(left, exprNode->compOp, right);
-	}
-	else if (exprNode->nodeType == NodeType::ATTR_NODE) {
-		return new Expr(exprNode->attribute);
-	}
+}
+
+void ColumnList::addColumn(const char* column) {
+	strcpy(columns[columnCount++], column);
+}
+
+IdentList* getIdentListFromColumnList(ColumnList *columnList) {
+	IdentList *identList = new IdentList();
+	for (int i = 0; i < columnList->columnCount; ++i)
+		identList->addIdent(columnList->columns[i]);
+	return identList;
+}
+
+void TableList::operator = (const TableList &_) {
+	memcpy(tables, _.tables, sizeof (tables));
+	tableCount = _.tableCount;
+}
+
+void ConstNode::operator = (const ConstNode &_) {
+	printf("ConstNode::operator =, in\n");
+	value_i = _.value_i;
+	value_f = _.value_f;
+	memcpy(value_s, _.value_s, sizeof (value_s));
+	attrType = _.attrType;
+	is_null = _.is_null;
+	printf("ConstNode::operator =, out\n");
+}
+
+void ColumnList::operator = (const ColumnList &_) {
+	memcpy(columns, _.columns, sizeof (columns));
+	columnCount = _.columnCount;
+}
+
+void TableCons::operator = (const TableCons &_) {
+	type = _.type;
+	constSize = _.constSize;
+	for (int i = 0; i < _.constSize; ++i)
+		constNodes[i] = _.constNodes[i];
+	columnList = _.columnList;
+	memcpy(column_name, _.column_name, sizeof (column_name));
+	memcpy(foreign_table, _.foreign_table, sizeof (foreign_table));
+	memcpy(foreign_column, _.foreign_column, sizeof (foreign_column));
+}
+
+void TableInfo::operator = (const TableInfo &_) {
+	attrInfoCount = _.attrInfoCount;
+	for (int i = 0; i < _.attrInfoCount; ++i)
+		attrInfos[i] = _.attrInfos[i];
+	indexedAttrSize = _.indexedAttrSize;
+	for (int i = 0; i < indexedAttrSize; ++i)
+		indexedAttr[i] = _.indexedAttr[i];
+	tableConsCount = _.tableConsCount;
 }

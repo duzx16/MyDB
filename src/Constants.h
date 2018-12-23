@@ -35,7 +35,9 @@ enum class ConstraintType {
     CHECK_CONSTRAINT
 };
 
-#define MAX_NAME 42
+#define MAX_NAME 25
+#define MAX_ATTRS 10
+#define MAX_STRING_LEN 256
 #define COLUMN_FLAG_NOTNULL 0x1
 
 struct AttrInfo {

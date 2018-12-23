@@ -54,5 +54,6 @@ int yyparse();
 //}
 
 int main() {
+	freopen("test.sql", "r", stdin);
     return yyparse();
 }
