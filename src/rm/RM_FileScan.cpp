@@ -46,7 +46,7 @@ int RM_FileScan::getNextRec(RM_Record &rec) {
         _file_handle->getRec(RID{_current_page, slot_num}, rec);
         _current_bitmap.setBit(slot_num, 0);
         char *data = rec.getData();
-        _condition->calculate(data, );
+        _condition->calculate(data);
         if (_condition->value.b) {
             break;
         }
