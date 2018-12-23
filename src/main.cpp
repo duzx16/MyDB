@@ -3,6 +3,7 @@
 #include "rm/RM_FileScan.h"
 #include "fileio/BufPageManager.h"
 #include "utils/MyBitMap.h"
+#include "ql/QueryManager.h"
 #include <unistd.h>
 #include <vector>
 
@@ -54,5 +55,6 @@ int yyparse();
 //}
 
 int main() {
+//    QL_Manager::getInstance();
     return yyparse();
 }

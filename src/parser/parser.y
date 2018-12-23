@@ -66,7 +66,7 @@ class Tree;
 %type <ivalue> type_width
 %type <attributesTree> attributes
 %type <attributeTree> attribute
-%type <identList> tableList column_list
+%type <identList> tableList column_list column_list_exist
 %type <constValuesTree> constvalues
 %type <columnsTree> column_decs
 %type <columnTree> column_dec
@@ -159,9 +159,9 @@ command:
                 Tree::setInstance($$);
                 Tree::run();
             }
-    | INSERT INTO IDENTIFIER VALUES valueLists
+    | INSERT INTO IDENTIFIER column_list_exist VALUES valueLists
             {
-                $$ = new Insert($3, $5);
+                $$ = new Insert($3, $4, $6);
                 Tree::setInstance($$);
                 delete $3;
                 Tree::run();
@@ -280,6 +280,13 @@ column_list:
                 $$->addIdent($3);
                 delete $3;
             }
+
+column_list_exist:
+    '(' column_list ')'
+            {
+                $$ = $2;
+            }
+    |       {   $$ = NULL;   }
 
 column_type:
     KINT {$$=AttrType::INT;}
@@ -472,6 +479,10 @@ comparison:
     | expr IS T_NULL
             {
                 $$ = new Expr($1, CompOp::IS_OP, new Expr());
+            }
+    | expr IS NOTNULL
+            {
+                $$ = new Expr(new Expr($1, CompOp::IS_OP, new Expr()), LogicOp::NOT_OP, NULL);
             }
     ;
 

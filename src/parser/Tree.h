@@ -143,13 +143,14 @@ public:
 
 class Insert : public Tree {
 public:
-    Insert(const char *relationName, ConstValueLists *insertValueTree);
+    Insert(const char *relationName, IdentList * columnList, ConstValueLists *insertValueTree);
 
     ~Insert() override;
 
     void visit() override;
 
     std::string relationName;
+    IdentList * columnList;
     ConstValueLists *insertValueTree;
 };
 
@@ -382,9 +383,6 @@ public:
 
     void addConstValue(Expr *constValue);
 
-//    std::vector<AttrValue> getConstValues();
-
-private:
     std::vector<Expr *> constValues;
 };
 

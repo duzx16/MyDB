@@ -29,13 +29,15 @@ private:
     void bindAttribute(Expr *expr, const std::vector<std::unique_ptr<Table>> &tables);
 
 public:
-    int exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause, std::string groupAttrName);
+    int exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause);
 
-    int exeInsert(std::string relationName, ConstValueLists *insertValueTree);
+    int exeInsert(std::string relationName, IdentList *columnList, ConstValueLists *insertValueTree);
 
     int exeUpdate(std::string relationName, SetClauseList *setClauses, Expr *whereClause);
 
     int exeDelete(std::string relationName, Expr *whereClause);
+
+    static QL_Manager & getInstance();
 };
 
 #define QL_TABLE_FAIL (START_QL_WARN + 1)

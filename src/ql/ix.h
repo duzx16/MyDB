@@ -58,7 +58,6 @@ public:
 
     void init(const char* indexFileName, PF_Manager *_pfm);
     void CloseIndex();
-    LeafNode FindLeafNode(void *pData);
 
     void PrintFullLinkList(); // print full link list just for attrtype = int
 };
@@ -72,16 +71,9 @@ public:
     ~IX_IndexScan ();                                 // Destructor
     RC OpenScan      (const IX_IndexHandle &indexHandle, // Initialize index scan
                       CompOp      compOp,
-                      void        *value,
-                      ClientHint  pinHint = ClientHint::NO_HINT);
+                      void        *value);
     RC GetNextEntry  (RID &rid);                      // Get next matching entry
     RC CloseScan     ();     	// Terminate index scan
-private:
-    IX_IndexHandle indexHandle;
-    RIDPositionInfo ridPositionInfo;
-    int dir;
-    void *skipValue;
-    bool EQ_OP;
 };
 
 //

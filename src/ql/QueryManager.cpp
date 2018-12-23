@@ -14,7 +14,7 @@
 #include "../rm/RM_FileScan.h"
 
 int
-QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause, std::string groupAttrName) {
+QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause) {
     std::vector<std::unique_ptr<Table>> tables;
     int rc = 0;
     try {
@@ -38,7 +38,23 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
     return 0;
 }
 
-int QL_Manager::exeInsert(std::string relationName, ConstValueLists *insertValueTree) {
+int QL_Manager::exeInsert(std::string relationName, IdentList *columnList, ConstValueLists *insertValueTree) {
+    std::vector<std::unique_ptr<Table>> tables;
+    try {
+        tables.push_back(std::make_unique<Table>(relationName));
+    }
+    catch (const std::string &error) {
+        cerr << error;
+        return QL_TABLE_FAIL;
+    }
+    try {
+        for (const auto &values: insertValueTree->values) {
+            tables[0]->insertData(columnList, values);
+        }
+    }
+    catch (const std::string &strerror) {
+        cerr << strerror;
+    }
     return 0;
 }
 
@@ -88,7 +104,11 @@ int QL_Manager::exeDelete(std::string relationName, Expr *whereClause) {
                    });
     RM_FileHandle &fileHandle = tables[0]->getFileHandler();
     for (auto &it: toBeDeleted) {
-        tables[0]->deleteData(it);
+        int rc = tables[0]->deleteData(it);
+        if (rc != 0) {
+            cerr << "Delete error\n";
+            return -1;
+        }
     }
     return 0;
 }
@@ -165,4 +185,9 @@ void QL_Manager::bindAttribute(Expr *expr, const std::vector<std::unique_ptr<Tab
             }
         }
     });
+}
+
+QL_Manager &QL_Manager::getInstance() {
+    static QL_Manager instance;
+    return instance;
 }

@@ -23,9 +23,13 @@ public:
 
     ColumnNode *getColumn(std::string attribute) const;
 
-    std::string checkData(char *data) const;
+    std::string checkData(char *data);
 
     int deleteData(const RID &rid);
+
+    int insertData(const IdentList *columnList, const ConstValueList *constValues);
+
+    int insertIndex(char *data, const RID &rid);
 
     RM_FileHandle &getFileHandler();
 
@@ -36,10 +40,12 @@ private:
     int tryOpenIndex(int indexNo);
 
     std::vector<AttrInfo> attrInfos;
-    std::vector<IX_IndexHandle *> indexHandles;
+    int recordSize;
+
     ColumnDecsList columns;
     TableConstraintList tableConstraints;
     RM_FileHandle fileHandle;
+    std::vector<IX_IndexHandle *> indexHandles;
 
 };
 

@@ -54,7 +54,7 @@ public:
 
     void postorder(std::function<void(Expr *)> callback, std::function<bool(Expr *)> stop_condition = nullptr);
 
-    void calculate(char *data, const std::string &relationName="");
+    void calculate(char *data, const std::string &relationName = "");
 
     void type_check();
 
@@ -77,6 +77,7 @@ public:
     AttrInfo attrInfo;
     bool is_null = true;
     bool calculated = false;
+    bool bound = false;
 
 
     Expr *left = nullptr, *right = nullptr;

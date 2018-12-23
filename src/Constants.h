@@ -21,7 +21,7 @@ enum class ArithOp {
     ADD_OP, SUB_OP, MUL_OP, DIV_OP, MINUS_OP, NO_OP
 };
 enum class LogicOp {
-    AND_OP, OR_OP, NO_OP
+    AND_OP, OR_OP, NOT_OP, NO_OP
 };
 
 enum class AggregationType {

@@ -3,6 +3,7 @@
 //
 
 #include "Tree.h"
+#include "../ql/QueryManager.h"
 #include <utility>
 #include <cstdlib>
 #include <cstring>
@@ -58,26 +59,14 @@ Select::~Select() {
 
 void Select::visit() {
     DebugPrintf("select\n");
-//    vector<AttributeTree::AttributeDescriptor> attrs;
-//    if (attributes) {
-//        attrs = attributes->getDescriptors();
-//    } else {
-//        attrs = vector<AttributeTree::AttributeDescriptor>();
-//    }
-//    vector<string> rels = relations->getRelations();
-//    vector<Comparison::ComparisonDescriptor> coms;
-//    if (whereClause != nullptr) {
-//        coms = whereClause->getComparision();
-//        SystemManager::instance()->Select(attrs, rels, coms, groupAttrName);
-//    } else {
-//        SystemManager::instance()->Select(attrs, rels, coms, groupAttrName);
-//    }
+    QL_Manager::getInstance().exeSelect(attributes, relations, whereClause);
 }
 
 
 /* InsertTree */
-Insert::Insert(const char *relationName, ConstValueLists *insertValueTree) {
+Insert::Insert(const char *relationName, IdentList *columnList, ConstValueLists *insertValueTree) {
     this->relationName = string(relationName);
+    this->columnList = columnList;
     this->insertValueTree = insertValueTree;
 }
 
@@ -87,9 +76,7 @@ Insert::~Insert() {
 
 void Insert::visit() {
     DebugPrintf("insert\n");
-//    for(const auto& constValues : insertValueTree->values) {
-//        SystemManager::instance()->Insert(relationName, constValues->getConstValues());
-//    }
+    QL_Manager::getInstance().exeInsert(relationName, columnList, insertValueTree);
 }
 
 /* UpdateTree */
@@ -108,10 +95,7 @@ Update::~Update() {
 
 void Update::visit() {
     DebugPrintf("update\n");
-//    AttributeTree::AttributeDescriptor attr = attribute->getDescriptor();
-//    AttrValue val = constValue->getDescriptor();
-//    vector<Comparison::ComparisonDescriptor> coms = whereClause->getComparision();
-//    SystemManager::instance()->Update(relationName, attr, val, coms);
+    QL_Manager::getInstance().exeUpdate(relationName, setClauses, whereClause);
 }
 
 /* DeleteTree */
@@ -126,10 +110,7 @@ Delete::~Delete() {
 
 void Delete::visit() {
     DebugPrintf("delete\n");
-//    vector<Comparison::ComparisonDescriptor> coms;
-//    if (whereClause != nullptr)
-//        coms = whereClause->getComparision();
-//    SystemManager::instance()->Delete(relationName, coms);
+    QL_Manager::getInstance().exeDelete(relationName, whereClause);
 }
 
 /* CreateDatabaseTree */

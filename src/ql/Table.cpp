@@ -5,6 +5,9 @@
 #include "Table.h"
 #include "../rm/RecordManager.h"
 #include "sm.h"
+#include "../parser/Expr.h"
+#include <memory>
+#include <string.h>
 
 
 int Table::getOffset(std::string attribute) const {
@@ -24,7 +27,95 @@ ColumnNode *Table::getColumn(std::string attribute) const {
     return nullptr;
 }
 
-std::string Table::checkData(char *data) const {
+bool checkValueIn(void *left, const ConstValueList &constValues, AttrType type, int length) {
+    for (const auto &it: constValues.constValues) {
+        switch (type) {
+            // todo assume the type is identical here
+            case AttrType::INT:
+            case AttrType::DATE:
+                if (*reinterpret_cast<int *>(left) == it->value.i) {
+                    return true;
+                }
+                break;
+            case AttrType::FLOAT:
+                if (*reinterpret_cast<float *>(left) == it->value.f) {
+                    return true;
+                }
+                break;
+            case AttrType::STRING:
+            case AttrType::VARCHAR:
+                if (strncmp(reinterpret_cast<char *>(left), it->value_s.c_str(), length) == 0) {
+                    return true;
+                }
+                break;
+            case AttrType::BOOL:
+            case AttrType::NO_ATTR:
+                break;
+        }
+    }
+    return false;
+}
+
+std::string Table::checkData(char *data) {
+    int rc;
+    for (const auto &it: tableConstraints.tbDecs) {
+        switch (it->type) {
+            case ConstraintType::PRIMARY_CONSTRAINT: {
+                int indexNo;
+                for (indexNo = 0; indexNo < attrInfos.size(); indexNo++) {
+                    // todo complete multiple primary keys
+                    if (attrInfos[indexNo].attrName == it->column_list->idents[0]) {
+                        break;
+                    }
+                }
+                if (indexNo < attrInfos.size()) {
+                    if (data[attrInfos[indexNo].attrOffset - 1] == 0) {
+                        return "The primary key " + attrInfos[indexNo].attrName + " can't be null\n";
+                    }
+                    void *value = data + attrInfos[indexNo].attrOffset;
+                    rc = tryOpenIndex(indexNo);
+                    if (rc != 0) {
+                        return "We are doomed! Can't find the index for the primary key\n";
+                    }
+                    IX_IndexScan indexScan;
+                    indexScan.OpenScan(*indexHandles[indexNo], CompOp::EQ_OP, value);
+                    RID rid;
+                    rc = indexScan.GetNextEntry(rid);
+                    indexScan.CloseScan();
+                    if (rc == 0) {
+                        return "The primary key " + attrInfos[indexNo].attrName + " alrealy exists\n";
+                    }
+                } else {
+                    return "We are doomed! Can't find the primary key\n";
+                }
+            }
+                break;
+            case ConstraintType::FOREIGN_CONSTRAINT:
+                // todo implement foreign key constraint here
+                break;
+            case ConstraintType::CHECK_CONSTRAINT: {
+                int indexNo;
+                for (indexNo = 0; indexNo < attrInfos.size(); indexNo++) {
+                    if (attrInfos[indexNo].attrName == it->column_name) {
+                        break;
+                    }
+                }
+                if (indexNo < attrInfos.size()) {
+                    const auto &info = attrInfos[indexNo];
+                    if (data[info.attrOffset - 1] == 0) {
+                        return "The value for " + info.attrName + " can't be null\n";
+                    }
+                    if (not checkValueIn(data + info.attrOffset, *it->const_values, info.attrType,
+                                         info.attrLength)) {
+                        return "The value for " + info.attrName + " is invalid\n";
+                    }
+                } else {
+                    return "We are doomed! Can't find the constraint key\n";
+                }
+            }
+                break;
+        }
+    }
     return std::string();
 }
 
@@ -41,6 +132,7 @@ int Table::tryOpenFile() {
 
 Table::Table(const std::string &tableName) {
     this->tableName = tableName;
+    this->recordSize = 0;
     int rc = SM_Manager::getInstance().GetTableInfo(tableName.c_str(), columns, tableConstraints);
     if (rc != 0) {
         throw "The record of relation table " + tableName + " does not exist\n";
@@ -54,8 +146,9 @@ Table::Table(const std::string &tableName) {
         attrInfo.attrLength = it->size;
         attrInfo.notNull = static_cast<bool>(it->columnFlag & COLUMN_FLAG_NOTNULL);
         attrInfo.withIndex = true;
-        attrInfo.attrOffset = offset;
-        offset += it->size;
+        attrInfo.attrOffset = offset + 1;
+        offset += it->size + 1;
+        this->recordSize += it->size + 1;
         indexHandles.push_back(nullptr);
     }
     rc = tryOpenFile();
@@ -67,7 +160,10 @@ Table::Table(const std::string &tableName) {
 int Table::deleteData(const RID &rid) {
     int rc;
     RM_Record record;
-    fileHandle.getRec(rid, record);
+    rc = fileHandle.getRec(rid, record);
+    if (rc != 0) {
+        return -1;
+    }
     for (int i = 0; i < attrInfos.size(); ++i) {
         if (attrInfos[i].withIndex) {
             rc = tryOpenIndex(i);
@@ -78,12 +174,18 @@ int Table::deleteData(const RID &rid) {
             indexHandles[i]->DeleteEntry(record.getData() + attrInfos[i].attrOffset, rid);
         }
     }
-    fileHandle.deleteRec(rid);
+    rc = fileHandle.deleteRec(rid);
+    if (rc != 0) {
+        return -1;
+    }
     return 0;
 }
 
 Table::~Table() {
     for (auto &it: indexHandles) {
+        if (it != nullptr) {
+            it->CloseIndex();
+        }
         delete it;
     }
 }
@@ -97,6 +199,84 @@ int Table::tryOpenIndex(int indexNo) {
             return -1;
         }
         indexHandles[indexNo] = indexHandle;
+    }
+    return 0;
+}
+
+int Table::insertData(const IdentList *columnList, const ConstValueList *constValues) {
+    if (columnList == nullptr) {
+        if (constValues->constValues.size() != attrInfos.size()) {
+            throw "The number of inserted values doesn't match that of columns\n";
+        }
+        std::unique_ptr<char[]> data{new char[recordSize]};
+        for (int i = 0; i < attrInfos.size(); ++i) {
+            const auto &info = attrInfos[i];
+            const Expr &value = *(constValues->constValues[i]);
+            data[info.attrOffset - 1] = 1;
+            switch (info.attrType) {
+                case AttrType::INT:
+                case AttrType::DATE:
+                    if (value.oper.constType != info.attrType) {
+                        throw "The type of inserted value doesn't match that of column " + info.attrName + "\n";
+                    }
+                    *reinterpret_cast<int *>(data.get() + info.attrOffset) = value.value.i;
+                    break;
+                case AttrType::FLOAT:
+                    if (value.oper.constType == AttrType::FLOAT) {
+                        *reinterpret_cast<float *>(data.get() + info.attrOffset) = value.value.f;
+                    } else if (value.oper.constType == AttrType::INT) {
+                        *reinterpret_cast<float *>(data.get() + info.attrOffset) = value.value.i;
+                    } else {
+                        throw "The type of inserted value doesn't match that of column " + info.attrName + "\n";
+                    }
+                    break;
+                case AttrType::STRING:
+                case AttrType::VARCHAR:
+                    if (value.oper.constType == AttrType::STRING || value.oper.constType == AttrType::VARCHAR) {
+                        strncpy(data.get() + info.attrOffset, value.value_s.c_str(), info.attrLength);
+                    } else {
+                        throw "The type of inserted value doesn't match that of column " + info.attrName + "\n";
+                    }
+                    break;
+                case AttrType::BOOL:
+                case AttrType::NO_ATTR:
+                    throw "Unknown type\n";
+                    break;
+            }
+        }
+        auto result = checkData(data.get());
+        if (!result.empty()) {
+            throw std::string{result};
+        }
+        // todo check insert success here
+        RID rid = fileHandle.insertRec(data.get());
+        try {
+            insertIndex(data.get(), rid);
+        }
+        catch (const std::string &strerror) {
+            fileHandle.deleteRec(rid);
+            throw;
+        }
+    }
+    return 0;
+}
+
+int Table::insertIndex(char *data, const RID &rid) {
+    int rc;
+    for (int i = 0; i < attrInfos.size(); ++i) {
+        rc = tryOpenIndex(i);
+        if (rc == 0) {
+            rc = indexHandles[i]->InsertEntry(data + attrInfos[i].attrOffset, rid);
+            if (rc != 0) {
+                for (int indexNo = 0; indexNo < i; ++indexNo) {
+                    rc = tryOpenIndex(indexNo);
+                    if (rc == 0) {
+                        indexHandles[indexNo]->DeleteEntry(data + attrInfos[indexNo].attrOffset, rid);
+                    }
+                }
+                throw "Index insert failed for column " + attrInfos[i].attrName + "\n";
+            }
+        }
     }
     return 0;
 }
