@@ -69,10 +69,10 @@ RC SM_Manager::CloseDb() {
 }
 
 RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, TableConstraintList *tableConstraints) {
-	printf("SM_Manager::CreateTable\n");
+	//printf("SM_Manager::CreateTable\n");
 	char s[1010] = {};
 	GenerateTableMetadataDir(tableName, s);
-	printf("name = %s\n", s);
+	//printf("name = %s\n", s);
 	if (pfManager.CreateFile(s) != 0) {
 		return SM_REL_EXISTS;
 	}
@@ -82,7 +82,7 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
 	LDB(fileHandle.AllocatePage(pageHandle));
 	char *pageData;
 	LDB(pageHandle.GetData(pageData));
-	printf("allocating page\n");
+	//printf("allocating page\n");
 	TableInfo *tableInfo = (TableInfo*) pageData;
 	tableInfo->attrInfoCount = columns->getColumnCount();
 	AttrInfo *attrInfos = columns->getAttrInfos();
@@ -90,14 +90,14 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
 		tableInfo->attrInfos[i] = attrInfos[i];
 	}
 	columns->deleteAttrInfos();
-	printf("attr inserted\n");
+	//printf("attr inserted\n");
 	
 	if (tableConstraints != nullptr && tableConstraints != NULL) {
-		printf("tableConstraints not nullptr!\n");
+		//printf("tableConstraints not nullptr!\n");
 		tableInfo->tableConsCount = (tableConstraints->tbDecs).size();
 		
 		
-		printf("tableConsCount = %d\n", tableInfo->tableConsCount);
+		//printf("tableConsCount = %d\n", tableInfo->tableConsCount);
 		for (int i = 0; i < tableInfo->tableConsCount; ++i) {
 			// allocate a new page to store a TableCons, pageNum = i + 1
 			PF_PageHandle tableConsPageHandle;
@@ -108,45 +108,45 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
 			TableCons *tableCons = (TableCons*) tableConsPageData;
 			TableConstraint *tableConsFrom = tableConstraints->tbDecs[i];
 			tableCons->type = tableConsFrom->type;
-			printf("hello?\n");
+			//printf("hello?\n");
 			if ((tableConsFrom->column_name).empty() == false) {
-				CHKL;
+				//CHKL;
 				//printf("column_name = %s\n", (tableConsFrom->column_name).c_str());
 				//printf("name_length = %d\n", strlen((tableConsFrom->column_name).c_str()));
 				strcpy(tableCons->column_name, (tableConsFrom->column_name).c_str());
 				//memcpy(tableCons->column_name, (tableConsFrom->column_name).c_str(), sizeof (tableCons->column_name));
-				CHKL;
+				//CHKL;
 			}
 			if ((tableConsFrom->foreign_table).empty() == false) {
-				CHKL;
+				//CHKL;
 				strcpy(tableCons->foreign_table, (tableConsFrom->foreign_table).c_str());
 			}
 			if ((tableConsFrom->foreign_column).empty() == false) {
-				CHKL;
+				//CHKL;
 				strcpy(tableCons->foreign_column, (tableConsFrom->foreign_column).c_str());
 			}
-			printf("hey man\n");
+			//printf("hey man\n");
 			if (tableConsFrom->const_values != nullptr && tableConsFrom->const_values != NULL) {
-				printf("const_values not null!\n");
+				//printf("const_values not null!\n");
 				for (Expr* expr : tableConsFrom->const_values->constValues) {
 					if (expr == nullptr || expr == NULL) {
-						printf("expr null!\n");
+						//printf("expr null!\n");
 					}
 					// insert Expr expr into exprs
 					ConstNode *constNode = getConstNodeFromExpr(expr);
-					CHKL;
+					//CHKL;
 					tableCons->constNodes[tableCons->constSize++] = *constNode;
-					CHKL;
+					//CHKL;
 					delete constNode;
 				}
-				printf("const_values inserted\n");
+				//printf("const_values inserted\n");
 			}
 			if (tableConsFrom->column_list != nullptr && tableConsFrom->column_list != NULL) {
-				printf("column_list not null!\n");
+				//printf("column_list not null!\n");
 				for (auto _ : tableConsFrom->column_list->idents) {
 					(tableCons->columnList).addColumn(_.c_str());
 				}
-				printf("column_list inserted\n");
+				//printf("column_list inserted\n");
 			}
 			
 			PageNum tableConsPageNum;
@@ -157,7 +157,7 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
 			LDB(fileHandle.UnpinPage(tableConsPageNum));
 		}
 	}
-	printf("cons inserted\n");
+	//printf("cons inserted\n");
 	
 	PageNum pageNum;
 	LDB(pageHandle.GetPageNum(pageNum));
@@ -171,18 +171,18 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
 	LDB(fileHandle.GetThisPage(0, pageHandle));
 	LDB(pageHandle.GetData(pageData));
 	TableList *tableList = (TableList*) pageData;
-	printf("pre count = %d\n", tableList->tableCount);
-	printf("tableName = %s\n", tableName);
+	//printf("pre count = %d\n", tableList->tableCount);
+	//printf("tableName = %s\n", tableName);
 	++tableList->tableCount;
 	//printf("aft count = %d\n", tableList->tableCount);
 	strcpy(tableList->tables[tableList->tableCount - 1], tableName);
-	printf("OK\n");
+	//printf("OK\n");
 	LDB(fileHandle.MarkDirty(0));
 	LDB(fileHandle.ForcePages(0));
 	LDB(fileHandle.UnpinPage(0));
 	LDB(pfManager.CloseFile(fileHandle));
-	printf("page updated\n");
-	printf("~SM_Manager::CreateTable\n");
+	//printf("page updated\n");
+	//printf("~SM_Manager::CreateTable\n");
 }
 
 RC SM_Manager::GetTableInfo(const char *tableName, ColumnDecsList &columns, TableConstraintList &tableConstraints) {
@@ -356,7 +356,7 @@ RC SM_Manager::Load(const char *relName, const char *fileName) {
 }
 
 RC SM_Manager::Help() {
-	printf("show tables; in\n");
+	//printf("show tables; in\n");
 	PF_FileHandle fileHandle;
 	LDB(pfManager.OpenFile("TableList", fileHandle));
 	PF_PageHandle pageHandle;
@@ -364,19 +364,19 @@ RC SM_Manager::Help() {
 	char *pageData;
 	LDB(pageHandle.GetData(pageData));
 	TableList *tableList = (TableList*) pageData;
-	printf("tableCount = %d\n", tableList->tableCount);
+	//printf("tableCount = %d\n", tableList->tableCount);
 	for (int i = 0; i < tableList->tableCount; ++i)
 		Help(tableList->tables[i]);
 	LDB(fileHandle.UnpinPage(0));
 	LDB(pfManager.CloseFile(fileHandle));
-	printf("show tables; out\n");
+	//printf("show tables; out\n");
 }
 
 RC SM_Manager::Help(const char *relName) {
 	// print table name
 	printf("Table: %s\n", relName);
 	// print table attrInfo
-	char s[1010];
+	char s[1010] = {};
 	GenerateTableMetadataDir(relName, s);
 	PF_FileHandle fileHandle;
 	LDB(pfManager.OpenFile(s, fileHandle));
@@ -393,6 +393,7 @@ RC SM_Manager::Help(const char *relName) {
 		printAttrType(attrInfo->attrType);
 		printf(" length = %d\n", attrInfo->attrLength);
 	}
+	
 	printf("%d Constraints:\n", tableInfo->tableConsCount);
 	for (int i = 0; i < tableInfo->tableConsCount; ++i) {
 		PF_PageHandle tableConsPageHandle;
@@ -418,18 +419,20 @@ RC SM_Manager::Help(const char *relName) {
 		}
 		else if (tableCons->type == ConstraintType::CHECK_CONSTRAINT) {
 			printf(" column_name = %s", tableCons->column_name);
-			printf(" value list =");
+			printf(" value list = {");
 			for (int j = 0; j < tableCons->constSize; ++j) {
 				Expr *expr = getExprFromConstNode(&(tableCons->constNodes[j]));
+				//printf("%d, %s", __LINE__, (expr->value_s).c_str());
 				printf(" ");
 				printConstNodeExpr(expr);
 				delete expr;
 			}
-			printf("\n");
+			printf(" }\n");
 		}
 		
 		LDB(fileHandle.UnpinPage(i + 1));
 	}
+	
 	LDB(fileHandle.UnpinPage(0));
 	LDB(pfManager.CloseFile(fileHandle));
 	return 0;

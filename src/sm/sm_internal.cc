@@ -16,9 +16,15 @@ ConstNode::ConstNode(float f) {
 }
 
 ConstNode::ConstNode(const char *s) {
+	//printf("ConstNode::ConstNode s = %s\n", s);
 	is_null = false;
-	memset(value_s, 0, sizeof value_s);
-	strcpy(value_s, s);
+	int length = strlen(s);
+	for (int i = 0; i < length; ++i)
+		value_s[i] = s[i];
+	value_s[length] = '\0';
+	//printf("ConstNode::ConstNode value_s = %s\n", value_s);
+	//memset(value_s, 0, sizeof value_s);
+	//strcpy(value_s, s);
     attrType = AttrType::STRING;
 }
 
@@ -45,7 +51,14 @@ Expr* getExprFromConstNode(ConstNode *constNode) {
 		return new Expr(constNode->value_f);
 	}
 	else if (constNode->attrType == AttrType::STRING) {
-		return new Expr(constNode->value_s);
+		//printf("getExprFromConstNode value_s src = %s\n", constNode->value_s);
+		char s[1010] = {};
+		strcat(s, "(");
+		strcat(s, constNode->value_s);
+		strcat(s, ")");
+		assert(strlen(s) == strlen(constNode->value_s) + 2);
+		Expr *_ = new Expr(s);
+		return _;
 	}
 	else {
 		return new Expr();
@@ -105,13 +118,19 @@ void TableList::operator = (const TableList &_) {
 }
 
 void ConstNode::operator = (const ConstNode &_) {
-	printf("ConstNode::operator =, in\n");
+	//printf("ConstNode::operator =, in\n");
 	value_i = _.value_i;
 	value_f = _.value_f;
-	memcpy(value_s, _.value_s, sizeof (value_s));
+	memset(value_s, 0, sizeof (value_s));
+	int length = strlen(_.value_s);
+	for (int i = 0; i < length; ++i)
+		value_s[i] = _.value_s[i];
+	value_s[length] = '\0';
+	//printf("after ConstNode::operator =, value_s = %s\n", value_s);
+	//memcpy(value_s, _.value_s, sizeof (value_s));
 	attrType = _.attrType;
 	is_null = _.is_null;
-	printf("ConstNode::operator =, out\n");
+	//printf("ConstNode::operator =, out\n");
 }
 
 void ColumnList::operator = (const ColumnList &_) {

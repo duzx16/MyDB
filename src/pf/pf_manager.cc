@@ -131,6 +131,7 @@ RC PF_Manager::DestroyFile (const char *fileName)
 //
 RC PF_Manager::OpenFile (const char *fileName, PF_FileHandle &fileHandle)
 {
+   //printf("PF_Manager::OpenFile fileName = %s\n", fileName);
    int rc;                   // return code
 
    // Ensure file is not already open
@@ -166,6 +167,7 @@ RC PF_Manager::OpenFile (const char *fileName, PF_FileHandle &fileHandle)
    return 0;
 
 err:
+   //printf("goto err line = %d\n", __LINE__);
    // Close file
    close(fileHandle.unixfd);
    fileHandle.bFileOpen = FALSE;
