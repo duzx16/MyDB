@@ -76,9 +76,22 @@ int QL_Manager::exeUpdate(std::string relationName, SetClauseList *setClauses, E
         printException(exception);
         return QL_TABLE_FAIL;
     }
-    iterateRecords(*tables[0], whereClause, [setClauses](RM_FileHandle &fileHandle, const RM_Record &record) -> void {
-        // todo complete update
-    });
+    std::vector<int> attributeIndexs;
+    for (const auto &it: setClauses->clauses) {
+        int index = tables[0]->getColumnIndex(it.first->attribute);
+        if (index < 0) {
+            fprintf(stderr, "The column %s doesn't exist.\n", it.first->attribute.c_str());
+            return -1;
+        }
+        attributeIndexs.push_back(index);
+    }
+    iterateRecords(*tables[0], whereClause,
+                   [setClauses, &tables, &attributeIndexs](RM_FileHandle &fileHandle, const RM_Record &record) -> void {
+                       for (auto &it: setClauses->clauses) {
+                           it.second->calculate(record.getData());
+                       }
+                       tables[0]->updateData(record.getRID(), attributeIndexs, setClauses);
+                   });
     return 0;
 }
 

@@ -10,7 +10,7 @@
 #include <string.h>
 
 
-int Table::getOffset(std::string attribute) const {
+int Table::getOffset(const std::string &attribute) const {
     for (const auto &it: attrInfos) {
         if (attribute == it.attrName) {
             return it.attrOffset;
@@ -19,12 +19,21 @@ int Table::getOffset(std::string attribute) const {
     return -1;
 }
 
-ColumnNode *Table::getColumn(std::string attribute) const {
+ColumnNode *Table::getColumn(const std::string &attribute) const {
     for (const auto &it: columns.columns) {
         if (attribute == it->columnName)
             return it;
     }
     return nullptr;
+}
+
+int Table::getColumnIndex(const std::string &attribute) const {
+    for (int i = 0; i < attrInfos.size(); ++i) {
+        if (attribute == attrInfos[i].attrName) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 bool checkValueIn(void *left, const ConstValueList &constValues, AttrType type, int length) {
@@ -54,6 +63,46 @@ bool checkValueIn(void *left, const ConstValueList &constValues, AttrType type, 
         }
     }
     return false;
+}
+
+int attributeAssign(void *data, const Expr &value, AttrType type, int length) {
+    switch (type) {
+        case AttrType::DATE:
+            if (value.oper.constType != type) {
+                return -1;
+            }
+            *reinterpret_cast<int *>(data) = value.value.i;
+        case AttrType::INT:
+            if (value.oper.constType == AttrType::INT) {
+                *reinterpret_cast<int *>(data) = value.value.i;
+            } else if (value.oper.constType == AttrType::FLOAT) {
+                *reinterpret_cast<int *>(data) = static_cast<int>(value.value.f);
+            } else {
+                return -1;
+            }
+            break;
+        case AttrType::FLOAT:
+            if (value.oper.constType == AttrType::FLOAT) {
+                *reinterpret_cast<float *>(data) = value.value.f;
+            } else if (value.oper.constType == AttrType::INT) {
+                *reinterpret_cast<float *>(data) = value.value.i;
+            } else {
+                return -1;
+            }
+            break;
+        case AttrType::STRING:
+        case AttrType::VARCHAR:
+            if (value.oper.constType == AttrType::STRING || value.oper.constType == AttrType::VARCHAR) {
+                strncpy(static_cast<char *>(data), value.value_s.c_str(), length);
+            } else {
+                return -1;
+            }
+            break;
+        case AttrType::BOOL:
+        case AttrType::NO_ATTR:
+            return -1;
+    }
+    return 0;
 }
 
 std::string Table::checkData(char *data) {
@@ -204,6 +253,7 @@ int Table::tryOpenIndex(int indexNo) {
 }
 
 int Table::insertData(const IdentList *columnList, const ConstValueList *constValues) {
+    int rc;
     if (columnList == nullptr) {
         if (constValues->constValues.size() != attrInfos.size()) {
             throw "The number of inserted values doesn't match that of columns\n";
@@ -213,35 +263,9 @@ int Table::insertData(const IdentList *columnList, const ConstValueList *constVa
             const auto &info = attrInfos[i];
             const Expr &value = *(constValues->constValues[i]);
             data[info.attrOffset - 1] = 1;
-            switch (info.attrType) {
-                case AttrType::INT:
-                case AttrType::DATE:
-                    if (value.oper.constType != info.attrType) {
-                        throw "The type of inserted value doesn't match that of column " + info.attrName + "\n";
-                    }
-                    *reinterpret_cast<int *>(data.get() + info.attrOffset) = value.value.i;
-                    break;
-                case AttrType::FLOAT:
-                    if (value.oper.constType == AttrType::FLOAT) {
-                        *reinterpret_cast<float *>(data.get() + info.attrOffset) = value.value.f;
-                    } else if (value.oper.constType == AttrType::INT) {
-                        *reinterpret_cast<float *>(data.get() + info.attrOffset) = value.value.i;
-                    } else {
-                        throw "The type of inserted value doesn't match that of column " + info.attrName + "\n";
-                    }
-                    break;
-                case AttrType::STRING:
-                case AttrType::VARCHAR:
-                    if (value.oper.constType == AttrType::STRING || value.oper.constType == AttrType::VARCHAR) {
-                        strncpy(data.get() + info.attrOffset, value.value_s.c_str(), info.attrLength);
-                    } else {
-                        throw "The type of inserted value doesn't match that of column " + info.attrName + "\n";
-                    }
-                    break;
-                case AttrType::BOOL:
-                case AttrType::NO_ATTR:
-                    throw "Unknown type\n";
-                    break;
+            rc = attributeAssign(data.get() + info.attrOffset, value, info.attrType, info.attrLength);
+            if (rc != 0) {
+                throw "The type of inserted value doesn't match that of column " + info.attrName + "\n";
             }
         }
         auto result = checkData(data.get());
@@ -257,6 +281,8 @@ int Table::insertData(const IdentList *columnList, const ConstValueList *constVa
             fileHandle.deleteRec(rid);
             throw;
         }
+    } else {
+        // todo implement optional columns
     }
     return 0;
 }
@@ -276,6 +302,25 @@ int Table::insertIndex(char *data, const RID &rid) {
                 }
                 throw "Index insert failed for column " + attrInfos[i].attrName + "\n";
             }
+        }
+    }
+    return 0;
+}
+
+int Table::updateData(const RID &rid, const std::vector<int> &attrIndexes, SetClauseList *setClauses) {
+    int rc;
+    RM_Record record;
+    std::string result;
+    fileHandle.getRec(rid, record);
+    char *data = record.getData();
+    for (int i = 0; i < attrIndexes.size(); ++i) {
+        int indexNo = attrIndexes[i];
+        const auto &info = attrInfos[indexNo];
+        // the type should have been checked
+        rc = attributeAssign(data + info.attrOffset, *setClauses->clauses[i].second, info.attrType, info.attrOffset);
+        result = checkData(data);
+        if (!result.empty()) {
+            throw std::string(result);
         }
     }
     return 0;

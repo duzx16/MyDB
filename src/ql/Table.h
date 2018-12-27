@@ -20,15 +20,19 @@ public:
 
     ~Table();
 
-    int getOffset(std::string attribute) const;
+    int getOffset(const std::string &attribute) const;
 
-    ColumnNode *getColumn(std::string attribute) const;
+    int getColumnIndex(const std::string &attribute) const;
+
+    ColumnNode *getColumn(const std::string &attribute) const;
 
     std::string checkData(char *data);
 
     int deleteData(const RID &rid);
 
     int insertData(const IdentList *columnList, const ConstValueList *constValues);
+
+    int updateData(const RID &rid, const std::vector<int> & attrIndexes, SetClauseList *setClauses);
 
     int insertIndex(char *data, const RID &rid);
 
