@@ -16,7 +16,7 @@
 #define LDB(res) Debug(__FILE__, __LINE__, (res))
 #define CHKL printf("line %d is ok\n", __LINE__)
 
-SM_Manager::SM_Manager() {
+SM_Manager::SM_Manager(): pfManager(PF_Manager::getInstance()) {
     ixm = new IX_Manager(pfManager);
     rmm = &(RecordManager::getInstance());
 }
@@ -187,6 +187,7 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
     LDB(pfManager.CloseFile(fileHandle));
     //printf("page updated\n");
     //printf("~SM_Manager::CreateTable\n");
+    return 0;
 }
 
 RC SM_Manager::GetTableInfo(const char *tableName, ColumnDecsList &columns, TableConstraintList &tableConstraints) {

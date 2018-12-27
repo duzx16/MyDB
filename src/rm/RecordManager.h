@@ -23,7 +23,7 @@ public:
     static RecordManager & getInstance();
 private:
 	RecordManager();
-    PF_Manager _pf_manager;
+    PF_Manager & _pf_manager;
 };
 
 #endif //MYDB_RECORDMANAGER_H

@@ -12,6 +12,8 @@
 #include <sys/types.h>
 #include "pf_internal.h"
 #include "pf_buffermgr.h"
+#include "pf.h"
+
 
 //
 // PF_Manager
@@ -282,4 +284,9 @@ RC PF_Manager::AllocateBlock(char *&buffer)
 RC PF_Manager::DisposeBlock(char *buffer)
 {
    return pBufferMgr->DisposeBlock(buffer);
+}
+
+PF_Manager &PF_Manager::getInstance() {
+   static PF_Manager pf_manager;
+   return pf_manager;
 }

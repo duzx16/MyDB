@@ -13,7 +13,7 @@ unsigned record_per_page(unsigned record_size) {
     return (32 * (PF_PAGE_SIZE - 8) - 124) / (record_size * 32 + 4);
 }
 
-RecordManager::RecordManager() : _pf_manager() {
+RecordManager::RecordManager() : _pf_manager(PF_Manager::getInstance()) {
 
 }
 

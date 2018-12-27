@@ -100,7 +100,6 @@ public:
 
    // Force a page or pages to disk (but do not remove from the buffer pool)
    RC ForcePages  (PageNum pageNum=ALL_PAGES) const;
-
 private:
 
    // IsValidPageNum will return TRUE if page number is valid and FALSE
@@ -153,6 +152,8 @@ public:
    RC AllocateBlock (char *&buffer);
    // Dispose of a memory chunk managed by the buffer manager.
    RC DisposeBlock  (char *buffer);
+
+    static PF_Manager & getInstance();
 
 private:
    PF_BufferMgr *pBufferMgr;                      // page-buffer manager

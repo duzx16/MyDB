@@ -36,7 +36,7 @@ public:
 private:
 	IX_Manager *ixm;
 	RecordManager *rmm;
-	PF_Manager pfManager;
+	PF_Manager & pfManager;
 	void GenerateTableMetadataDir(const char *tableName, char *s);
 	void GenerateTableRecordDir(const char *tableName, char *s);
 };

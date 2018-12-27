@@ -123,7 +123,7 @@ CreateDatabase::~CreateDatabase() = default;
 
 void CreateDatabase::visit() {
     DebugPrintf("create database %s\n", dbName.c_str());
-	(SM_Manager::getInstance())->CreateDb(dbName.c_str());
+    (SM_Manager::getInstance())->CreateDb(dbName.c_str());
 }
 
 /* CreateTableTree */
@@ -140,8 +140,17 @@ CreateTable::~CreateTable() {
 
 void CreateTable::visit() {
     DebugPrintf("create foreign_table %s\n", tableName.c_str());
-	(SM_Manager::getInstance())->CreateTable(tableName.c_str(), columns, tableConstraints);
-	DebugPrintf("create foreign_table %s end\n", tableName.c_str());
+    int rc = (SM_Manager::getInstance())->CreateTable(tableName.c_str(), columns, tableConstraints);
+    if (rc != 0) {
+        fprintf(stderr, "Create table error\n");
+        return;
+    }
+    unsigned recordSize = 0;
+    for (const auto &it: columns->columns) {
+        recordSize += it->size + 1;
+    }
+    RecordManager::getInstance().createFile(tableName, recordSize);
+    DebugPrintf("create foreign_table %s end\n", tableName.c_str());
 }
 
 
@@ -182,7 +191,7 @@ DropDatabase::DropDatabase(const char *dbName) {
 DropDatabase::~DropDatabase() = default;
 
 void DropDatabase::visit() {
-	(SM_Manager::getInstance())->DropDb(dbName.c_str());
+    (SM_Manager::getInstance())->DropDb(dbName.c_str());
 }
 
 /* DropTableTree */
@@ -194,7 +203,9 @@ DropTable::~DropTable() = default;
 
 void DropTable::visit() {
     DebugPrintf("drop foreign_table %s\n", tableName.c_str());
-	(SM_Manager::getInstance())->DropTable(tableName.c_str());
+    // todo not implemented yet
+    (SM_Manager::getInstance())->DropTable(tableName.c_str());
+    RecordManager::getInstance().destroyFile(tableName);
 }
 
 /* ColumnNode */
@@ -202,7 +213,22 @@ ColumnNode::ColumnNode(const char *columnName, AttrType type, int size,
                        int columnFlag) {
     this->columnName = string(columnName);
     this->type = type;
-    this->size = size;
+    switch (type) {
+        case AttrType::INT:
+        case AttrType::DATE:
+            this->size = sizeof(int);
+            break;
+        case AttrType::FLOAT:
+            this->size = sizeof(float);
+            break;
+        case AttrType::VARCHAR:
+        case AttrType::STRING:
+            this->size = size;
+            break;
+        case AttrType::BOOL:
+        case AttrType::NO_ATTR:
+            break;
+    }
     this->columnFlag = columnFlag;
     if (type == AttrType::STRING)
         this->size++;
@@ -283,7 +309,7 @@ UseDatabase::UseDatabase(const char *dbName) {
 void UseDatabase::visit() {
     DebugPrintf("Use %s\n", dbName.c_str());
 //    SystemManager::instance()->openDB(dbName.c_str());
-	(SM_Manager::getInstance())->OpenDb(dbName.c_str());
+    (SM_Manager::getInstance())->OpenDb(dbName.c_str());
 }
 
 DescTable::DescTable(const char *relName) {
@@ -294,15 +320,11 @@ DescTable::~DescTable() = default;
 
 void DescTable::visit() {
     DebugPrintf("desc foreign_table %s\n", tableName.c_str());
-//    if(tableName.empty())
-//        SystemManager::instance()->help();
-//    else
-//        SystemManager::instance()->help(tableName.c_str());
-	if (tableName.length() == 0)
-		(SM_Manager::getInstance())->Help();
-	else
-		(SM_Manager::getInstance())->Help(tableName.c_str());
-	DebugPrintf("desc foreign_table end\n");
+    if (tableName.length() == 0)
+        (SM_Manager::getInstance())->Help();
+    else
+        (SM_Manager::getInstance())->Help(tableName.c_str());
+    DebugPrintf("desc foreign_table end\n");
 }
 
 ConstValueLists::ConstValueLists() = default;
@@ -334,7 +356,6 @@ IdentList::~IdentList() = default;
 
 void ShowDatabase::visit() {
     DebugPrintf("show database: %s\n", DBname.c_str());
-//    Tree::visit();
 }
 
 ColumnDecsList::ColumnDecsList() = default;
