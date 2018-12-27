@@ -55,6 +55,6 @@ int yyparse();
 //}
 
 int main() {
-//    QL_Manager::getInstance();
+	//freopen("test.sql", "r", stdin);
     return yyparse();
 }

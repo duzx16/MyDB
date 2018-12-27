@@ -24,6 +24,9 @@ enum class LogicOp {
     AND_OP, OR_OP, NOT_OP, NO_OP
 };
 
+enum class ClientHint {
+	NO_HINT
+};
 enum class AggregationType {
     T_NONE = 0,
     T_AVG,
@@ -38,17 +41,16 @@ enum class ConstraintType {
     CHECK_CONSTRAINT
 };
 
-#define MAX_NAME 42
+#define MAX_NAME 25
+#define MAX_ATTRS 10
+#define MAX_STRING_LEN 256
 #define COLUMN_FLAG_NOTNULL 0x1
 
 struct AttrInfo {
-    std::string attrName;
-    std::string tableName;
-    int attrLength{};
-    AttrType attrType = AttrType::NO_ATTR;
-    bool notNull{};
-    bool withIndex;
-    int attrOffset{};
+	char attrName[MAX_NAME + 1];
+	int attrLength;
+	AttrType attrType;
+	int notNull;
 };
 
 //

@@ -4,7 +4,7 @@
 
 #include "Table.h"
 #include "../rm/RecordManager.h"
-#include "sm.h"
+#include "../sm/sm.h"
 #include "../parser/Expr.h"
 #include <memory>
 #include <string.h>
@@ -133,13 +133,13 @@ int Table::tryOpenFile() {
 Table::Table(const std::string &tableName) {
     this->tableName = tableName;
     this->recordSize = 0;
-    int rc = SM_Manager::getInstance().GetTableInfo(tableName.c_str(), columns, tableConstraints);
+    int rc = SM_Manager::getInstance()->GetTableInfo(tableName.c_str(), columns, tableConstraints);
     if (rc != 0) {
         throw "The record of relation table " + tableName + " does not exist\n";
     }
     int offset = 0;
     for (const auto &it: columns.columns) {
-        AttrInfo attrInfo;
+        BindAttribute attrInfo;
         attrInfo.tableName = tableName;
         attrInfo.attrName = it->columnName;
         attrInfo.attrType = it->type;

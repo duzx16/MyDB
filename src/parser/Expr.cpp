@@ -5,6 +5,7 @@
 #include "Expr.h"
 #include "Tree.h"
 #include "../utils/FuncTemplate.h"
+#include <cstring>
 
 Expr::Expr(int i) {
     is_null = false;

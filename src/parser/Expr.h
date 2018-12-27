@@ -28,6 +28,16 @@ enum class NodeType {
     ATTR_NODE
 };
 
+struct BindAttribute {
+    std::string attrName;
+    std::string tableName;
+    int attrLength{};
+    AttrType attrType = AttrType::NO_ATTR;
+    bool notNull{};
+    bool withIndex;
+    int attrOffset{};
+};
+
 class AttributeNode;
 
 class ColumnDecsList;
@@ -74,7 +84,7 @@ public:
     std::string value_s = "";
 
     AttributeNode *attribute = nullptr;
-    AttrInfo attrInfo;
+    BindAttribute attrInfo;
     bool is_null = true;
     bool calculated = false;
     bool bound = false;

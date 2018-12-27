@@ -8,7 +8,7 @@
 #include "../parser/Tree.h"
 #include "../rm/RM_Record.h"
 #include "../rm/RM_FileHandle.h"
-#include "sm.h"
+#include "../sm/sm.h"
 #include "Table.h"
 #include "../Constants.h"
 #include <functional>

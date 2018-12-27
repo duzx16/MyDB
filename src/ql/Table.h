@@ -9,7 +9,8 @@
 #include "../rm/RM_FileHandle.h"
 #include "../rm/RecordManager.h"
 #include "../rm/RID.h"
-#include "ix.h"
+#include "../ix/ix.h"
+#include "../parser/Expr.h"
 
 #include <vector>
 
@@ -39,7 +40,7 @@ private:
 
     int tryOpenIndex(int indexNo);
 
-    std::vector<AttrInfo> attrInfos;
+    std::vector<BindAttribute> attrInfos;
     int recordSize;
 
     ColumnDecsList columns;

@@ -22,7 +22,7 @@ public:
     int closeFile(RM_FileHandle &file_handle);
     static RecordManager & getInstance();
 private:
-    RecordManager();
+	RecordManager();
     PF_Manager _pf_manager;
 };
 

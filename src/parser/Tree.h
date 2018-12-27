@@ -1,9 +1,5 @@
 #include <utility>
 
-#include <utility>
-
-#include <utility>
-
 //
 // Created by Zhengxiao Du on 11/24/18.
 //
@@ -13,6 +9,7 @@
 
 #include <string>
 #include <vector>
+#include <cassert>
 #include "../Constants.h"
 #include "Expr.h"
 
@@ -297,7 +294,6 @@ public:
     std::pair<AttrInfo, int> findColumn(std::string name);
 
     std::vector<ColumnNode *> columns;
-private:
     AttrInfo *attrInfos = nullptr;
 };
 
@@ -322,6 +318,7 @@ public:
 // For select attribute
 class AttributeNode : public Tree {
 public:
+	AttributeNode() {}
     AttributeNode(const char *relationName, const char *attributeName,
                   AggregationType aggregationType = AggregationType::T_NONE);
 
@@ -383,6 +380,8 @@ public:
 
     void addConstValue(Expr *constValue);
 
+//    std::vector<AttrValue> getConstValues();
+
     std::vector<Expr *> constValues;
 };
 
@@ -413,7 +412,7 @@ public:
 
     TableConstraint(const char *column_name, const char *table, const char *column);
 
-    TableConstraint(char *column_name, ConstValueList *const_values);
+    TableConstraint(const char *column_name, ConstValueList *const_values);
 
     ~TableConstraint() override;
 

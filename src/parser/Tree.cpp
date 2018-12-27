@@ -7,6 +7,7 @@
 #include <utility>
 #include <cstdlib>
 #include <cstring>
+#include "../sm/sm.h"
 
 using std::string;
 using std::vector;
@@ -122,7 +123,7 @@ CreateDatabase::~CreateDatabase() = default;
 
 void CreateDatabase::visit() {
     DebugPrintf("create database %s\n", dbName.c_str());
-//    SystemManager::instance()->createDB(dbName.c_str());
+	(SM_Manager::getInstance())->CreateDb(dbName.c_str());
 }
 
 /* CreateTableTree */
@@ -139,10 +140,8 @@ CreateTable::~CreateTable() {
 
 void CreateTable::visit() {
     DebugPrintf("create foreign_table %s\n", tableName.c_str());
-//    int attrCount = columns->getColumnCount();
-//    AttrInfo *attrInfos = columns->getAttrInfos();
-//    SystemManager::instance()->createTable(tableName.c_str(), attrCount, attrInfos);
-//    columns->deleteAttrInfos();
+	(SM_Manager::getInstance())->CreateTable(tableName.c_str(), columns, tableConstraints);
+	DebugPrintf("create foreign_table %s end\n", tableName.c_str());
 }
 
 
@@ -158,8 +157,6 @@ CreateIndex::~CreateIndex() {
 
 void CreateIndex::visit() {
     DebugPrintf("create index %s\n", relName.c_str());
-//    auto attr = attribute->getDescriptor();
-//    SystemManager::instance()->createIndex(tableName, attr);
 }
 
 
@@ -174,8 +171,6 @@ DropIndex::~DropIndex() {
 
 void DropIndex::visit() {
     DebugPrintf("drop index %s\n", tableName.c_str());
-//    auto attr = attribute->getDescriptor();
-//    SystemManager::instance()->dropIndex(tableName, attr);
 }
 
 
@@ -187,7 +182,7 @@ DropDatabase::DropDatabase(const char *dbName) {
 DropDatabase::~DropDatabase() = default;
 
 void DropDatabase::visit() {
-//    SystemManager::instance()->dropDB(dbName.c_str());
+	(SM_Manager::getInstance())->DropDb(dbName.c_str());
 }
 
 /* DropTableTree */
@@ -199,55 +194,9 @@ DropTable::~DropTable() = default;
 
 void DropTable::visit() {
     DebugPrintf("drop foreign_table %s\n", tableName.c_str());
-//    SystemManager::instance()->dropTable(tableName.c_str());
+	(SM_Manager::getInstance())->DropTable(tableName.c_str());
 }
 
-///* ColumnsTree */
-//ColumnsTree::ColumnsTree() {
-//}
-//
-//ColumnsTree::~ColumnsTree() {
-//    for (const auto &foreign_column : columns)
-//        delete foreign_column;
-//}
-//
-//void ColumnsTree::addColumn(ColumnTree *foreign_column) {
-//    for (const auto &col : columns)
-//        if (col->columnName == foreign_column->columnName)
-//            Error("duplicated foreign_column name");
-//    columns.push_back(foreign_column);
-//}
-//
-//bool ColumnsTree::setPrimaryKey(const char *attr) {
-//    bool found = false;
-//    for(auto& tree : columns) {
-//        if(tree->columnName == string(attr)) {
-//            tree->isPrimaryKey = 1;
-//            tree->notNull = 1;
-//            found = true;
-//            break;
-//        }
-//    }
-//    return found;
-//}
-//
-//
-//int ColumnsTree::getColumnCount() {
-//    return (int) columns.size();
-//}
-//
-//AttrInfo *ColumnsTree::getAttrInfos() {
-//    attrInfos = new AttrInfo[columns.size()];
-//    for (int i = 0; i < columns.size(); ++i)
-//        attrInfos[i] = columns[i]->getAttrInfo();
-//    return attrInfos;
-//}
-//
-//void ColumnsTree::deleteAttrInfos() {
-//    delete attrInfos;
-//    attrInfos = nullptr;
-//}
-//
 /* ColumnNode */
 ColumnNode::ColumnNode(const char *columnName, AttrType type, int size,
                        int columnFlag) {
@@ -263,7 +212,7 @@ ColumnNode::~ColumnNode() = default;
 
 AttrInfo ColumnNode::getAttrInfo() const {
     AttrInfo attrInfo{};
-    attrInfo.attrName = columnName.c_str();
+    strncpy(attrInfo.attrName, columnName.c_str(), MAX_NAME);
     attrInfo.attrType = type;
     attrInfo.attrLength = size;
     attrInfo.notNull = int((columnFlag & COLUMN_FLAG_NOTNULL) != 0);
@@ -314,48 +263,6 @@ bool AttributeNode::operator==(const AttributeNode &attribute) const {
 
 AttributeNode::~AttributeNode() = default;
 
-///* Comparison */
-//Comparison::Comparison(AttributeNode *attribute) {
-//    this->op = CompOp::NO_OP;
-//    this->attribute = attribute;
-//    this->constValue = nullptr;
-//    this->isAttrCmp = false;
-//}
-//
-//Comparison::Comparison(AttributeNode *attribute, CompOp op, ConstValueNode *constValue) {
-//    this->op = op;
-//    this->attribute = attribute;
-//    this->constValue = constValue;
-//    this->isAttrCmp = false;
-//}
-//
-//Comparison::Comparison(AttributeNode *attribute, CompOp op, AttributeNode *attribute2) {
-//    this->op = op;
-//    this->attribute = attribute;
-//    this->attribute2 = attribute2;
-//    this->isAttrCmp = true;
-//}
-//
-//Comparison::~Comparison() {
-//    delete attribute;
-//    if (isAttrCmp)
-//        delete attribute2;
-//    else
-//        delete constValue;
-//}
-//
-//Comparison::ComparisonDescriptor Comparison::getDescriptor() {
-//    ComparisonDescriptor com;
-//    com.attr = this->attribute->getDescriptor();
-//    if (!isAttrCmp && this->constValue != nullptr)
-//        com.val = this->constValue->getDescriptor();
-//    else if (isAttrCmp)
-//        com.attr2 = this->attribute2->getDescriptor();
-//    com.isAttrCmp = isAttrCmp;
-//    com.op = this->op;
-//    return com;
-//}
-
 
 /* ConstValuesTree */
 ConstValueList::ConstValueList() = default;
@@ -369,110 +276,6 @@ void ConstValueList::addConstValue(Expr *constValue) {
     constValues.push_back(constValue);
 }
 
-//vector<AttrValue> ConstValueList::getConstValues() {
-//    vector<AttrValue> vals;
-//    for (auto &constValue : constValues)
-//        vals.push_back(constValue->getDescriptor());
-//    return vals;
-//}
-
-
-//bool AttrValue::operator==(const AttrValue &val) const {
-//    if (this->isNull || val.isNull)
-//        return false;
-//    if ((type == AttrType::INT || type == AttrType::FLOAT) &&
-//        (val.type == AttrType::INT || val.type == AttrType::FLOAT)) {
-//        float f1 = this->type == AttrType::INT ? this->i : this->f;
-//        float f2 = val.type == AttrType::INT ? val.i : val.f;
-//        return f1 == f2;
-//    } else if (type == AttrType::STRING && val.type == AttrType::STRING) {
-//        return this->s == val.s;
-//    } else {
-//        // TODO date comparision
-//    }
-//    return false;
-//}
-//
-//bool AttrValue::operator!=(const AttrValue &val) const {
-//    if (this->isNull || val.isNull)
-//        return false;
-//    if ((type == AttrType::INT || type == AttrType::FLOAT) &&
-//        (val.type == AttrType::INT || val.type == AttrType::FLOAT)) {
-//        float f1 = this->type == AttrType::INT ? this->i : this->f;
-//        float f2 = val.type == AttrType::INT ? val.i : val.f;
-//        return f1 != f2;
-//    } else if (type == AttrType::STRING && val.type == AttrType::STRING) {
-//        return this->s != val.s;
-//    } else {
-//        // TODO cannot compare
-//    }
-//    return false;
-//}
-
-//bool AttrValue::operator >= (const AttrValue &val) const {
-//    if(this->isNull || val.isNull)
-//        return false;
-//    if ((type == AttrType::INT || type == AttrType::FLOAT) &&
-//        (val.type == AttrType::T_INT || val.type == AttrType::T_FLOAT)) {
-//        float f1 = this->type == AttrType::T_INT ? this->i : this->f;
-//        float f2 = val.type == AttrType::T_INT ? val.i : val.f;
-//        return f1 >= f2;
-//    } else if (type == AttrType::T_STRING && val.type == AttrType::T_STRING) {
-//        return this->s >= val.s;
-//    } else {
-//        // TODO cannot compare
-//    }
-//    return false;
-//}
-//
-//bool AttrValue::operator <= (const AttrValue &val) const {
-//    if(this->isNull || val.isNull)
-//        return false;
-//    if ((type == AttrType::T_INT || type == AttrType::T_FLOAT) &&
-//        (val.type == AttrType::T_INT || val.type == AttrType::T_FLOAT)) {
-//        float f1 = this->type == AttrType::T_INT ? this->i : this->f;
-//        float f2 = val.type == AttrType::T_INT ? val.i : val.f;
-//        return f1 <= f2;
-//    } else if (type == AttrType::T_STRING && val.type == AttrType::T_STRING) {
-//        return this->s <= val.s;
-//    } else {
-//        // TODO cannot compare
-//    }
-//    return false;
-//}
-//
-//bool AttrValue::operator > (const AttrValue &val) const {
-//    if(this->isNull || val.isNull)
-//        return false;
-//    if ((type == AttrType::T_INT || type == AttrType::T_FLOAT) &&
-//        (val.type == AttrType::T_INT || val.type == AttrType::T_FLOAT)) {
-//        float f1 = this->type == AttrType::T_INT ? this->i : this->f;
-//        float f2 = val.type == AttrType::T_INT ? val.i : val.f;
-//        return f1 > f2;
-//    } else if (type == AttrType::T_STRING && val.type == AttrType::T_STRING) {
-//        return this->s > val.s;
-//    } else {
-//        // TODO cannot compare
-//    }
-//    return false;
-//}
-//
-//bool AttrValue::operator < (const AttrValue &val) const {
-//    if(this->isNull || val.isNull)
-//        return false;
-//    if ((type == AttrType::T_INT || type == AttrType::T_FLOAT) &&
-//        (val.type == AttrType::T_INT || val.type == AttrType::T_FLOAT)) {
-//        float f1 = this->type == AttrType::T_INT ? this->i : this->f;
-//        float f2 = val.type == AttrType::T_INT ? val.i : val.f;
-//        return f1 < f2;
-//    } else if (type == AttrType::T_STRING && val.type == AttrType::T_STRING) {
-//        return this->s < val.s;
-//    } else {
-//        // TODO cannot compare
-//    }
-//    return false;
-//}
-
 UseDatabase::UseDatabase(const char *dbName) {
     this->dbName = dbName;
 }
@@ -480,6 +283,7 @@ UseDatabase::UseDatabase(const char *dbName) {
 void UseDatabase::visit() {
     DebugPrintf("Use %s\n", dbName.c_str());
 //    SystemManager::instance()->openDB(dbName.c_str());
+	(SM_Manager::getInstance())->OpenDb(dbName.c_str());
 }
 
 DescTable::DescTable(const char *relName) {
@@ -494,6 +298,11 @@ void DescTable::visit() {
 //        SystemManager::instance()->help();
 //    else
 //        SystemManager::instance()->help(tableName.c_str());
+	if (tableName.length() == 0)
+		(SM_Manager::getInstance())->Help();
+	else
+		(SM_Manager::getInstance())->Help(tableName.c_str());
+	DebugPrintf("desc foreign_table end\n");
 }
 
 ConstValueLists::ConstValueLists() = default;
@@ -588,7 +397,7 @@ TableConstraint::TableConstraint(const char *column_name, const char *table, con
 }
 
 // Check key
-TableConstraint::TableConstraint(char *column_name, ConstValueList *const_values) : type(
+TableConstraint::TableConstraint(const char *column_name, ConstValueList *const_values) : type(
         ConstraintType::CHECK_CONSTRAINT), column_name(column_name), const_values(const_values) {
 
 }

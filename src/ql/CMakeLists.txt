@@ -2,8 +2,6 @@ set(HEADERS
         ${HEADERS}
         ${CMAKE_CURRENT_SOURCE_DIR}/QueryManager.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/sm.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/ix.h
         PARENT_SCOPE
         )
 
