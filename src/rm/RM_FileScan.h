@@ -8,19 +8,21 @@
 #include "RM_FileHandle.h"
 #include "../utils/MyBitMap.h"
 #include "../parser/Expr.h"
+#include <string>
 
 class RM_FileScan {
 private:
     const RM_FileHandle *_file_handle = nullptr;
-    Expr * _condition;
+    Expr *_condition;
     unsigned _current_page;
     MyBitMap _current_bitmap = MyBitMap(0, 1);
     char *_current_bitdata;
+    std::string tableName;
 public:
     RM_FileScan() = default;                                // Constructor
     ~RM_FileScan() = default;                                // Destructor
     int openScan(const RM_FileHandle &fileHandle,  // Initialize file scan
-                 Expr *condition
+                 Expr *condition, const std::string &tableName
     );
 
     int openScan(const RM_FileHandle &fileHandle,  // Initialize file scan

@@ -8,11 +8,12 @@
 #include "../parser/Expr.h"
 
 int
-RM_FileScan::openScan(const RM_FileHandle &fileHandle, Expr *condition) {
+RM_FileScan::openScan(const RM_FileHandle &fileHandle, Expr *condition, const std::string &tableName) {
     _file_handle = &fileHandle;
     _condition = condition;
     _current_page = 0;
     _current_bitdata = nullptr;
+    this->tableName = tableName;
     return 0;
 }
 
@@ -46,7 +47,8 @@ int RM_FileScan::getNextRec(RM_Record &rec) {
         _file_handle->getRec(RID{_current_page, slot_num}, rec);
         _current_bitmap.setBit(slot_num, 0);
         char *data = rec.getData();
-        _condition->calculate(data);
+        _condition->init_calculate(tableName);
+        _condition->calculate(data, this->tableName);
         if (_condition->value.b) {
             break;
         }
@@ -93,5 +95,5 @@ RM_FileScan::openScan(const RM_FileHandle &fileHandle, AttrType attrType, int at
     right->nodeType = NodeType::CONST_NODE;
 
     Expr *condition = new Expr(left, compOp, right);
-    return openScan(fileHandle, condition);
+    return openScan(fileHandle, condition, "");
 }

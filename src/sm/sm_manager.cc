@@ -248,6 +248,7 @@ RC SM_Manager::GetTableInfo(const char *tableName, ColumnDecsList &columns, Tabl
     }
     LDB(fileHandle.UnpinPage(0));
     LDB(pfManager.CloseFile(fileHandle));
+    return 0;
 }
 
 RC SM_Manager::DropTable(const char *relName) {

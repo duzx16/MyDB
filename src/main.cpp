@@ -8,6 +8,7 @@
 #include <vector>
 
 char start_parse(const char *expr_input);
+
 int yyparse();
 
 
@@ -54,7 +55,19 @@ int yyparse();
 //    rm.closeFile(file_handle);
 //}
 
-int main() {
-//	freopen("test.sql", "r", stdin);
-    return yyparse();
+int main(int args, char **argv) {
+    MyBitMap::initConst();
+    if (args > 1) {
+        for (int i = 0; i < args - 1; ++i) {
+            if (freopen(argv[i + 1], "r", stdin))
+                yyparse();
+            else {
+                fprintf(stderr, "Open file %s failed\n", argv[i + 1]);
+                return -1;
+            }
+        }
+    }
+    else {
+        return yyparse();
+    }
 }

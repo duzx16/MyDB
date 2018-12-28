@@ -26,13 +26,15 @@ public:
 
     ColumnNode *getColumn(const std::string &attribute) const;
 
+    std::string printData(const char *data);
+
     std::string checkData(char *data);
 
     int deleteData(const RID &rid);
 
     int insertData(const IdentList *columnList, const ConstValueList *constValues);
 
-    int updateData(const RID &rid, const std::vector<int> & attrIndexes, SetClauseList *setClauses);
+    int updateData(const RM_Record &record, const std::vector<int> &attrIndexes, SetClauseList *setClauses);
 
     int insertIndex(char *data, const RID &rid);
 

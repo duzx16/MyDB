@@ -7,6 +7,7 @@
 
 #include <cstring>
 #include "RID.h"
+#include <stdio.h>
 
 struct RM_Record {
 public:

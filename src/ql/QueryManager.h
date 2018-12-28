@@ -18,13 +18,17 @@ class QL_Manager {
 private:
     SM_Manager sm;
 
-    using CallbackFunc = std::function<void(RM_FileHandle &, const RM_Record &)>;
+    std::vector<std::string> recordCaches;
+
+    using CallbackFunc = std::function<void(const RM_Record &)>;
+
+    using tableListIter =  std::vector<std::unique_ptr<Table>>::iterator;
 
     void printException(const AttrBindException &exception);
 
     int iterateRecords(Table &table, Expr *condition, CallbackFunc callback);
 
-    int iterateRecords(const std::vector<std::unique_ptr<Table>> &tables, Expr *condition, CallbackFunc callback);
+    int iterateRecords(tableListIter begin, tableListIter end, Expr *condition, CallbackFunc callback);
 
     void bindAttribute(Expr *expr, const std::vector<std::unique_ptr<Table>> &tables);
 

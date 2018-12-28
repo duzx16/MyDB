@@ -1,5 +1,7 @@
 #include <utility>
 
+#include <utility>
+
 #include <memory>
 
 #include <utility>
@@ -34,7 +36,12 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
         printException(exception);
         return QL_TABLE_FAIL;
     }
-    //todo complete select
+    iterateRecords(tables.begin(), tables.end(), whereClause, [this, &tables](const RM_Record &record) -> void {
+        for (const auto &it: recordCaches) {
+            cout << it << "\t";
+        }
+        cout << tables.back()->printData(record.getData()) << "\n";
+    });
     return 0;
 }
 
@@ -85,12 +92,13 @@ int QL_Manager::exeUpdate(std::string relationName, SetClauseList *setClauses, E
         }
         attributeIndexs.push_back(index);
     }
-    iterateRecords(*tables[0], whereClause,
-                   [setClauses, &tables, &attributeIndexs](RM_FileHandle &fileHandle, const RM_Record &record) -> void {
+    iterateRecords(tables.begin(), tables.end(), whereClause,
+                   [setClauses, &tables, &attributeIndexs](const RM_Record &record) -> void {
                        for (auto &it: setClauses->clauses) {
+                           it.second->init_calculate();
                            it.second->calculate(record.getData());
                        }
-                       tables[0]->updateData(record.getRID(), attributeIndexs, setClauses);
+                       tables[0]->updateData(record, attributeIndexs, setClauses);
                    });
     return 0;
 }
@@ -111,8 +119,8 @@ int QL_Manager::exeDelete(std::string relationName, Expr *whereClause) {
         return QL_TABLE_FAIL;
     }
     std::vector<RID> toBeDeleted;
-    iterateRecords(*tables[0], whereClause,
-                   [&toBeDeleted](RM_FileHandle &fileHandle, const RM_Record &record) -> void {
+    iterateRecords(tables.begin(), tables.end(), whereClause,
+                   [&toBeDeleted](const RM_Record &record) -> void {
                        toBeDeleted.push_back(record.getRID());
                    });
     RM_FileHandle &fileHandle = tables[0]->getFileHandler();
@@ -147,14 +155,14 @@ void QL_Manager::printException(const AttrBindException &exception) {
 int QL_Manager::iterateRecords(Table &table, Expr *condition, QL_Manager::CallbackFunc callback) {
     int rc;
     RM_FileScan fileScan;
-    fileScan.openScan(table.getFileHandler(), condition);
+    fileScan.openScan(table.getFileHandler(), condition, table.tableName);
     while (true) {
         RM_Record record;
         rc = fileScan.getNextRec(record);
         if (rc) {
             break;
         }
-        callback(table.getFileHandler(), record);
+        callback(record);
     }
     return 0;
 }
@@ -172,6 +180,7 @@ void QL_Manager::bindAttribute(Expr *expr, const std::vector<std::unique_ptr<Tab
                             expr1->attrInfo.attrOffset = offset;
                             expr1->attrInfo.attrLength = column->size;
                             expr1->attrInfo.tableName = table->tableName;
+                            expr1->dataType = column->type;
                             return;
                         } else {
                             throw AttrBindException{"", expr1->attribute->attribute, EXPR_NO_SUCH_ATTRIBUTE};
@@ -192,6 +201,7 @@ void QL_Manager::bindAttribute(Expr *expr, const std::vector<std::unique_ptr<Tab
                             expr1->attrInfo.attrOffset = offset;
                             expr1->attrInfo.attrLength = column->size;
                             expr1->attrInfo.tableName = table->tableName;
+                            expr1->dataType = column->type;
                         }
                     }
                 }
@@ -203,4 +213,13 @@ void QL_Manager::bindAttribute(Expr *expr, const std::vector<std::unique_ptr<Tab
 QL_Manager &QL_Manager::getInstance() {
     static QL_Manager instance;
     return instance;
+}
+
+int QL_Manager::iterateRecords(tableListIter begin, tableListIter end, Expr *condition,
+                               QL_Manager::CallbackFunc callback) {
+    if ((end - begin) == 1) {
+        return iterateRecords(**begin, condition, std::move(callback));
+    }
+    //todo complete multiple tables caches
+    return 0;
 }
