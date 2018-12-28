@@ -76,18 +76,15 @@ void Expr::calculate(char *data, const std::string &relationName) {
     }
     if (left != nullptr) {
         left->calculate(data, relationName);
-        if (!left->calculated) {
-            return;
-        }
     }
     if (right != nullptr) {
         right->calculate(data, relationName);
-        if (!right->calculated) {
-            return;
-        }
     }
     switch (this->nodeType) {
         case NodeType::ARITH_NODE:
+            if ((left != nullptr and !left->calculated) or (right != nullptr and !right->calculated)) {
+                return;
+            }
             calculated = true;
             if (left->is_null or (right != nullptr and right->is_null)) {
                 is_null = true;
@@ -118,6 +115,9 @@ void Expr::calculate(char *data, const std::string &relationName) {
             }
             break;
         case NodeType::COMP_NODE:
+            if ((left != nullptr and !left->calculated) or (right != nullptr and !right->calculated)) {
+                return;
+            }
             calculated = true;
             if (oper.comp == CompOp::IS_OP) {
                 value.b = not(left->is_null ^ right->is_null);
@@ -147,18 +147,40 @@ void Expr::calculate(char *data, const std::string &relationName) {
 
             break;
         case NodeType::LOGIC_NODE:
-            calculated = true;
-            if (right == nullptr) {
-                if (left->is_null) {
-                    this->is_null = true;
+            if ((left == nullptr or left->calculated) and (right == nullptr or right->calculated)) {
+                calculated = true;
+                if (right == nullptr) {
+                    if (left->is_null) {
+                        this->is_null = true;
+                    } else {
+                        this->value.b = logic_function(left->value.b, left->value.b, oper.logic);
+                    }
                 } else {
-                    this->value.b = logic_function(left->value.b, left->value.b, oper.logic);
+                    if (left->is_null or right->is_null) {
+                        this->is_null = true;
+                    } else {
+                        this->value.b = logic_function(left->value.b, right->value.b, oper.logic);
+                    }
                 }
             } else {
-                if (left->is_null or right->is_null) {
-                    this->is_null = true;
-                } else {
-                    this->value.b = logic_function(left->value.b, right->value.b, oper.logic);
+                switch (oper.logic) {
+                    case LogicOp::AND_OP:
+                        if ((left->calculated and left->value.b == false) or (right->calculated and right->value.b ==
+                                                                                                    false)) {
+                            calculated = true;
+                            value.b = false;
+                        }
+                        break;
+                    case LogicOp::OR_OP:
+                        if ((left->calculated and left->value.b == true) or (right->calculated and right->value.b ==
+                                                                                                    true)) {
+                            calculated = true;
+                            value.b = true;
+                        }
+                        break;
+                    case LogicOp::NOT_OP:
+                    case LogicOp::NO_OP:
+                        break;
                 }
             }
             break;
@@ -335,7 +357,7 @@ void Expr::init_calculate(const std::string &tableName) {
                     expr->calculated = true;
                     break;
                 case NodeType::ATTR_NODE:
-                    if(expr->attrInfo.tableName == tableName) {
+                    if (expr->attrInfo.tableName == tableName) {
                         expr->calculated = false;
                     }
             }
