@@ -71,42 +71,119 @@ Expr::Expr(AttributeNode *attributeNode) {
 }
 
 void Expr::calculate(char *data, const std::string &relationName) {
+    if (calculated) {
+        return;
+    }
     if (left != nullptr) {
         left->calculate(data, relationName);
+        if (!left->calculated) {
+            return;
+        }
     }
     if (right != nullptr) {
         right->calculate(data, relationName);
-    }
-    if (left != nullptr and !left->calculated) {
-        return;
-    }
-    if (right != nullptr and !right->calculated) {
-        return;
+        if (!right->calculated) {
+            return;
+        }
     }
     switch (this->nodeType) {
         case NodeType::ARITH_NODE:
-            if (not calculated) {
-                calculated = true;
+            calculated = true;
+            if (left->is_null or (right != nullptr and right->is_null)) {
+                is_null = true;
+            } else {
+                switch (this->dataType) {
+                    case AttrType::INT:
+                        if (this->oper.arith == ArithOp::MINUS_OP) {
+                            this->value.i = arith_function(left->value.i, left->value.i, this->oper.arith);
+                        } else {
+                            this->value.i = arith_function(left->value.i, right->value.i, this->oper.arith);
+                        }
+                        break;
+                    case AttrType::FLOAT:
+                        if (this->oper.arith == ArithOp::MINUS_OP) {
+                            this->value.f = arith_function(left->value.f, left->value.f, this->oper.arith);
+                        } else {
+                            this->value.f = arith_function(left->value.f, right->value.f, this->oper.arith);
+                        }
+                        break;
+                    case AttrType::STRING:
+                    case AttrType::DATE:
+                    case AttrType::VARCHAR:
+                    case AttrType::NO_ATTR:
+                        break;
+                    case AttrType::BOOL:
+                        break;
+                }
+            }
+            break;
+        case NodeType::COMP_NODE:
+            calculated = true;
+            if (oper.comp == CompOp::IS_OP) {
+                value.b = not(left->is_null ^ right->is_null);
+            } else {
                 if (left->is_null or (right != nullptr and right->is_null)) {
                     is_null = true;
                 } else {
-                    switch (this->dataType) {
+                    switch (left->dataType) {
                         case AttrType::INT:
-                            if (this->oper.arith == ArithOp::MINUS_OP) {
-                                this->value.i = arith_function(left->value.i, left->value.i, this->oper.arith);
-                            } else {
-                                this->value.i = arith_function(left->value.i, right->value.i, this->oper.arith);
+                        case AttrType::DATE:
+                            value.b = comp_function(left->value.i, right->value.i, oper.comp);
+                            break;
+                        case AttrType::FLOAT:
+                            value.b = comp_function(left->value.f, right->value.f, oper.comp);
+                            break;
+                        case AttrType::STRING:
+                            value.b = comp_function(left->value_s, right->value_s, oper.comp);
+                            break;
+                        case AttrType::VARCHAR:
+                        case AttrType::NO_ATTR:
+                            break;
+                        case AttrType::BOOL:
+                            break;
+                    }
+                }
+            }
+
+            break;
+        case NodeType::LOGIC_NODE:
+            calculated = true;
+            if (right == nullptr) {
+                if (left->is_null) {
+                    this->is_null = true;
+                } else {
+                    this->value.b = logic_function(left->value.b, left->value.b, oper.logic);
+                }
+            } else {
+                if (left->is_null or right->is_null) {
+                    this->is_null = true;
+                } else {
+                    this->value.b = logic_function(left->value.b, right->value.b, oper.logic);
+                }
+            }
+            break;
+        case NodeType::CONST_NODE:
+            break;
+        case NodeType::ATTR_NODE:
+            if (relationName.empty() || relationName == attrInfo.tableName) {
+                calculated = true;
+                if (data[this->attrInfo.attrOffset - 1] == 0) {
+                    is_null = true;
+                } else {
+                    switch (this->attrInfo.attrType) {
+                        case AttrType::INT:
+                        case AttrType::DATE:
+                            this->value.i = *reinterpret_cast<int *>(data + this->attrInfo.attrOffset);
+                            if (dataType == AttrType::FLOAT) {
+                                this->value.f = static_cast<float>(this->value.i);
                             }
                             break;
                         case AttrType::FLOAT:
-                            if (this->oper.arith == ArithOp::MINUS_OP) {
-                                this->value.f = arith_function(left->value.f, left->value.f, this->oper.arith);
-                            } else {
-                                this->value.f = arith_function(left->value.f, right->value.f, this->oper.arith);
-                            }
+                            this->value.f = *reinterpret_cast<float *>(data + this->attrInfo.attrOffset);
                             break;
                         case AttrType::STRING:
-                        case AttrType::DATE:
+                            this->value_s = std::string(data + this->attrInfo.attrOffset);
+                            break;
                         case AttrType::VARCHAR:
                         case AttrType::NO_ATTR:
                             break;
@@ -116,89 +193,6 @@ void Expr::calculate(char *data, const std::string &relationName) {
                 }
             }
             break;
-        case NodeType::COMP_NODE:
-            if (not calculated) {
-                calculated = true;
-                if (oper.comp == CompOp::IS_OP) {
-                    value.b = not(left->is_null ^ right->is_null);
-                } else {
-                    if (left->is_null or (right != nullptr and right->is_null)) {
-                        is_null = true;
-                    } else {
-                        switch (left->dataType) {
-                            case AttrType::INT:
-                            case AttrType::DATE:
-                                value.b = comp_function(left->value.i, right->value.i, oper.comp);
-                                break;
-                            case AttrType::FLOAT:
-                                value.b = comp_function(left->value.f, right->value.f, oper.comp);
-                                break;
-                            case AttrType::STRING:
-                                value.b = comp_function(left->value_s, right->value_s, oper.comp);
-                                break;
-                            case AttrType::VARCHAR:
-                            case AttrType::NO_ATTR:
-                                break;
-                            case AttrType::BOOL:
-                                break;
-                        }
-                    }
-                }
-
-            }
-            break;
-        case NodeType::LOGIC_NODE:
-            if (not calculated) {
-                calculated = true;
-                if (right == nullptr) {
-                    if (left->is_null) {
-                        this->is_null = true;
-                    } else {
-                        this->value.b = logic_function(left->value.b, left->value.b, oper.logic);
-                    }
-                } else {
-                    if (left->is_null or right->is_null) {
-                        this->is_null = true;
-                    } else {
-                        this->value.b = logic_function(left->value.b, right->value.b, oper.logic);
-                    }
-                }
-                break;
-            }
-        case NodeType::CONST_NODE:
-            calculated = true;
-            break;
-        case NodeType::ATTR_NODE:
-            if (not bound) {
-                if (relationName.empty() || relationName == attrInfo.attrName) {
-                    calculated = true;
-                    if (data[this->attrInfo.attrOffset - 1] == 0) {
-                        is_null = true;
-                    } else {
-                        switch (this->attrInfo.attrType) {
-                            case AttrType::INT:
-                            case AttrType::DATE:
-                                this->value.i = *reinterpret_cast<int *>(data + this->attrInfo.attrOffset);
-                                if (dataType == AttrType::FLOAT) {
-                                    this->value.f = static_cast<float>(this->value.i);
-                                }
-                                break;
-                            case AttrType::FLOAT:
-                                this->value.f = *reinterpret_cast<float *>(data + this->attrInfo.attrOffset);
-                                break;
-                            case AttrType::STRING:
-                                this->value_s = std::string(data + this->attrInfo.attrOffset);
-                                break;
-                            case AttrType::VARCHAR:
-                            case AttrType::NO_ATTR:
-                                break;
-                            case AttrType::BOOL:
-                                break;
-                        }
-                    }
-                }
-                break;
-            }
     }
 }
 
@@ -301,20 +295,51 @@ void Expr::postorder(std::function<void(Expr *)> callback, std::function<bool(Ex
     callback(this);
 }
 
-void Expr::init_calculate() {
-    postorder([](Expr *expr) -> void {
-        switch (expr->nodeType) {
-            case NodeType::ARITH_NODE:
-            case NodeType::COMP_NODE:
-            case NodeType::LOGIC_NODE:
-                expr->calculated = false;
-            case NodeType::CONST_NODE:
-                expr->calculated = true;
-                break;
-            case NodeType::ATTR_NODE:
-                expr->calculated = expr->bound;
-                break;
+bool judge_calculated(Expr *expr) {
+    if (expr->left != nullptr) {
+        if (expr->right != nullptr) {
+            return expr->left->calculated and expr->right->calculated;
+        } else {
+            return expr->left->calculated;
         }
-    });
+    }
+    return false;
+}
+
+void Expr::init_calculate(const std::string &tableName) {
+    if (tableName.empty()) {
+        postorder([](Expr *expr) -> void {
+            switch (expr->nodeType) {
+                case NodeType::ARITH_NODE:
+                case NodeType::COMP_NODE:
+                case NodeType::LOGIC_NODE:
+                    expr->calculated = false;
+                    break;
+                case NodeType::CONST_NODE:
+                    expr->calculated = true;
+                    break;
+                case NodeType::ATTR_NODE:
+                    expr->calculated = false;
+                    break;
+            }
+        });
+    } else {
+        postorder([&tableName, this](Expr *expr) -> void {
+            switch (expr->nodeType) {
+                case NodeType::ARITH_NODE:
+                case NodeType::COMP_NODE:
+                case NodeType::LOGIC_NODE:
+                    expr->calculated = judge_calculated(this);
+                    break;
+                case NodeType::CONST_NODE:
+                    expr->calculated = true;
+                    break;
+                case NodeType::ATTR_NODE:
+                    if(expr->attrInfo.tableName == tableName) {
+                        expr->calculated = false;
+                    }
+            }
+        });
+    }
 }
 

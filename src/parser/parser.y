@@ -115,11 +115,11 @@ command:
                 delete $3;
                 Tree::run();
             }
-    | USE DATABASE IDENTIFIER
+    | USE IDENTIFIER
             {
-                $$ = new UseDatabase($3);
+                $$ = new UseDatabase($2);
                 Tree::setInstance($$);
-                delete $3;
+                delete $2;
                 Tree::run();
             }
     | SHOW DATABASE IDENTIFIER
@@ -265,6 +265,10 @@ column_dec:
                 $$ = new ColumnNode($1, $2, $3, $4);
                 delete $1;
 
+            }
+    | KDATE column_type type_width column_constraints
+            {
+                $$ = new ColumnNode("date", $2, $3, $4);
             }
     ;
 
@@ -432,7 +436,7 @@ whereclause:
             }
     |
             {
-                $$ = nullptr;
+                $$ = new Expr(true);
             }
     ;
 

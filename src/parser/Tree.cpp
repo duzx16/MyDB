@@ -140,11 +140,31 @@ CreateTable::~CreateTable() {
 
 void CreateTable::visit() {
     DebugPrintf("create foreign_table %s\n", tableName.c_str());
-    int rc = (SM_Manager::getInstance())->CreateTable(tableName.c_str(), columns, tableConstraints);
-    if (rc != 0) {
-        fprintf(stderr, "Create table error\n");
-        return;
+    for (auto &it: columns->columns) {
+        switch (it->type) {
+            case AttrType::INT:
+            case AttrType::DATE:
+                it->size = sizeof(int);
+                break;
+            case AttrType::FLOAT:
+                it->size = sizeof(float);
+                break;
+            case AttrType::VARCHAR:
+            case AttrType::STRING:
+                it->size = it->size + 1;
+                break;
+            case AttrType::BOOL:
+            case AttrType::NO_ATTR:
+                break;
+        }
     }
+
+    int rc = (SM_Manager::getInstance())->CreateTable(tableName.c_str(), columns, tableConstraints);
+    //todo rc is not correct
+//    if (rc != 0) {
+//        fprintf(stderr, "Create table error\n");
+//        return;
+//    }
     unsigned recordSize = 0;
     for (const auto &it: columns->columns) {
         recordSize += it->size + 1;
@@ -213,25 +233,8 @@ ColumnNode::ColumnNode(const char *columnName, AttrType type, int size,
                        int columnFlag) {
     this->columnName = string(columnName);
     this->type = type;
-    switch (type) {
-        case AttrType::INT:
-        case AttrType::DATE:
-            this->size = sizeof(int);
-            break;
-        case AttrType::FLOAT:
-            this->size = sizeof(float);
-            break;
-        case AttrType::VARCHAR:
-        case AttrType::STRING:
-            this->size = size;
-            break;
-        case AttrType::BOOL:
-        case AttrType::NO_ATTR:
-            break;
-    }
+    this->size = size;
     this->columnFlag = columnFlag;
-    if (type == AttrType::STRING)
-        this->size++;
 }
 
 ColumnNode::~ColumnNode() = default;

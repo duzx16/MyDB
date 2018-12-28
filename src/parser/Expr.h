@@ -70,7 +70,7 @@ public:
 
     void convert_to_float();
 
-    void init_calculate();
+    void init_calculate(const std::string &tableName = "");
 
 
     ~Expr();
@@ -87,7 +87,6 @@ public:
     BindAttribute attrInfo;
     bool is_null = true;
     bool calculated = false;
-    bool bound = false;
 
 
     Expr *left = nullptr, *right = nullptr;

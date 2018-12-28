@@ -21,7 +21,7 @@ class IX_IndexHandle;
 //
 class IX_Manager {
     PF_Manager *pfm;
-	
+
     // RM_Manager rmm;
 
 public:
@@ -39,6 +39,8 @@ public:
     RC CloseIndex   (IX_IndexHandle &indexHandle) {}  // Close index
 
     static IX_Manager &getInstance() {}
+
+    static bool indexAvailable() {return false;}
 private:
 	char* GenFileName(const char* filename, int indexNo) {}
 };
@@ -53,17 +55,17 @@ public:
     RC InsertEntry     (void *pData, const RID &rid) {}  // Insert new index entry
     RC DeleteEntry     (void *pData, const RID &rid) {} // Delete index entry
     RC ForcePages      () {}                            // Copy index to disk
-	
+
 	void init(const char* indexFileName, PF_Manager *_pfm) {}
 	void CloseIndex() {}
 	LeafNode FindLeafNode(void *pData) {}
-	
+
 	void PrintFullLinkList() {} // print full link list just for attrtype = int
 private:
 	IndexInfo *indexInfo;
 	PF_FileHandle fileHandle;
 	PF_Manager *pfm;
-	
+
 	int cmp(void* a, void* b) {}
 	RC insertIntoRIDPage(const RID rid, const PageNum pageNum) {}
 	RC deleteFromRIDPage(const RID rid, const PageNum pageNum) {}
