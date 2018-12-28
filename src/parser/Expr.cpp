@@ -165,15 +165,13 @@ void Expr::calculate(char *data, const std::string &relationName) {
             } else {
                 switch (oper.logic) {
                     case LogicOp::AND_OP:
-                        if ((left->calculated and left->value.b == false) or (right->calculated and right->value.b ==
-                                                                                                    false)) {
+                        if ((left->calculated and !left->value.b) or (right->calculated and !right->value.b)) {
                             calculated = true;
                             value.b = false;
                         }
                         break;
                     case LogicOp::OR_OP:
-                        if ((left->calculated and left->value.b == true) or (right->calculated and right->value.b ==
-                                                                                                    true)) {
+                        if ((left->calculated and left->value.b) or (right->calculated and right->value.b)) {
                             calculated = true;
                             value.b = true;
                         }

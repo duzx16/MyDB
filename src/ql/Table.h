@@ -18,11 +18,15 @@ class Table {
 public:
     explicit Table(const std::string &tableName);
 
+    static std::string printData(const char *data, AttrType attrType, int attrLength);
+
     ~Table();
 
     int getOffset(const std::string &attribute) const;
 
     int getColumnIndex(const std::string &attribute) const;
+
+    const BindAttribute * getAttrInfo(const std::string &attribute) const;
 
     ColumnNode *getColumn(const std::string &attribute) const;
 

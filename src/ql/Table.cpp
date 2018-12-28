@@ -37,6 +37,15 @@ int Table::getColumnIndex(const std::string &attribute) const {
     return -1;
 }
 
+const BindAttribute *Table::getAttrInfo(const std::string &attribute) const {
+    int index = getColumnIndex(attribute);
+    if (index >= 0) {
+        return &(attrInfos[index]);
+    } else {
+        return nullptr;
+    }
+}
+
 bool checkValueIn(void *left, const ConstValueList &constValues, AttrType type, int length) {
     for (const auto &it: constValues.constValues) {
         switch (type) {
@@ -243,7 +252,7 @@ Table::~Table() {
 
 int Table::tryOpenIndex(int indexNo) {
     if (indexHandles[indexNo] == nullptr) {
-        if(! IX_Manager::indexAvailable()) {
+        if (!IX_Manager::indexAvailable()) {
             return -1;
         }
         auto *indexHandle = new IX_IndexHandle();
@@ -328,6 +337,26 @@ int Table::updateData(const RM_Record &record, const std::vector<int> &attrIndex
         fileHandle.updateRec(record);
     }
     return 0;
+}
+
+std::string Table::printData(const char *data, AttrType attrType, int attrLength) {
+    switch (attrType) {
+        case AttrType::INT:
+            return std::to_string(*reinterpret_cast<const int *>(data));
+        case AttrType::FLOAT:
+            return std::to_string(*reinterpret_cast<const float *>(data));
+        case AttrType::STRING:
+        case AttrType::VARCHAR:
+            return std::string(data);
+        case AttrType::DATE:
+            //todo implement this
+            break;
+        case AttrType::BOOL:
+            break;
+        case AttrType::NO_ATTR:
+            break;
+    }
+    return std::string();
 }
 
 std::string Table::printData(const char *data) {

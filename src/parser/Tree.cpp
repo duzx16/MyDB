@@ -60,7 +60,7 @@ Select::~Select() {
 
 void Select::visit() {
     DebugPrintf("select\n");
-    QL_Manager::getInstance().exeSelect(attributes, relations, whereClause);
+    QL_Manager::getInstance().exeSelect(attributes, relations, whereClause, groupAttrName);
 }
 
 

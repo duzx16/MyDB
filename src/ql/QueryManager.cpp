@@ -1,9 +1,5 @@
-#include <utility>
-
-#include <utility>
-
 #include <memory>
-
+#include <map>
 #include <utility>
 
 //
@@ -15,8 +11,19 @@
 #include "../rm/RecordManager.h"
 #include "../rm/RM_FileScan.h"
 
+void *init_statistics(AttrType attrType, bool isGroup) {
+    switch (attrType) {
+        case AttrType::INT:
+            break;
+    }
+    return nullptr;
+}
+
 int
-QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause) {
+QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause,
+                      const std::string &grouAttrName) {
+    // if groupAttrName not empty, there must be statistics and only one non-statistics attribute
+    // statistics can't appear along with normal attribute
     std::vector<std::unique_ptr<Table>> tables;
     int rc = 0;
     try {
@@ -29,19 +36,69 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
         cerr << error;
         return QL_TABLE_FAIL;
     }
-
+    std::vector<int> taleIndexs;
+    std::vector<BindAttribute> attrInfos;
+    bool isStatistics = false;
+    std::vector<void *> statistics;
     try {
+        if (attributes != nullptr) {
+            attrInfos = bindAttribute(attributes, tables);
+            for (const auto &attribute: attributes->attributes) {
+                for (int i = 0; i < tables.size(); ++i) {
+                    if (tables[i]->tableName == attribute->table) {
+                        taleIndexs.push_back(i);
+                        if (attribute->aggregationType != AggregationType::T_NONE) {
+                            statistics.push_back(init_statistics(tables[i]->getColumn(attribute->attribute)->type,
+                                                                 !grouAttrName.empty()));
+                            isStatistics = true;
+                        } else {
+                            statistics.push_back(nullptr);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
         bindAttribute(whereClause, tables);
     } catch (AttrBindException &exception) {
         printException(exception);
         return QL_TABLE_FAIL;
     }
-    iterateRecords(tables.begin(), tables.end(), whereClause, [this, &tables](const RM_Record &record) -> void {
-        for (const auto &it: recordCaches) {
-            cout << it << "\t";
-        }
-        cout << tables.back()->printData(record.getData()) << "\n";
-    });
+    iterateRecords(tables.begin(), tables.end(), whereClause,
+                   [this, &tables, attributes, isStatistics, taleIndexs, attrInfos](const RM_Record &record) -> void {
+                       if (attributes == nullptr) {
+                           for (int i = 0; i < tables.size(); ++i) {
+                               if (i == tables.size() - 1) {
+                                   cout << tables.back()->printData(record.getData()) << "\n";
+                               } else {
+                                   cout << tables[i]->printData(recordCaches[i]->getData()) << "\t";
+                               }
+                           }
+                       } else {
+                           for (int i = 0; i < attributes->attributes.size(); ++i) {
+                               const char *data;
+                               int tableIndex = taleIndexs[i], offset = attrInfos[i].attrOffset;
+                               if (tableIndex == tables.size() - 1) {
+                                   data = record.getData();
+                               } else {
+                                   data = recordCaches[i]->getData();
+                               }
+                               if (isStatistics) {
+                                   // todo
+                               } else {
+                                   cout << Table::printData(data + offset, attrInfos[i].attrType,
+                                                            attrInfos[i].attrLength);
+                                   if (i == attributes->attributes.size() - 1) {
+                                       cout << "\n";
+                                   } else {
+                                       cout << "\t";
+                                   }
+                               }
+                           }
+                       }
+
+
+                   });
     return 0;
 }
 
@@ -205,6 +262,9 @@ void QL_Manager::bindAttribute(Expr *expr, const std::vector<std::unique_ptr<Tab
                         }
                     }
                 }
+                if (expr1->attrInfo.tableName.empty()) {
+                    throw AttrBindException{"", expr1->attribute->attribute, EXPR_NO_SUCH_ATTRIBUTE};
+                }
             }
         }
     });
@@ -222,4 +282,42 @@ int QL_Manager::iterateRecords(tableListIter begin, tableListIter end, Expr *con
     }
     //todo complete multiple tables caches
     return 0;
+}
+
+std::vector<BindAttribute>
+QL_Manager::bindAttribute(AttributeList *attrList, const std::vector<std::unique_ptr<Table>> &tables) {
+    std::vector<BindAttribute> attrInfos;
+    for (auto &attribute:attrList->attributes) {
+        if (!attribute->table.empty()) {
+            for (const auto &table: tables) {
+                if (table->tableName == attribute->table) {
+                    auto info = table->getAttrInfo(attribute->attribute);
+                    if (info != nullptr) {
+                        attrInfos.push_back(*info);
+                    } else {
+                        throw AttrBindException{"", attribute->attribute, EXPR_NO_SUCH_ATTRIBUTE};
+                    }
+                }
+            }
+            throw AttrBindException{attribute->table, "", EXPR_NO_SUCH_TABLE};
+        } else {
+            bool found = false;
+            for (const auto &table: tables) {
+                if (found) {
+                    throw AttrBindException{"", attribute->attribute, EXPR_AMBIGUOUS};
+                } else {
+                    auto info = table->getAttrInfo(attribute->attribute);
+                    if (info != nullptr) {
+                        attrInfos.push_back(*info);
+                        attribute->table = table->tableName;
+                        found = true;
+                    }
+                }
+            }
+            if (!found) {
+                throw AttrBindException{"", attribute->attribute, EXPR_NO_SUCH_ATTRIBUTE};
+            }
+        }
+    }
+    return attrInfos;
 }

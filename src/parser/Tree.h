@@ -318,7 +318,7 @@ public:
 // For select attribute
 class AttributeNode : public Tree {
 public:
-	AttributeNode() {}
+	AttributeNode() = default;
     AttributeNode(const char *relationName, const char *attributeName,
                   AggregationType aggregationType = AggregationType::T_NONE);
 
@@ -343,7 +343,7 @@ public:
 
     std::string table;
     std::string attribute;
-    AggregationType aggregationType;
+    AggregationType aggregationType = AggregationType::T_NONE;
 };
 
 
