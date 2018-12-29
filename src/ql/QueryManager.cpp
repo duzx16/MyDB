@@ -329,10 +329,21 @@ int QL_Manager::exeUpdate(std::string relationName, SetClauseList *setClauses, E
         for (const auto &it: setClauses->clauses) {
             bindAttribute(it.second, tables);
             it.second->type_check();
+            if (it.second->dataType == AttrType::NO_ATTR) {
+                return QL_TYPE_CHECK;
+            }
             int index = tables[0]->getColumnIndex(it.first->attribute);
             if (index < 0) {
                 fprintf(stderr, "The column %s doesn't exist.\n", it.first->attribute.c_str());
                 return -1;
+            }
+            const BindAttribute &info = *tables[0]->getAttrInfo(it.first->attribute);
+            if (info.attrType != it.second->dataType) {
+                if (info.attrType == AttrType::FLOAT and it.second->dataType == AttrType::INT) {
+                    it.second->convert_to_float();
+                } else {
+                    cerr << "Unsupported attribute assignment for column " << info.attrName << "\n";
+                }
             }
             attributeIndexs.push_back(index);
         }
