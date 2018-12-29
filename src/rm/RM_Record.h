@@ -20,6 +20,17 @@ public:
         memcpy(_data, data, size);
     }
 
+    RM_Record(const RM_Record &record) : RM_Record(record._data, record._size, record._rid) {}
+
+    RM_Record(RM_Record &&record) noexcept {
+        _data = record._data;
+        _size = record._size;
+        _rid = record._rid;
+        record._data = nullptr;
+        record._size = 0;
+    }
+
+
     RID getRID() const {
         return _rid;
     }

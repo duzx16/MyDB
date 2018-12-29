@@ -18,7 +18,7 @@ class QL_Manager {
 private:
     SM_Manager sm;
 
-    std::vector<unique_ptr<RM_Record>> recordCaches;
+    std::vector<RM_Record> recordCaches;
 
     using CallbackFunc = std::function<void(const RM_Record &)>;
 

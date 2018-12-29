@@ -84,7 +84,6 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
     std::vector<int> taleIndexs;
     std::vector<void *> statistics;
     bool isStatistic = false;
-    bool showGroup = false;
     std::map<std::string, int> group_count;
     int total_count = 0;
     AttributeNode groupAttribute{grouAttrName.c_str()};
@@ -119,7 +118,6 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                             }
                             isStatistic = true;
                         } else {
-                            showGroup = true;
                             if (grouAttrName.empty()) {
                                 statistics.push_back(nullptr);
                             } else {
@@ -145,7 +143,7 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                                if (i == tables.size() - 1) {
                                    cout << tables.back()->printData(record.getData()) << "\n";
                                } else {
-                                   cout << tables[i]->printData(recordCaches[i]->getData()) << "\t";
+                                   cout << tables[i]->printData(recordCaches[i].getData()) << "\t";
                                }
                            }
                        } else {
@@ -155,7 +153,7 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                                if (tableIndex == tables.size() - 1) {
                                    data = record.getData();
                                } else {
-                                   data = recordCaches[tableIndex]->getData();
+                                   data = recordCaches[tableIndex].getData();
                                }
                                Expr &attributeExpr = attributeExprs[i];
                                attributeExpr.calculate(data);
@@ -169,7 +167,7 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                                            if (groupAttrTableIndex == tables.size() - 1) {
                                                group_data = record.getData();
                                            } else {
-                                               group_data = recordCaches[groupAttrTableIndex]->getData();
+                                               group_data = recordCaches[groupAttrTableIndex].getData();
                                            }
                                            groupAttrExpr.calculate(group_data);
                                            auto &attr_map = *reinterpret_cast<std::map<std::string, Expr *> *>(statistics[i]);
@@ -445,6 +443,23 @@ int QL_Manager::iterateRecords(tableListIter begin, tableListIter end, Expr *con
     if ((end - begin) == 1) {
         return iterateRecords(**begin, condition, std::move(callback));
     }
-    //todo complete multiple tables caches
+    int rc;
+    Table &table = **begin;
+    RM_FileScan fileScan;
+    fileScan.openScan(table.getFileHandler(), condition, table.tableName);
+    while (true) {
+        RM_Record record;
+        rc = fileScan.getNextRec(record);
+        if (rc) {
+            break;
+        }
+        condition->calculate(record.getData(), table.tableName);
+        if (condition->calculated and !condition->value.b) {
+            continue;
+        }
+        recordCaches.push_back(std::move(record));
+        iterateRecords(begin + 1, end, condition, callback);
+        recordCaches.pop_back();
+    }
     return 0;
 }

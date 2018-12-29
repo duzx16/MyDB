@@ -9,6 +9,7 @@ class RID {
 public:
     RID() = default;
     RID(unsigned page_num, unsigned slot_num) : _page_num(page_num), _slot_num(slot_num) {}
+    RID(const RID &rid) = default;
 
     // Construct RID from page and
     //   slot number
