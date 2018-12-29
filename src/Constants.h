@@ -12,20 +12,21 @@
  */
 typedef unsigned int *BufType;
 enum class AttrType {
-    INT, FLOAT, STRING, DATE, VARCHAR, BOOL, NO_ATTR
+    INT = 0, FLOAT, STRING, DATE, VARCHAR, BOOL, NO_ATTR
 };
+
 enum class CompOp {
-    EQ_OP, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, IS_OP, LIKE_OP, NO_OP
+    EQ_OP = 0, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, IS_OP, LIKE_OP, NO_OP
 };
 enum class ArithOp {
-    ADD_OP, SUB_OP, MUL_OP, DIV_OP, MINUS_OP, NO_OP
+    ADD_OP = 0, SUB_OP, MUL_OP, DIV_OP, MINUS_OP, NO_OP
 };
 enum class LogicOp {
-    AND_OP, OR_OP, NOT_OP, NO_OP
+    AND_OP = 0, OR_OP, NOT_OP, NO_OP
 };
 
 enum class ClientHint {
-	NO_HINT
+    NO_HINT
 };
 enum class AggregationType {
     T_NONE = 0,
@@ -47,10 +48,10 @@ enum class ConstraintType {
 #define COLUMN_FLAG_NOTNULL 0x1
 
 struct AttrInfo {
-	char attrName[MAX_NAME + 1];
-	int attrLength;
-	AttrType attrType;
-	int notNull;
+    char attrName[MAX_NAME + 1];
+    int attrLength;
+    AttrType attrType;
+    int notNull;
 };
 
 //

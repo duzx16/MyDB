@@ -26,13 +26,15 @@ private:
 
     void printException(const AttrBindException &exception);
 
-    int iterateRecords(Table &table, Expr *condition, CallbackFunc callback);
+    int iterateTables(Table &table, Expr *condition, CallbackFunc callback);
 
-    int iterateRecords(tableListIter begin, tableListIter end, Expr *condition, CallbackFunc callback);
+    int iterateTables(tableListIter begin, tableListIter end, Expr *condition, CallbackFunc callback);
 
     void bindAttribute(Expr *expr, const std::vector<std::unique_ptr<Table>> &tables);
 
-//    std::vector<BindAttribute> bindAttribute(AttributeList * attrList, const std::vector<std::unique_ptr<Table>> &tables);
+    int openTables(const std::vector<std::string> &tableNames, std::vector<std::unique_ptr<Table>> &tables);
+
+    int whereBindCheck(Expr *expr, std::vector<std::unique_ptr<Table>> &tables);
 
 public:
     int exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause, const std::string &grouAttrName);
@@ -47,5 +49,6 @@ public:
 };
 
 #define QL_TABLE_FAIL (START_QL_WARN + 1)
+#define QL_TYPE_CHECK (START_QL_WARN + 2)
 
 #endif //MYDB_QL_MANAGER_H

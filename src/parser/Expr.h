@@ -54,6 +54,8 @@ public:
 
     explicit Expr(const char *s);
 
+    explicit Expr(bool b);
+
     Expr(Expr *left, ArithOp op, Expr *right = nullptr);
 
     Expr(Expr *left, CompOp op, Expr *right);

@@ -6,6 +6,30 @@
 #include "Tree.h"
 #include "../utils/FuncTemplate.h"
 #include <cstring>
+#include <iostream>
+
+std::string AttrTypeStr[] = {
+        "INT", "FLOAT", "STRING", "DATE", "VARCHAR", "BOOL", "NO_ATTR"
+};
+
+std::string CompOpStr[] = {
+        "=", "<", ">", "<=", ">=", "!=", "IS", "LIKE", "NO_OP"
+};
+std::string ArithOpStr[] = {
+        "+", "-", "*", "/", "-", "NO"
+};
+std::string LogicOpStr[] = {
+        "&&", "||", "!", "NO"
+};
+
+inline bool compatible(AttrType type1, AttrType type2) {
+    return (type1 == AttrType::INT and type2 == AttrType::FLOAT) or
+           (type1 == AttrType::FLOAT and type2 == AttrType::INT);
+}
+
+inline bool is_arithmetic(AttrType type) {
+    return (type == AttrType::INT or type == AttrType::FLOAT);
+}
 
 Expr::Expr(int i) {
     is_null = false;
@@ -29,6 +53,14 @@ Expr::Expr(const char *s) {
     value_s = std::string(s, 1, strlen(s) - 2);;
     nodeType = NodeType::CONST_NODE;
     oper.constType = AttrType::STRING;
+}
+
+
+Expr::Expr(bool b) {
+    is_null = true;
+    calculated = true;
+    value.b = b;
+    oper.constType = AttrType::BOOL;
 }
 
 Expr::~Expr() {
@@ -218,46 +250,101 @@ void Expr::calculate(const char *data, const std::string &relationName) {
 
 void Expr::type_check() {
     postorder([](Expr *expr) -> void {
+        expr->dataType = AttrType::NO_ATTR;
+        std::string operation;
         switch (expr->nodeType) {
             case NodeType::ARITH_NODE:
+                operation = ArithOpStr[static_cast<int>(expr->oper.arith)];
                 switch (expr->oper.arith) {
                     case ArithOp::ADD_OP:
                     case ArithOp::SUB_OP:
                     case ArithOp::MUL_OP:
                     case ArithOp::DIV_OP:
-                        if ((expr->left != nullptr and expr->left->dataType == AttrType::FLOAT) or
-                            (expr->right != nullptr and expr->right->dataType == AttrType::FLOAT)) {
-                            expr->dataType = AttrType::FLOAT;
-                            if (expr->left != nullptr and expr->left->dataType != AttrType::FLOAT) {
+                        if (is_arithmetic(expr->left->dataType) and is_arithmetic(expr->right->dataType)) {
+                            if (expr->left->dataType == expr->right->dataType) {
+                                expr->dataType = expr->left->dataType;
+                            } else if (compatible(expr->left->dataType, expr->right->dataType)) {
                                 expr->left->convert_to_float();
-                            }
-                            if (expr->right != nullptr and expr->right->dataType != AttrType::FLOAT) {
                                 expr->right->convert_to_float();
+                                expr->dataType = AttrType::FLOAT;
                             }
-                        } else {
-                            expr->dataType = AttrType::INT;
                         }
                         break;
                     case ArithOp::MINUS_OP:
-                        expr->dataType = expr->left->dataType;
+                        if (expr->left->dataType == AttrType::INT or expr->left->dataType == AttrType::FLOAT)
+                            expr->dataType = expr->left->dataType;
                         break;
                     case ArithOp::NO_OP:
-                        expr->dataType = AttrType::NO_ATTR;
                         break;
                 }
                 break;
             case NodeType::LOGIC_NODE:
-                expr->dataType = AttrType::BOOL;
+                operation = LogicOpStr[static_cast<int>(expr->oper.logic)];
+                switch (expr->oper.logic) {
+                    case LogicOp::AND_OP:
+                    case LogicOp::OR_OP:
+                        if (expr->left->dataType == AttrType::BOOL and expr->right->dataType == AttrType::BOOL) {
+                            expr->dataType = AttrType::BOOL;
+                        }
+                        break;
+                    case LogicOp::NOT_OP:
+                        if (expr->left->dataType == AttrType::BOOL) {
+                            expr->dataType = AttrType::BOOL;
+                        }
+                        break;
+                    case LogicOp::NO_OP:
+                        break;
+                }
                 break;
             case NodeType::ATTR_NODE:
                 expr->dataType = expr->attrInfo.attrType;
                 break;
             case NodeType::COMP_NODE:
-                expr->dataType = AttrType::BOOL;
+                operation = CompOpStr[static_cast<int>(expr->oper.comp)];
+                switch (expr->oper.comp) {
+                    case CompOp::EQ_OP:
+                    case CompOp::LT_OP:
+                    case CompOp::GT_OP:
+                    case CompOp::LE_OP:
+                    case CompOp::GE_OP:
+                    case CompOp::NE_OP:
+                        if (expr->left->dataType == expr->right->dataType) {
+                            expr->dataType = expr->left->dataType;
+                        } else if (compatible(expr->left->dataType, expr->right->dataType)) {
+                            expr->dataType = AttrType::BOOL;
+                            expr->left->convert_to_float();
+                            expr->right->convert_to_float();
+                        }
+                        break;
+                    case CompOp::IS_OP:
+                        break;
+                    case CompOp::LIKE_OP:
+                        if ((expr->left->dataType == AttrType::VARCHAR or expr->left->dataType == AttrType::STRING) and
+                            (expr->right->dataType == AttrType::VARCHAR or expr->right->dataType == AttrType::STRING)) {
+                            expr->dataType = AttrType::BOOL;
+                        }
+                        break;
+                    case CompOp::NO_OP:
+                        break;
+                }
                 break;
             case NodeType::CONST_NODE:
                 expr->dataType = expr->oper.constType;
                 break;
+        }
+        if (expr->dataType == AttrType::NO_ATTR) {
+            if (expr->right == nullptr) {
+                if (expr->left->dataType != AttrType::NO_ATTR) {
+                    std::cerr << "Unsupported operation " << operation << " for type "
+                              << AttrTypeStr[static_cast<int>(expr->left->dataType)] << "\n";
+                }
+            } else {
+                if (expr->left->dataType != AttrType::NO_ATTR and expr->right->dataType != AttrType::NO_ATTR) {
+                    std::cerr << "Unsupported operation " << operation << " for type "
+                              << AttrTypeStr[static_cast<int>(expr->left->dataType)] << " and "
+                              << AttrTypeStr[static_cast<int>(expr->right->dataType)] << "\n";
+                }
+            }
         }
     });
 }

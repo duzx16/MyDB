@@ -62,6 +62,36 @@ Expr *init_statistics(AttrType attrType, AggregationType aggregation) {
     return result;
 }
 
+int QL_Manager::openTables(const std::vector<std::string> &tableNames, std::vector<std::unique_ptr<Table>> &tables) {
+    try {
+        for (const auto &ident : tableNames) {
+            tables.push_back(make_unique<Table>(ident));
+        }
+    }
+    catch (const std::string &error) {
+        cerr << error;
+        return QL_TABLE_FAIL;
+    }
+    return 0;
+}
+
+int QL_Manager::whereBindCheck(Expr *whereClause, std::vector<std::unique_ptr<Table>> &tables) {
+    try {
+        bindAttribute(whereClause, tables);
+        whereClause->type_check();
+        if (whereClause->dataType != AttrType::BOOL) {
+            if (whereClause->dataType != AttrType::NO_ATTR) {
+                cerr << "where clause type error\n";
+            }
+            return QL_TYPE_CHECK;
+        }
+        return 0;
+    } catch (AttrBindException &exception) {
+        printException(exception);
+        return QL_TABLE_FAIL;
+    }
+}
+
 int
 QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause,
                       const std::string &grouAttrName) {
@@ -70,15 +100,9 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
     // aggregate can only appear for numeric column
     std::vector<std::unique_ptr<Table>> tables;
     int rc = 0;
-    try {
-        for (const auto &ident : relations->idents) {
-            auto *table = new Table(ident);
-            tables.push_back(std::unique_ptr<Table>(table));
-        }
-    }
-    catch (const std::string &error) {
-        cerr << error;
-        return QL_TABLE_FAIL;
+    rc = openTables(relations->idents, tables);
+    if (rc != 0) {
+        return rc;
     }
     std::vector<Expr> attributeExprs;
     std::vector<int> taleIndexs;
@@ -129,98 +153,102 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                 }
             }
         }
-        bindAttribute(whereClause, tables);
+
     } catch (AttrBindException &exception) {
         printException(exception);
         return QL_TABLE_FAIL;
     }
-    iterateRecords(tables.begin(), tables.end(), whereClause,
-                   [this, &tables, attributes, &taleIndexs, isStatistic, &attributeExprs, &grouAttrName, &statistics, &group_count, &total_count, &groupAttrExpr, groupAttrTableIndex](
-                           const RM_Record &record) -> void {
-                       total_count += 1;
-                       if (attributes == nullptr) {
-                           for (int i = 0; i < tables.size(); ++i) {
-                               if (i == tables.size() - 1) {
-                                   cout << tables.back()->printData(record.getData()) << "\n";
-                               } else {
-                                   cout << tables[i]->printData(recordCaches[i].getData()) << "\t";
-                               }
-                           }
-                       } else {
-                           for (int i = 0; i < attributeExprs.size(); ++i) {
-                               const char *data;
-                               int tableIndex = taleIndexs[i];
-                               if (tableIndex == tables.size() - 1) {
-                                   data = record.getData();
-                               } else {
-                                   data = recordCaches[tableIndex].getData();
-                               }
-                               Expr &attributeExpr = attributeExprs[i];
-                               attributeExpr.calculate(data);
-                               if (isStatistic) {
-                                   if (statistics[i] != nullptr) {
-                                       Expr *result;
-                                       if (grouAttrName.empty()) {
-                                           result = reinterpret_cast<Expr *>(statistics[i]);
-                                       } else {
-                                           const char *group_data;
-                                           if (groupAttrTableIndex == tables.size() - 1) {
-                                               group_data = record.getData();
-                                           } else {
-                                               group_data = recordCaches[groupAttrTableIndex].getData();
-                                           }
-                                           groupAttrExpr.calculate(group_data);
-                                           auto &attr_map = *reinterpret_cast<std::map<std::string, Expr *> *>(statistics[i]);
-                                           std::string attribute_str = groupAttrExpr.to_string();
-                                           if (attr_map.find(attribute_str) == attr_map.end()) {
-                                               result = init_statistics(attributeExpr.dataType,
-                                                                        attributeExpr.attribute->aggregationType);
-                                               attr_map[attribute_str] = result;
-                                               group_count[attribute_str] = 0;
-                                           } else {
-                                               result = attr_map[attribute_str];
-                                               group_count[attribute_str] += 1;
-                                           }
-                                           groupAttrExpr.init_calculate();
-                                       }
-                                       switch (attributeExpr.attribute->aggregationType) {
-                                           case AggregationType::T_AVG:
-                                           case AggregationType::T_SUM:
-                                               *result += attributeExpr;
-                                               break;
-                                           case AggregationType::T_MIN:
-                                               if (attributeExpr < *result) {
-                                                   (*result).assign(attributeExpr);
-                                               }
-                                               break;
-                                           case AggregationType::T_MAX:
-                                               if (*result < attributeExpr) {
-                                                   (*result).assign(attributeExpr);
-                                               }
-                                               break;
-                                           case AggregationType::T_NONE:
-                                               break;
-                                       }
-                                   } else {
-                                       if (!grouAttrName.empty()) {
-                                           auto &attr_map = *reinterpret_cast<std::map<std::string, Expr *> *>(statistics[i]);
-                                           std::string attribute_str = attributeExpr.to_string();
-                                           attr_map[attribute_str] = nullptr;
-                                       }
-                                   }
-                               } else {
-                                   if (i == attributes->attributes.size() - 1) {
-                                       cout << attributeExpr.to_string() << "\n";
-                                   } else {
-                                       cout << attributeExpr.to_string() << "\t";
-                                   }
-                               }
-                               attributeExpr.init_calculate();
-                           }
-                       }
+    rc = whereBindCheck(whereClause, tables);
+    if (rc != 0) {
+        return rc;
+    }
+    iterateTables(tables.begin(), tables.end(), whereClause,
+                  [this, &tables, attributes, &taleIndexs, isStatistic, &attributeExprs, &grouAttrName, &statistics, &group_count, &total_count, &groupAttrExpr, groupAttrTableIndex](
+                          const RM_Record &record) -> void {
+                      total_count += 1;
+                      if (attributes == nullptr) {
+                          for (int i = 0; i < tables.size(); ++i) {
+                              if (i == tables.size() - 1) {
+                                  cout << tables.back()->printData(record.getData()) << "\n";
+                              } else {
+                                  cout << tables[i]->printData(recordCaches[i].getData()) << "\t";
+                              }
+                          }
+                      } else {
+                          for (int i = 0; i < attributeExprs.size(); ++i) {
+                              const char *data;
+                              int tableIndex = taleIndexs[i];
+                              if (tableIndex == tables.size() - 1) {
+                                  data = record.getData();
+                              } else {
+                                  data = recordCaches[tableIndex].getData();
+                              }
+                              Expr &attributeExpr = attributeExprs[i];
+                              attributeExpr.calculate(data);
+                              if (isStatistic) {
+                                  if (statistics[i] != nullptr) {
+                                      Expr *result;
+                                      if (grouAttrName.empty()) {
+                                          result = reinterpret_cast<Expr *>(statistics[i]);
+                                      } else {
+                                          const char *group_data;
+                                          if (groupAttrTableIndex == tables.size() - 1) {
+                                              group_data = record.getData();
+                                          } else {
+                                              group_data = recordCaches[groupAttrTableIndex].getData();
+                                          }
+                                          groupAttrExpr.calculate(group_data);
+                                          auto &attr_map = *reinterpret_cast<std::map<std::string, Expr *> *>(statistics[i]);
+                                          std::string attribute_str = groupAttrExpr.to_string();
+                                          if (attr_map.find(attribute_str) == attr_map.end()) {
+                                              result = init_statistics(attributeExpr.dataType,
+                                                                       attributeExpr.attribute->aggregationType);
+                                              attr_map[attribute_str] = result;
+                                              group_count[attribute_str] = 0;
+                                          } else {
+                                              result = attr_map[attribute_str];
+                                              group_count[attribute_str] += 1;
+                                          }
+                                          groupAttrExpr.init_calculate();
+                                      }
+                                      switch (attributeExpr.attribute->aggregationType) {
+                                          case AggregationType::T_AVG:
+                                          case AggregationType::T_SUM:
+                                              *result += attributeExpr;
+                                              break;
+                                          case AggregationType::T_MIN:
+                                              if (attributeExpr < *result) {
+                                                  (*result).assign(attributeExpr);
+                                              }
+                                              break;
+                                          case AggregationType::T_MAX:
+                                              if (*result < attributeExpr) {
+                                                  (*result).assign(attributeExpr);
+                                              }
+                                              break;
+                                          case AggregationType::T_NONE:
+                                              break;
+                                      }
+                                  } else {
+                                      if (!grouAttrName.empty()) {
+                                          auto &attr_map = *reinterpret_cast<std::map<std::string, Expr *> *>(statistics[i]);
+                                          std::string attribute_str = attributeExpr.to_string();
+                                          attr_map[attribute_str] = nullptr;
+                                      }
+                                  }
+                              } else {
+                                  if (i == attributes->attributes.size() - 1) {
+                                      cout << attributeExpr.to_string() << "\n";
+                                  } else {
+                                      cout << attributeExpr.to_string() << "\t";
+                                  }
+                              }
+                              attributeExpr.init_calculate();
+                          }
+                      }
 
 
-                   });
+                  });
 
     if (isStatistic) {
         if (grouAttrName.empty()) {
@@ -267,12 +295,10 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
 
 int QL_Manager::exeInsert(std::string relationName, IdentList *columnList, ConstValueLists *insertValueTree) {
     std::vector<std::unique_ptr<Table>> tables;
-    try {
-        tables.push_back(std::make_unique<Table>(relationName));
-    }
-    catch (const std::string &error) {
-        cerr << error;
-        return QL_TABLE_FAIL;
+    int rc;
+    rc = openTables(std::vector<std::string>{relationName}, tables);
+    if (rc != 0) {
+        return rc;
     }
     try {
         for (const auto &values: insertValueTree->values) {
@@ -287,65 +313,61 @@ int QL_Manager::exeInsert(std::string relationName, IdentList *columnList, Const
 
 int QL_Manager::exeUpdate(std::string relationName, SetClauseList *setClauses, Expr *whereClause) {
     std::vector<std::unique_ptr<Table>> tables;
-    try {
-        tables.push_back(std::make_unique<Table>(relationName));
+    int rc;
+    rc = openTables(std::vector<std::string>{relationName}, tables);
+    if (rc != 0) {
+        return rc;
     }
-    catch (const std::string &error) {
-        cerr << error;
-        return QL_TABLE_FAIL;
+    std::vector<int> attributeIndexs;
+    rc = whereBindCheck(whereClause, tables);
+    if (rc != 0) {
+        return rc;
     }
     try {
-        bindAttribute(whereClause, tables);
-        for (auto &it: setClauses->clauses) {
+        for (const auto &it: setClauses->clauses) {
             bindAttribute(it.second, tables);
+            it.second->type_check();
+            int index = tables[0]->getColumnIndex(it.first->attribute);
+            if (index < 0) {
+                fprintf(stderr, "The column %s doesn't exist.\n", it.first->attribute.c_str());
+                return -1;
+            }
+            attributeIndexs.push_back(index);
         }
     } catch (AttrBindException &exception) {
         printException(exception);
         return QL_TABLE_FAIL;
     }
-    std::vector<int> attributeIndexs;
-    for (const auto &it: setClauses->clauses) {
-        int index = tables[0]->getColumnIndex(it.first->attribute);
-        if (index < 0) {
-            fprintf(stderr, "The column %s doesn't exist.\n", it.first->attribute.c_str());
-            return -1;
-        }
-        attributeIndexs.push_back(index);
-    }
-    iterateRecords(tables.begin(), tables.end(), whereClause,
-                   [setClauses, &tables, &attributeIndexs](const RM_Record &record) -> void {
-                       for (auto &it: setClauses->clauses) {
-                           it.second->init_calculate();
-                           it.second->calculate(record.getData());
-                       }
-                       tables[0]->updateData(record, attributeIndexs, setClauses);
-                   });
+    iterateTables(tables.begin(), tables.end(), whereClause,
+                  [setClauses, &tables, &attributeIndexs](const RM_Record &record) -> void {
+                      for (auto &it: setClauses->clauses) {
+                          it.second->init_calculate();
+                          it.second->calculate(record.getData());
+                      }
+                      tables[0]->updateData(record, attributeIndexs, setClauses);
+                  });
     return 0;
 }
 
 int QL_Manager::exeDelete(std::string relationName, Expr *whereClause) {
     std::vector<std::unique_ptr<Table>> tables;
-    try {
-        tables.push_back(std::make_unique<Table>(relationName));
+    int rc;
+    rc = openTables(std::vector<std::string>{relationName}, tables);
+    if (rc != 0) {
+        return rc;
     }
-    catch (const std::string &error) {
-        cerr << error;
-        return QL_TABLE_FAIL;
-    }
-    try {
-        bindAttribute(whereClause, tables);
-    } catch (AttrBindException &exception) {
-        printException(exception);
-        return QL_TABLE_FAIL;
+    rc = whereBindCheck(whereClause, tables);
+    if (rc != 0) {
+        return rc;
     }
     std::vector<RID> toBeDeleted;
-    iterateRecords(tables.begin(), tables.end(), whereClause,
-                   [&toBeDeleted](const RM_Record &record) -> void {
-                       toBeDeleted.push_back(record.getRID());
-                   });
+    iterateTables(tables.begin(), tables.end(), whereClause,
+                  [&toBeDeleted](const RM_Record &record) -> void {
+                      toBeDeleted.push_back(record.getRID());
+                  });
     RM_FileHandle &fileHandle = tables[0]->getFileHandler();
     for (auto &it: toBeDeleted) {
-        int rc = tables[0]->deleteData(it);
+        rc = tables[0]->deleteData(it);
         if (rc != 0) {
             cerr << "Delete error\n";
             return -1;
@@ -372,7 +394,7 @@ void QL_Manager::printException(const AttrBindException &exception) {
     }
 }
 
-int QL_Manager::iterateRecords(Table &table, Expr *condition, QL_Manager::CallbackFunc callback) {
+int QL_Manager::iterateTables(Table &table, Expr *condition, QL_Manager::CallbackFunc callback) {
     int rc;
     RM_FileScan fileScan;
     fileScan.openScan(table.getFileHandler(), condition, table.tableName);
@@ -438,10 +460,10 @@ QL_Manager &QL_Manager::getInstance() {
     return instance;
 }
 
-int QL_Manager::iterateRecords(tableListIter begin, tableListIter end, Expr *condition,
-                               QL_Manager::CallbackFunc callback) {
+int QL_Manager::iterateTables(tableListIter begin, tableListIter end, Expr *condition,
+                              QL_Manager::CallbackFunc callback) {
     if ((end - begin) == 1) {
-        return iterateRecords(**begin, condition, std::move(callback));
+        return iterateTables(**begin, condition, std::move(callback));
     }
     int rc;
     Table &table = **begin;
@@ -458,7 +480,7 @@ int QL_Manager::iterateRecords(tableListIter begin, tableListIter end, Expr *con
             continue;
         }
         recordCaches.push_back(std::move(record));
-        iterateRecords(begin + 1, end, condition, callback);
+        iterateTables(begin + 1, end, condition, callback);
         recordCaches.pop_back();
     }
     return 0;
