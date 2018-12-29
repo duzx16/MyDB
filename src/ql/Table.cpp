@@ -78,23 +78,23 @@ bool checkValueIn(void *left, const ConstValueList &constValues, AttrType type, 
 int attributeAssign(void *data, const Expr &value, AttrType type, int length) {
     switch (type) {
         case AttrType::DATE:
-            if (value.oper.constType != type) {
+            if (value.dataType != type) {
                 return -1;
             }
             *reinterpret_cast<int *>(data) = value.value.i;
         case AttrType::INT:
-            if (value.oper.constType == AttrType::INT) {
+            if (value.dataType == AttrType::INT) {
                 *reinterpret_cast<int *>(data) = value.value.i;
-            } else if (value.oper.constType == AttrType::FLOAT) {
+            } else if (value.dataType == AttrType::FLOAT) {
                 *reinterpret_cast<int *>(data) = static_cast<int>(value.value.f);
             } else {
                 return -1;
             }
             break;
         case AttrType::FLOAT:
-            if (value.oper.constType == AttrType::FLOAT) {
+            if (value.dataType == AttrType::FLOAT) {
                 *reinterpret_cast<float *>(data) = value.value.f;
-            } else if (value.oper.constType == AttrType::INT) {
+            } else if (value.dataType == AttrType::INT) {
                 *reinterpret_cast<float *>(data) = value.value.i;
             } else {
                 return -1;
@@ -102,7 +102,7 @@ int attributeAssign(void *data, const Expr &value, AttrType type, int length) {
             break;
         case AttrType::STRING:
         case AttrType::VARCHAR:
-            if (value.oper.constType == AttrType::STRING || value.oper.constType == AttrType::VARCHAR) {
+            if (value.dataType == AttrType::STRING || value.dataType == AttrType::VARCHAR) {
                 strncpy(static_cast<char *>(data), value.value_s.c_str(), length);
             } else {
                 return -1;
@@ -330,12 +330,13 @@ int Table::updateData(const RM_Record &record, const std::vector<int> &attrIndex
         const auto &info = attrInfos[indexNo];
         // the type should have been checked
         rc = attributeAssign(data + info.attrOffset, *setClauses->clauses[i].second, info.attrType, info.attrLength);
-        result = checkData(data);
-        if (!result.empty()) {
-            throw std::string(result);
-        }
-        fileHandle.updateRec(record);
     }
+    // todo update index
+    result = checkData(data);
+    if (!result.empty()) {
+        throw std::string(result);
+    }
+    fileHandle.updateRec(record);
     return 0;
 }
 

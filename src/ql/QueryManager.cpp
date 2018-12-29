@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <memory>
 #include <map>
 #include <utility>
@@ -296,7 +298,7 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
 int QL_Manager::exeInsert(std::string relationName, IdentList *columnList, ConstValueLists *insertValueTree) {
     std::vector<std::unique_ptr<Table>> tables;
     int rc;
-    rc = openTables(std::vector<std::string>{relationName}, tables);
+    rc = openTables(std::vector<std::string>{std::move(relationName)}, tables);
     if (rc != 0) {
         return rc;
     }
@@ -314,7 +316,7 @@ int QL_Manager::exeInsert(std::string relationName, IdentList *columnList, Const
 int QL_Manager::exeUpdate(std::string relationName, SetClauseList *setClauses, Expr *whereClause) {
     std::vector<std::unique_ptr<Table>> tables;
     int rc;
-    rc = openTables(std::vector<std::string>{relationName}, tables);
+    rc = openTables(std::vector<std::string>{std::move(relationName)}, tables);
     if (rc != 0) {
         return rc;
     }
@@ -338,21 +340,27 @@ int QL_Manager::exeUpdate(std::string relationName, SetClauseList *setClauses, E
         printException(exception);
         return QL_TABLE_FAIL;
     }
+    std::vector<RID> toBeUpdated;
     iterateTables(tables.begin(), tables.end(), whereClause,
-                  [setClauses, &tables, &attributeIndexs](const RM_Record &record) -> void {
-                      for (auto &it: setClauses->clauses) {
-                          it.second->init_calculate();
-                          it.second->calculate(record.getData());
-                      }
-                      tables[0]->updateData(record, attributeIndexs, setClauses);
+                  [&toBeUpdated](const RM_Record &record) -> void {
+                      toBeUpdated.push_back(record.getRID());
                   });
+    for (const auto &rid: toBeUpdated) {
+        RM_Record record;
+        tables[0]->getFileHandler().getRec(rid, record);
+        for (auto &it: setClauses->clauses) {
+            it.second->init_calculate();
+            it.second->calculate(record.getData());
+        }
+        tables[0]->updateData(record, attributeIndexs, setClauses);
+    }
     return 0;
 }
 
 int QL_Manager::exeDelete(std::string relationName, Expr *whereClause) {
     std::vector<std::unique_ptr<Table>> tables;
     int rc;
-    rc = openTables(std::vector<std::string>{relationName}, tables);
+    rc = openTables(std::vector<std::string>{std::move(relationName)}, tables);
     if (rc != 0) {
         return rc;
     }

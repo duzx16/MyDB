@@ -309,7 +309,7 @@ void Expr::type_check() {
                     case CompOp::GE_OP:
                     case CompOp::NE_OP:
                         if (expr->left->dataType == expr->right->dataType) {
-                            expr->dataType = expr->left->dataType;
+                            expr->dataType = AttrType::BOOL;
                         } else if (compatible(expr->left->dataType, expr->right->dataType)) {
                             expr->dataType = AttrType::BOOL;
                             expr->left->convert_to_float();
@@ -317,6 +317,7 @@ void Expr::type_check() {
                         }
                         break;
                     case CompOp::IS_OP:
+                        expr->dataType = AttrType::BOOL;
                         break;
                     case CompOp::LIKE_OP:
                         if ((expr->left->dataType == AttrType::VARCHAR or expr->left->dataType == AttrType::STRING) and
