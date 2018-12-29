@@ -62,7 +62,7 @@ Expr::Expr(Expr *left, LogicOp op, Expr *right) {
     this->nodeType = NodeType::LOGIC_NODE;
 }
 
-Expr::Expr(AttributeNode *attributeNode) {
+Expr::Expr(const AttributeNode *attributeNode) {
     is_null = false;
     this->attribute = attributeNode;
     this->nodeType = NodeType::ATTR_NODE;
@@ -70,7 +70,7 @@ Expr::Expr(AttributeNode *attributeNode) {
     this->attrInfo.tableName = attributeNode->table;
 }
 
-void Expr::calculate(char *data, const std::string &relationName) {
+void Expr::calculate(const char *data, const std::string &relationName) {
     if (calculated) {
         return;
     }
@@ -193,13 +193,13 @@ void Expr::calculate(char *data, const std::string &relationName) {
                     switch (this->attrInfo.attrType) {
                         case AttrType::INT:
                         case AttrType::DATE:
-                            this->value.i = *reinterpret_cast<int *>(data + this->attrInfo.attrOffset);
+                            this->value.i = *reinterpret_cast<const int *>(data + this->attrInfo.attrOffset);
                             if (dataType == AttrType::FLOAT) {
                                 this->value.f = static_cast<float>(this->value.i);
                             }
                             break;
                         case AttrType::FLOAT:
-                            this->value.f = *reinterpret_cast<float *>(data + this->attrInfo.attrOffset);
+                            this->value.f = *reinterpret_cast<const float *>(data + this->attrInfo.attrOffset);
                             break;
                         case AttrType::STRING:
                             this->value_s = std::string(data + this->attrInfo.attrOffset);
@@ -361,5 +361,93 @@ void Expr::init_calculate(const std::string &tableName) {
             }
         });
     }
+}
+
+bool Expr::operator<(const Expr &expr) {
+    if (calculated and expr.calculated) {
+        switch (dataType) {
+            case AttrType::INT:
+            case AttrType::DATE:
+                return value.i < expr.value.i;
+            case AttrType::FLOAT:
+                return value.f < expr.value.f;
+            case AttrType::STRING:
+            case AttrType::VARCHAR:
+                return value_s < expr.value_s;
+            case AttrType::BOOL:
+                return value.b < expr.value.b;
+            default:
+                return false;
+        }
+    } else {
+        throw "Can't perform comparison because the value is uncertain\n";
+    }
+}
+
+Expr &Expr::operator+=(const Expr &expr) {
+    if (calculated and expr.calculated) {
+        switch (dataType) {
+            case AttrType::INT:
+            case AttrType::DATE:
+                value.i += expr.value.i;
+                break;
+            case AttrType::FLOAT:
+                value.f += expr.value.f;
+                break;
+            case AttrType::STRING:
+            case AttrType::VARCHAR:
+            case AttrType::BOOL:
+            case AttrType::NO_ATTR:
+                // unsupported
+                break;
+        }
+        return *this;
+    } else {
+        throw "Can't perform computation because the value is uncertain\n";
+    }
+}
+
+void Expr::assign(const Expr &expr) {
+    if (calculated and expr.calculated) {
+        switch (dataType) {
+            case AttrType::INT:
+            case AttrType::DATE:
+                value.i = expr.value.i;
+                break;
+            case AttrType::FLOAT:
+                value.f = expr.value.f;
+                break;
+            case AttrType::STRING:
+                value_s = expr.value_s;
+                break;
+            case AttrType::VARCHAR:
+            case AttrType::BOOL:
+            case AttrType::NO_ATTR:
+                // unsupported
+                break;
+        }
+    } else {
+        throw "Can't perform computation because the value is uncertain\n";
+    }
+}
+
+std::string Expr::to_string() const {
+    switch (dataType) {
+        case AttrType::INT:
+            return std::to_string(value.i);
+        case AttrType::FLOAT:
+            return std::to_string(value.f);
+        case AttrType::STRING:
+        case AttrType::VARCHAR:
+            return std::string(value_s);
+        case AttrType::DATE:
+            //todo implement this
+            break;
+        case AttrType::BOOL:
+            break;
+        case AttrType::NO_ATTR:
+            break;
+    }
+    return std::string();
 }
 

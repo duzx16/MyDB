@@ -29,7 +29,7 @@ INTEGER         {DIGIT}+
 FLOAT           {DIGIT}+\.{DIGIT}*
 IDENTIFIER      [a-z][a-z0-9_]*
 WHITESPACE      [ \t\n]
-STRING          (\"[^\"]*\")|(\'[^\']*\')
+STRING          '(\\\\|\\n|\\r|\\\"|\\0|\\'|[^'\\])*'
 
 %%
 

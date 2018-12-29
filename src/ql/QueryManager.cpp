@@ -10,13 +10,56 @@
 #include "../rm/RM_FileHandle.h"
 #include "../rm/RecordManager.h"
 #include "../rm/RM_FileScan.h"
+#include "../parser/Expr.h"
 
-void *init_statistics(AttrType attrType, bool isGroup) {
-    switch (attrType) {
-        case AttrType::INT:
+Expr *init_statistics(AttrType attrType, AggregationType aggregation) {
+    Expr *result = nullptr;
+    switch (aggregation) {
+        case AggregationType::T_AVG:
+        case AggregationType::T_SUM:
+            switch (attrType) {
+                case AttrType::INT:
+                    result = new Expr(0);
+                    break;
+                case AttrType::FLOAT:
+                    result = new Expr(0.0f);
+                    break;
+                default:
+                    break;
+                    // this will never happen
+            }
+            break;
+        case AggregationType::T_MIN:
+            switch (attrType) {
+                case AttrType::INT:
+                    result = new Expr(INT_MAX);
+                    break;
+                case AttrType::FLOAT:
+                    result = new Expr(1e38f);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case AggregationType::T_MAX:
+            switch (attrType) {
+                case AttrType::INT:
+                    result = new Expr(INT_MIN);
+                    break;
+                case AttrType::FLOAT:
+                    result = new Expr(-1e38f);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case AggregationType::T_NONE:
             break;
     }
-    return nullptr;
+    if (result != nullptr) {
+        result->type_check();
+    }
+    return result;
 }
 
 int
@@ -24,6 +67,7 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                       const std::string &grouAttrName) {
     // if groupAttrName not empty, there must be statistics and only one non-statistics attribute
     // statistics can't appear along with normal attribute
+    // aggregate can only appear for numeric column
     std::vector<std::unique_ptr<Table>> tables;
     int rc = 0;
     try {
@@ -36,23 +80,51 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
         cerr << error;
         return QL_TABLE_FAIL;
     }
+    std::vector<Expr> attributeExprs;
     std::vector<int> taleIndexs;
-    std::vector<BindAttribute> attrInfos;
-    bool isStatistics = false;
     std::vector<void *> statistics;
+    bool isStatistic = false;
+    bool showGroup = false;
+    std::map<std::string, int> group_count;
+    int total_count = 0;
+    AttributeNode groupAttribute{grouAttrName.c_str()};
+    Expr groupAttrExpr{&groupAttribute};
+    int groupAttrTableIndex;
     try {
         if (attributes != nullptr) {
-            attrInfos = bindAttribute(attributes, tables);
-            for (const auto &attribute: attributes->attributes) {
+            if (!grouAttrName.empty()) {
+                bindAttribute(&groupAttrExpr, tables);
+                groupAttrExpr.type_check();
                 for (int i = 0; i < tables.size(); ++i) {
-                    if (tables[i]->tableName == attribute->table) {
+                    if (tables[i]->tableName == groupAttrExpr.attrInfo.tableName) {
+                        groupAttrTableIndex = i;
+                        break;
+                    }
+                }
+            }
+            for (auto &attribute: attributes->attributes) {
+                attributeExprs.emplace_back(attribute);
+                bindAttribute(&attributeExprs.back(), tables);
+                attributeExprs.back().type_check();
+                for (int i = 0; i < tables.size(); ++i) {
+                    if (tables[i]->tableName == attributeExprs.back().attrInfo.tableName) {
                         taleIndexs.push_back(i);
                         if (attribute->aggregationType != AggregationType::T_NONE) {
-                            statistics.push_back(init_statistics(tables[i]->getColumn(attribute->attribute)->type,
-                                                                 !grouAttrName.empty()));
-                            isStatistics = true;
+                            if (grouAttrName.empty()) {
+                                Expr *result = init_statistics(attributeExprs.back().dataType,
+                                                               attribute->aggregationType);
+                                statistics.push_back(result);
+                            } else {
+                                statistics.push_back(new std::map<std::string, Expr *>());
+                            }
+                            isStatistic = true;
                         } else {
-                            statistics.push_back(nullptr);
+                            showGroup = true;
+                            if (grouAttrName.empty()) {
+                                statistics.push_back(nullptr);
+                            } else {
+                                statistics.push_back(new std::map<std::string, Expr *>());
+                            }
                         }
                         break;
                     }
@@ -65,7 +137,9 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
         return QL_TABLE_FAIL;
     }
     iterateRecords(tables.begin(), tables.end(), whereClause,
-                   [this, &tables, attributes, isStatistics, taleIndexs, attrInfos](const RM_Record &record) -> void {
+                   [this, &tables, attributes, &taleIndexs, isStatistic, &attributeExprs, &grouAttrName, &statistics, &group_count, &total_count, &groupAttrExpr, groupAttrTableIndex](
+                           const RM_Record &record) -> void {
+                       total_count += 1;
                        if (attributes == nullptr) {
                            for (int i = 0; i < tables.size(); ++i) {
                                if (i == tables.size() - 1) {
@@ -75,30 +149,121 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                                }
                            }
                        } else {
-                           for (int i = 0; i < attributes->attributes.size(); ++i) {
+                           for (int i = 0; i < attributeExprs.size(); ++i) {
                                const char *data;
-                               int tableIndex = taleIndexs[i], offset = attrInfos[i].attrOffset;
+                               int tableIndex = taleIndexs[i];
                                if (tableIndex == tables.size() - 1) {
                                    data = record.getData();
                                } else {
-                                   data = recordCaches[i]->getData();
+                                   data = recordCaches[tableIndex]->getData();
                                }
-                               if (isStatistics) {
-                                   // todo
-                               } else {
-                                   cout << Table::printData(data + offset, attrInfos[i].attrType,
-                                                            attrInfos[i].attrLength);
-                                   if (i == attributes->attributes.size() - 1) {
-                                       cout << "\n";
+                               Expr &attributeExpr = attributeExprs[i];
+                               attributeExpr.calculate(data);
+                               if (isStatistic) {
+                                   if (statistics[i] != nullptr) {
+                                       Expr *result;
+                                       if (grouAttrName.empty()) {
+                                           result = reinterpret_cast<Expr *>(statistics[i]);
+                                       } else {
+                                           const char *group_data;
+                                           if (groupAttrTableIndex == tables.size() - 1) {
+                                               group_data = record.getData();
+                                           } else {
+                                               group_data = recordCaches[groupAttrTableIndex]->getData();
+                                           }
+                                           groupAttrExpr.calculate(group_data);
+                                           auto &attr_map = *reinterpret_cast<std::map<std::string, Expr *> *>(statistics[i]);
+                                           std::string attribute_str = groupAttrExpr.to_string();
+                                           if (attr_map.find(attribute_str) == attr_map.end()) {
+                                               result = init_statistics(attributeExpr.dataType,
+                                                                        attributeExpr.attribute->aggregationType);
+                                               attr_map[attribute_str] = result;
+                                               group_count[attribute_str] = 0;
+                                           } else {
+                                               result = attr_map[attribute_str];
+                                               group_count[attribute_str] += 1;
+                                           }
+                                           groupAttrExpr.init_calculate();
+                                       }
+                                       switch (attributeExpr.attribute->aggregationType) {
+                                           case AggregationType::T_AVG:
+                                           case AggregationType::T_SUM:
+                                               *result += attributeExpr;
+                                               break;
+                                           case AggregationType::T_MIN:
+                                               if (attributeExpr < *result) {
+                                                   (*result).assign(attributeExpr);
+                                               }
+                                               break;
+                                           case AggregationType::T_MAX:
+                                               if (*result < attributeExpr) {
+                                                   (*result).assign(attributeExpr);
+                                               }
+                                               break;
+                                           case AggregationType::T_NONE:
+                                               break;
+                                       }
                                    } else {
-                                       cout << "\t";
+                                       if (!grouAttrName.empty()) {
+                                           auto &attr_map = *reinterpret_cast<std::map<std::string, Expr *> *>(statistics[i]);
+                                           std::string attribute_str = attributeExpr.to_string();
+                                           attr_map[attribute_str] = nullptr;
+                                       }
+                                   }
+                               } else {
+                                   if (i == attributes->attributes.size() - 1) {
+                                       cout << attributeExpr.to_string() << "\n";
+                                   } else {
+                                       cout << attributeExpr.to_string() << "\t";
                                    }
                                }
+                               attributeExpr.init_calculate();
                            }
                        }
 
 
                    });
+
+    if (isStatistic) {
+        if (grouAttrName.empty()) {
+            for (int i = 0; i < attributes->attributes.size(); ++i) {
+                Expr *result = reinterpret_cast<Expr *>(statistics[i]);
+                if (attributes->attributes[i]->aggregationType == AggregationType::T_AVG) {
+                    if (result->dataType != AttrType::FLOAT) {
+                        result->dataType = AttrType::FLOAT;
+                        result->value.f = result->value.i;
+                    }
+                    result->value.f /= total_count;
+
+                }
+                cout << result->to_string() << "\t";
+            }
+            cout << "\n";
+        } else {
+            auto &attr_map = *reinterpret_cast<std::map<std::string, Expr *> *>(statistics[0]);
+            for (const auto &entry: attr_map) {
+                for (int i = 0; i < attributes->attributes.size(); ++i) {
+                    const AttributeNode &attribute = *attributes->attributes[i];
+                    if (attribute.aggregationType == AggregationType::T_NONE) {
+                        cout << entry.first << "\t";
+                    } else {
+                        Expr *result = (*reinterpret_cast<std::map<std::string, Expr *> *>(statistics[i]))[entry.first];
+                        if (attribute.aggregationType == AggregationType::T_AVG) {
+                            if (result->dataType != AttrType::FLOAT) {
+                                result->dataType = AttrType::FLOAT;
+                                result->value.f = result->value.i;
+                            }
+                            result->value.f /= group_count[entry.first];
+                        }
+                        cout
+                                << result->to_string()
+                                << "\t";
+                    }
+                }
+                cout << "\n";
+            }
+        }
+    }
     return 0;
 }
 
@@ -282,42 +447,4 @@ int QL_Manager::iterateRecords(tableListIter begin, tableListIter end, Expr *con
     }
     //todo complete multiple tables caches
     return 0;
-}
-
-std::vector<BindAttribute>
-QL_Manager::bindAttribute(AttributeList *attrList, const std::vector<std::unique_ptr<Table>> &tables) {
-    std::vector<BindAttribute> attrInfos;
-    for (auto &attribute:attrList->attributes) {
-        if (!attribute->table.empty()) {
-            for (const auto &table: tables) {
-                if (table->tableName == attribute->table) {
-                    auto info = table->getAttrInfo(attribute->attribute);
-                    if (info != nullptr) {
-                        attrInfos.push_back(*info);
-                    } else {
-                        throw AttrBindException{"", attribute->attribute, EXPR_NO_SUCH_ATTRIBUTE};
-                    }
-                }
-            }
-            throw AttrBindException{attribute->table, "", EXPR_NO_SUCH_TABLE};
-        } else {
-            bool found = false;
-            for (const auto &table: tables) {
-                if (found) {
-                    throw AttrBindException{"", attribute->attribute, EXPR_AMBIGUOUS};
-                } else {
-                    auto info = table->getAttrInfo(attribute->attribute);
-                    if (info != nullptr) {
-                        attrInfos.push_back(*info);
-                        attribute->table = table->tableName;
-                        found = true;
-                    }
-                }
-            }
-            if (!found) {
-                throw AttrBindException{"", attribute->attribute, EXPR_NO_SUCH_ATTRIBUTE};
-            }
-        }
-    }
-    return attrInfos;
 }

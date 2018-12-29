@@ -60,11 +60,11 @@ public:
 
     Expr(Expr *left, LogicOp op, Expr *right);
 
-    explicit Expr(AttributeNode *);
+    explicit Expr(const AttributeNode *);
 
     void postorder(std::function<void(Expr *)> callback, std::function<bool(Expr *)> stop_condition = nullptr);
 
-    void calculate(char *data, const std::string &relationName = "");
+    void calculate(const char *data, const std::string &relationName = "");
 
     void type_check();
 
@@ -72,6 +72,13 @@ public:
 
     void init_calculate(const std::string &tableName = "");
 
+    std::string to_string() const;
+
+    bool operator<(const Expr &expr);
+
+    Expr &operator+=(const Expr &expr);
+
+    void assign(const Expr &expr);
 
     ~Expr();
 
@@ -83,7 +90,7 @@ public:
 
     std::string value_s = "";
 
-    AttributeNode *attribute = nullptr;
+    const AttributeNode *attribute = nullptr;
     BindAttribute attrInfo;
     bool is_null = true;
     bool calculated = false;

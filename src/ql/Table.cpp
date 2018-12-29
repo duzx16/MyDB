@@ -339,26 +339,6 @@ int Table::updateData(const RM_Record &record, const std::vector<int> &attrIndex
     return 0;
 }
 
-std::string Table::printData(const char *data, AttrType attrType, int attrLength) {
-    switch (attrType) {
-        case AttrType::INT:
-            return std::to_string(*reinterpret_cast<const int *>(data));
-        case AttrType::FLOAT:
-            return std::to_string(*reinterpret_cast<const float *>(data));
-        case AttrType::STRING:
-        case AttrType::VARCHAR:
-            return std::string(data);
-        case AttrType::DATE:
-            //todo implement this
-            break;
-        case AttrType::BOOL:
-            break;
-        case AttrType::NO_ATTR:
-            break;
-    }
-    return std::string();
-}
-
 std::string Table::printData(const char *data) {
     std::ostringstream stream;
     for (const auto &attr: attrInfos) {

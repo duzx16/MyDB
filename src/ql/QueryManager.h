@@ -32,7 +32,7 @@ private:
 
     void bindAttribute(Expr *expr, const std::vector<std::unique_ptr<Table>> &tables);
 
-    std::vector<BindAttribute> bindAttribute(AttributeList * attrList, const std::vector<std::unique_ptr<Table>> &tables);
+//    std::vector<BindAttribute> bindAttribute(AttributeList * attrList, const std::vector<std::unique_ptr<Table>> &tables);
 
 public:
     int exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause, const std::string &grouAttrName);

@@ -18,8 +18,6 @@ class Table {
 public:
     explicit Table(const std::string &tableName);
 
-    static std::string printData(const char *data, AttrType attrType, int attrLength);
-
     ~Table();
 
     int getOffset(const std::string &attribute) const;
