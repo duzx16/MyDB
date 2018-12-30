@@ -47,11 +47,17 @@ int RM_FileScan::getNextRec(RM_Record &rec) {
         _file_handle->getRec(RID{_current_page, slot_num}, rec);
         _current_bitmap.setBit(slot_num, 0);
         char *data = rec.getData();
-        _condition->init_calculate(tableName);
-        _condition->calculate(data, this->tableName);
-        if (_condition->value.b) {
+        if (_condition != nullptr) {
+            _condition->init_calculate(tableName);
+            _condition->calculate(data, this->tableName);
+            if (not _condition->calculated or _condition->is_true()) {
+                _condition->init_calculate(tableName);
+                break;
+            }
+        } else {
             break;
         }
+
     }
     return 0;
 }

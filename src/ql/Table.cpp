@@ -115,64 +115,64 @@ int attributeAssign(void *data, const Expr &value, AttrType type, int length) {
 }
 
 std::string Table::checkData(char *data) {
-    int rc;
+    int rc, i = 0;
     for (const auto &it: tableConstraints.tbDecs) {
+        int indexNo = constrAttrI[i];
+        void *value = data + attrInfos[indexNo].attrOffset;
+        const auto &info = attrInfos[indexNo];
         switch (it->type) {
             case ConstraintType::PRIMARY_CONSTRAINT: {
-                int indexNo;
-                for (indexNo = 0; indexNo < attrInfos.size(); indexNo++) {
-                    // todo complete multiple primary keys
-                    if (attrInfos[indexNo].attrName == it->column_list->idents[0]) {
-                        break;
-                    }
+                if (data[info.attrOffset - 1] == 0) {
+                    return "The primary key " + info.attrName + " can't be null\n";
                 }
-                if (indexNo < attrInfos.size()) {
-                    if (data[attrInfos[indexNo].attrOffset - 1] == 0) {
-                        return "The primary key " + attrInfos[indexNo].attrName + " can't be null\n";
-                    }
-                    void *value = data + attrInfos[indexNo].attrOffset;
-                    rc = tryOpenIndex(indexNo);
-                    if (rc != 0) {
+                rc = tryOpenIndex(indexNo);
+                if (rc != 0) {
+                    if (IX_Manager::indexAvailable())
                         return "We are doomed! Can't find the index for the primary key\n";
-                    }
-                    IX_IndexScan indexScan;
-                    indexScan.OpenScan(*indexHandles[indexNo], CompOp::EQ_OP, value);
-                    RID rid;
-                    rc = indexScan.GetNextEntry(rid);
-                    indexScan.CloseScan();
-                    if (rc == 0) {
-                        return "The primary key " + attrInfos[indexNo].attrName + " alrealy exists\n";
-                    }
-                } else {
-                    return "We are doomed! Can't find the primary key\n";
+                    else
+                        continue;
+                }
+                IX_IndexScan indexScan;
+                indexScan.OpenScan(*indexHandles[indexNo], CompOp::EQ_OP, value);
+                RID rid;
+                rc = indexScan.GetNextEntry(rid);
+                indexScan.CloseScan();
+                if (rc == 0) {
+                    return "The primary key " + info.attrName + " alrealy exists\n";
+                }
+
+            }
+                break;
+            case ConstraintType::FOREIGN_CONSTRAINT: {
+                rc = tryOpenForeignIndex(i);
+                if (rc != 0) {
+                    if (IX_Manager::indexAvailable())
+                        return "Can't find the index for the foreign key\n";
+                    else
+                        continue;
+                }
+                IX_IndexScan indexScan;
+                indexScan.OpenScan(*foreignIndexs[i], CompOp::EQ_OP, value);
+                RID rid;
+                rc = indexScan.GetNextEntry(rid);
+                indexScan.CloseScan();
+                if (rc != 0) {
+                    return "The foreign key for " + info.attrName + " doesn't exist\n";
                 }
             }
                 break;
-            case ConstraintType::FOREIGN_CONSTRAINT:
-                // todo implement foreign key constraint here
-                break;
             case ConstraintType::CHECK_CONSTRAINT: {
-                int indexNo;
-                for (indexNo = 0; indexNo < attrInfos.size(); indexNo++) {
-                    if (attrInfos[indexNo].attrName == it->column_name) {
-                        break;
-                    }
+                if (data[info.attrOffset - 1] == 0) {
+                    return "The value for " + info.attrName + " can't be null\n";
                 }
-                if (indexNo < attrInfos.size()) {
-                    const auto &info = attrInfos[indexNo];
-                    if (data[info.attrOffset - 1] == 0) {
-                        return "The value for " + info.attrName + " can't be null\n";
-                    }
-                    if (not checkValueIn(data + info.attrOffset, *it->const_values, info.attrType,
-                                         info.attrSize)) {
-                        return "The value for " + info.attrName + " is invalid\n";
-                    }
-                } else {
-                    return "We are doomed! Can't find the constraint key\n";
+                if (not checkValueIn(data + info.attrOffset, *it->const_values, info.attrType,
+                                     info.attrSize)) {
+                    return "The value for " + info.attrName + " is invalid\n";
                 }
             }
                 break;
         }
+        i += 1;
     }
     return std::string();
 }
@@ -194,6 +194,10 @@ Table::Table(const std::string &tableName) {
     int rc = SM_Manager::getInstance()->GetTableInfo(tableName.c_str(), columns, tableConstraints);
     if (rc != 0) {
         throw "The record of relation table " + tableName + " does not exist\n";
+    }
+    rc = tryOpenFile();
+    if (rc != 0) {
+        throw "The file of relation table " + tableName + " does not exist\n";
     }
     int offset = 0;
     for (const auto &it: columns.columns) {
@@ -219,9 +223,42 @@ Table::Table(const std::string &tableName) {
         indexHandles.push_back(nullptr);
         attrInfos.push_back(std::move(attrInfo));
     }
-    rc = tryOpenFile();
-    if (rc != 0) {
-        throw "The file of relation table " + tableName + " does not exist\n";
+    for (const auto &it: tableConstraints.tbDecs) {
+        for (int i = 0; i < attrInfos.size(); ++i) {
+            if (attrInfos[i].attrName == it->column_name) {
+                constrAttrI.push_back(i);
+                break;
+            }
+        }
+        foreignIndexs.push_back(nullptr);
+        switch (it->type) {
+            case ConstraintType::CHECK_CONSTRAINT:
+            case ConstraintType::PRIMARY_CONSTRAINT:
+                foreignAttrInt.push_back(-1);
+                break;
+            case ConstraintType::FOREIGN_CONSTRAINT: {
+                ColumnDecsList foreign_columns;
+                TableConstraintList foreign_constraint;
+                rc = SM_Manager::getInstance()->GetTableInfo(it->foreign_table.c_str(), foreign_columns,
+                                                             foreign_constraint);
+                if (rc != 0) {
+                    throw "The record of relation table " + it->foreign_table + " does not exist\n";
+                }
+                bool found = false;
+                for (int i = 0; i < foreign_columns.columns.size(); ++i) {
+                    if (foreign_columns.columns[i]->columnName == it->foreign_column) {
+                        foreignAttrInt.push_back(i);
+                        found = true;
+                        break;
+                    }
+                }
+                if (not found) {
+                    throw "Can't find column " + it->foreign_column + " in table " + it->foreign_table + "\n";
+                }
+                break;
+            }
+
+        }
     }
 }
 
@@ -270,6 +307,23 @@ int Table::tryOpenIndex(int indexNo) {
             return -1;
         }
         indexHandles[indexNo] = indexHandle;
+    }
+    return 0;
+}
+
+int Table::tryOpenForeignIndex(int constNo) {
+    if (foreignIndexs[constNo] == nullptr) {
+        if (!IX_Manager::indexAvailable()) {
+            return -1;
+        }
+        auto *indexHandle = new IX_IndexHandle();
+        int rc = IX_Manager::getInstance().OpenIndex(tableConstraints.tbDecs[constNo]->foreign_table.c_str(),
+                                                     foreignAttrInt[constNo], *indexHandle);
+        if (rc != 0) {
+            delete indexHandle;
+            return -1;
+        }
+        foreignIndexs[constNo] = indexHandle;
     }
     return 0;
 }

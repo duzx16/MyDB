@@ -413,14 +413,17 @@ void QL_Manager::printException(const AttrBindException &exception) {
 int QL_Manager::iterateTables(Table &table, Expr *condition, QL_Manager::CallbackFunc callback) {
     int rc;
     RM_FileScan fileScan;
-    fileScan.openScan(table.getFileHandler(), condition, table.tableName);
+    fileScan.openScan(table.getFileHandler(), nullptr, table.tableName);
     while (true) {
         RM_Record record;
         rc = fileScan.getNextRec(record);
         if (rc) {
             break;
         }
-        callback(record);
+        condition->calculate(record.getData(), table.tableName);
+        if(condition->is_true())
+            callback(record);
+        condition->init_calculate(table.tableName);
     }
     return 0;
 }
@@ -476,7 +479,7 @@ int QL_Manager::iterateTables(tableListIter begin, tableListIter end, Expr *cond
     int rc;
     Table &table = **begin;
     RM_FileScan fileScan;
-    fileScan.openScan(table.getFileHandler(), condition, table.tableName);
+    fileScan.openScan(table.getFileHandler(), nullptr, table.tableName);
     while (true) {
         RM_Record record;
         rc = fileScan.getNextRec(record);
@@ -484,12 +487,13 @@ int QL_Manager::iterateTables(tableListIter begin, tableListIter end, Expr *cond
             break;
         }
         condition->calculate(record.getData(), table.tableName);
-        if (condition->calculated and !condition->value.b) {
+        if (condition->calculated and !condition->is_true()) {
             continue;
         }
         recordCaches.push_back(std::move(record));
         iterateTables(begin + 1, end, condition, callback);
         recordCaches.pop_back();
+        condition->init_calculate(table.tableName);
     }
     return 0;
 }

@@ -13,6 +13,7 @@
 #include "../parser/Expr.h"
 
 #include <vector>
+#include <map>
 
 class Table {
 public:
@@ -50,6 +51,8 @@ private:
 
     int tryOpenIndex(int indexNo);
 
+    int tryOpenForeignIndex(int constNo);
+
     std::vector<BindAttribute> attrInfos;
     int recordSize;
 
@@ -57,7 +60,9 @@ private:
     TableConstraintList tableConstraints;
     RM_FileHandle fileHandle;
     std::vector<IX_IndexHandle *> indexHandles;
-
+    std::vector<IX_IndexHandle *> foreignIndexs;
+    std::vector<int> foreignAttrInt;
+    std::vector<int> constrAttrI;
 };
 
 
