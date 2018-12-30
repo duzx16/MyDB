@@ -31,7 +31,8 @@ enum class NodeType {
 struct BindAttribute {
     std::string attrName;
     std::string tableName;
-    int attrLength{};
+    int attrSize;
+    int attrLength;
     AttrType attrType = AttrType::NO_ATTR;
     bool notNull{};
     bool withIndex;
@@ -64,6 +65,8 @@ public:
 
     explicit Expr(const AttributeNode *);
 
+    explicit Expr(const BindAttribute &attribute);
+
     void postorder(std::function<void(Expr *)> callback, std::function<bool(Expr *)> stop_condition = nullptr);
 
     void calculate(const char *data, const std::string &relationName = "");
@@ -75,6 +78,8 @@ public:
     void init_calculate(const std::string &tableName = "");
 
     std::string to_string() const;
+
+    bool is_true();
 
     bool operator<(const Expr &expr);
 

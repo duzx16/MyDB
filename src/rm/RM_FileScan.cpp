@@ -65,7 +65,7 @@ int
 RM_FileScan::openScan(const RM_FileHandle &fileHandle, AttrType attrType, int attrLength, int attrOffset, CompOp compOp,
                       void *value) {
     Expr *left = new Expr();
-    left->attrInfo.attrLength = attrLength;
+    left->attrInfo.attrSize = attrLength;
     left->attrInfo.attrOffset = attrOffset;
     left->attrInfo.attrType = attrType;
     left->attrInfo.notNull = false;

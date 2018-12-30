@@ -24,9 +24,9 @@ public:
 
     int getColumnIndex(const std::string &attribute) const;
 
-    const BindAttribute * getAttrInfo(const std::string &attribute) const;
+    const BindAttribute & getAttrInfo(int index) const;
 
-    ColumnNode *getColumn(const std::string &attribute) const;
+    int getAttrCount() const;
 
     std::string printData(const char *data);
 

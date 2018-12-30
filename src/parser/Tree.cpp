@@ -142,7 +142,6 @@ void CreateTable::visit() {
     DebugPrintf("create foreign_table %s\n", tableName.c_str());
     for (auto &it: columns->columns) {
         switch (it->type) {
-            case AttrType::INT:
             case AttrType::DATE:
                 it->size = sizeof(int);
                 break;
@@ -152,6 +151,9 @@ void CreateTable::visit() {
             case AttrType::VARCHAR:
             case AttrType::STRING:
                 it->size = it->size + 1;
+                break;
+            case AttrType::INT:
+                it->size = it->size;
                 break;
             case AttrType::BOOL:
             case AttrType::NO_ATTR:
@@ -167,7 +169,11 @@ void CreateTable::visit() {
 //    }
     unsigned recordSize = 0;
     for (const auto &it: columns->columns) {
-        recordSize += it->size + 1;
+        if(it->type == AttrType::INT) {
+            recordSize += sizeof(int) + 1;
+        } else {
+            recordSize += it->size + 1;
+        }
     }
     RecordManager::getInstance().createFile(tableName, recordSize);
     DebugPrintf("create foreign_table %s end\n", tableName.c_str());

@@ -7,6 +7,8 @@
 #include "../utils/FuncTemplate.h"
 #include <cstring>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 std::string AttrTypeStr[] = {
         "INT", "FLOAT", "STRING", "DATE", "VARCHAR", "BOOL", "NO_ATTR"
@@ -37,6 +39,7 @@ Expr::Expr(int i) {
     value.i = i;
     nodeType = NodeType::CONST_NODE;
     oper.constType = AttrType::INT;
+    dataType = AttrType::INT;
 }
 
 Expr::Expr(float f) {
@@ -45,6 +48,7 @@ Expr::Expr(float f) {
     value.f = f;
     nodeType = NodeType::CONST_NODE;
     oper.constType = AttrType::FLOAT;
+    dataType = AttrType::FLOAT;
 }
 
 Expr::Expr(const char *s) {
@@ -53,15 +57,18 @@ Expr::Expr(const char *s) {
     value_s = std::string(s, 1, strlen(s) - 2);;
     nodeType = NodeType::CONST_NODE;
     oper.constType = AttrType::STRING;
+    dataType = AttrType::STRING;
 }
 
 
 Expr::Expr(bool b) {
-    is_null = true;
+    is_null = false;
     calculated = true;
     value.b = b;
     oper.constType = AttrType::BOOL;
+    dataType = AttrType::BOOL;
 }
+
 
 Expr::~Expr() {
     delete left;
@@ -100,6 +107,15 @@ Expr::Expr(const AttributeNode *attributeNode) {
     this->nodeType = NodeType::ATTR_NODE;
     this->attrInfo.attrName = attributeNode->attribute;
     this->attrInfo.tableName = attributeNode->table;
+}
+
+
+Expr::Expr(const BindAttribute &attribute) {
+    is_null = true;
+    calculated = false;
+    this->nodeType = NodeType::ATTR_NODE;
+    this->attrInfo = attribute;
+    this->dataType = attribute.attrType;
 }
 
 void Expr::calculate(const char *data, const std::string &relationName) {
@@ -222,6 +238,7 @@ void Expr::calculate(const char *data, const std::string &relationName) {
                 if (data[this->attrInfo.attrOffset - 1] == 0) {
                     is_null = true;
                 } else {
+                    is_null = false;
                     switch (this->attrInfo.attrType) {
                         case AttrType::INT:
                         case AttrType::DATE:
@@ -520,22 +537,41 @@ void Expr::assign(const Expr &expr) {
 }
 
 std::string Expr::to_string() const {
-    switch (dataType) {
-        case AttrType::INT:
-            return std::to_string(value.i);
-        case AttrType::FLOAT:
-            return std::to_string(value.f);
-        case AttrType::STRING:
-        case AttrType::VARCHAR:
-            return std::string(value_s);
-        case AttrType::DATE:
-            //todo implement this
-            break;
-        case AttrType::BOOL:
-            break;
-        case AttrType::NO_ATTR:
-            break;
+    if (is_null) {
+        return "";
+    } else {
+        std::ostringstream sstream;
+        switch (dataType) {
+            case AttrType::INT:
+                if (nodeType == NodeType::ATTR_NODE) {
+                    sstream.width(attrInfo.attrLength);
+                    sstream.fill('0');
+                }
+                sstream << value.i;
+                break;
+            case AttrType::FLOAT:
+                sstream << value.f;
+                break;
+            case AttrType::STRING:
+            case AttrType::VARCHAR:
+                sstream << std::setiosflags(std::ios::left);
+                sstream.width(attrInfo.attrLength / 2);
+                sstream.fill(' ');
+                sstream << value_s;
+                break;
+            case AttrType::DATE:
+                //todo implement this
+                break;
+            case AttrType::BOOL:
+                break;
+            case AttrType::NO_ATTR:
+                break;
+        }
+        return sstream.str();
     }
-    return std::string();
+}
+
+bool Expr::is_true() {
+    return value.b and not is_null;
 }
 

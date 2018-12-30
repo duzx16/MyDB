@@ -20,13 +20,13 @@ int Table::getOffset(const std::string &attribute) const {
     return -1;
 }
 
-ColumnNode *Table::getColumn(const std::string &attribute) const {
-    for (const auto &it: columns.columns) {
-        if (attribute == it->columnName)
-            return it;
-    }
-    return nullptr;
-}
+//ColumnNode *Table::getColumn(const std::string &attribute) const {
+//    for (const auto &it: columns.columns) {
+//        if (attribute == it->columnName)
+//            return it;
+//    }
+//    return nullptr;
+//}
 
 int Table::getColumnIndex(const std::string &attribute) const {
     for (int i = 0; i < attrInfos.size(); ++i) {
@@ -37,13 +37,12 @@ int Table::getColumnIndex(const std::string &attribute) const {
     return -1;
 }
 
-const BindAttribute *Table::getAttrInfo(const std::string &attribute) const {
-    int index = getColumnIndex(attribute);
-    if (index >= 0) {
-        return &(attrInfos[index]);
-    } else {
-        return nullptr;
-    }
+const BindAttribute &Table::getAttrInfo(int index) const {
+    return attrInfos[index];
+}
+
+int Table::getAttrCount() const {
+    return attrInfos.size();
 }
 
 bool checkValueIn(void *left, const ConstValueList &constValues, AttrType type, int length) {
@@ -165,7 +164,7 @@ std::string Table::checkData(char *data) {
                         return "The value for " + info.attrName + " can't be null\n";
                     }
                     if (not checkValueIn(data + info.attrOffset, *it->const_values, info.attrType,
-                                         info.attrLength)) {
+                                         info.attrSize)) {
                         return "The value for " + info.attrName + " is invalid\n";
                     }
                 } else {
@@ -202,12 +201,21 @@ Table::Table(const std::string &tableName) {
         attrInfo.tableName = tableName;
         attrInfo.attrName = it->columnName;
         attrInfo.attrType = it->type;
-        attrInfo.attrLength = it->size;
+        if (it->type == AttrType::STRING) {
+            attrInfo.attrLength = it->size - 1;
+        } else {
+            attrInfo.attrLength = it->size;
+        }
+        if (it->type == AttrType::INT) {
+            attrInfo.attrSize = sizeof(int);
+        } else {
+            attrInfo.attrSize = it->size;
+        }
         attrInfo.notNull = static_cast<bool>(it->columnFlag & COLUMN_FLAG_NOTNULL);
         attrInfo.withIndex = true;
         attrInfo.attrOffset = offset + 1;
-        offset += it->size + 1;
-        this->recordSize += it->size + 1;
+        offset += attrInfo.attrSize + 1;
+        this->recordSize += attrInfo.attrSize + 1;
         indexHandles.push_back(nullptr);
         attrInfos.push_back(std::move(attrInfo));
     }
@@ -277,7 +285,7 @@ int Table::insertData(const IdentList *columnList, const ConstValueList *constVa
             const auto &info = attrInfos[i];
             const Expr &value = *(constValues->constValues[i]);
             data[info.attrOffset - 1] = 1;
-            rc = attributeAssign(data.get() + info.attrOffset, value, info.attrType, info.attrLength);
+            rc = attributeAssign(data.get() + info.attrOffset, value, info.attrType, info.attrSize);
             if (rc != 0) {
                 throw std::string("The type of inserted value doesn't match that of column " + info.attrName + "\n");
             }
@@ -329,7 +337,7 @@ int Table::updateData(const RM_Record &record, const std::vector<int> &attrIndex
         int indexNo = attrIndexes[i];
         const auto &info = attrInfos[indexNo];
         // the type should have been checked
-        rc = attributeAssign(data + info.attrOffset, *setClauses->clauses[i].second, info.attrType, info.attrLength);
+        rc = attributeAssign(data + info.attrOffset, *setClauses->clauses[i].second, info.attrType, info.attrSize);
     }
     // todo update index
     result = checkData(data);
