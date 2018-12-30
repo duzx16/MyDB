@@ -107,59 +107,45 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
         return rc;
     }
     std::vector<Expr> attributeExprs;
-    std::vector<int> tableIndexs;
     std::vector<void *> statistics;
     bool isStatistic = false;
     std::map<std::string, int> group_count;
     int total_count = 0;
     AttributeNode groupAttribute{grouAttrName.c_str()};
     Expr groupAttrExpr{&groupAttribute};
-    int groupAttrTableIndex;
     try {
         if (attributes != nullptr) {
             if (!grouAttrName.empty()) {
                 bindAttribute(&groupAttrExpr, tables);
                 groupAttrExpr.type_check();
-                for (int i = 0; i < tables.size(); ++i) {
-                    if (tables[i]->tableName == groupAttrExpr.attrInfo.tableName) {
-                        groupAttrTableIndex = i;
-                        break;
-                    }
-                }
             }
             for (auto &attribute: attributes->attributes) {
                 attributeExprs.emplace_back(attribute);
                 bindAttribute(&attributeExprs.back(), tables);
                 attributeExprs.back().type_check();
-                for (int i = 0; i < tables.size(); ++i) {
-                    if (tables[i]->tableName == attributeExprs.back().attrInfo.tableName) {
-                        tableIndexs.push_back(i);
-                        if (attribute->aggregationType != AggregationType::T_NONE) {
-                            if (grouAttrName.empty()) {
-                                Expr *result = init_statistics(attributeExprs.back().dataType,
-                                                               attribute->aggregationType);
-                                statistics.push_back(result);
-                            } else {
-                                statistics.push_back(new std::map<std::string, Expr *>());
-                            }
-                            isStatistic = true;
-                        } else {
-                            if (grouAttrName.empty()) {
-                                statistics.push_back(nullptr);
-                            } else {
-                                statistics.push_back(new std::map<std::string, Expr *>());
-                            }
-                        }
-                        break;
+                if (attribute->aggregationType != AggregationType::T_NONE) {
+                    if (grouAttrName.empty()) {
+                        Expr *result = init_statistics(attributeExprs.back().dataType,
+                                                       attribute->aggregationType);
+                        statistics.push_back(result);
+                    } else {
+                        statistics.push_back(new std::map<std::string, Expr *>());
+                    }
+                    isStatistic = true;
+                } else {
+                    if (grouAttrName.empty()) {
+                        statistics.push_back(nullptr);
+                    } else {
+                        statistics.push_back(new std::map<std::string, Expr *>());
                     }
                 }
             }
         } else {
             for (int j = 0; j < tables.size(); ++j) {
-                const auto & table = tables[j];
+                const auto &table = tables[j];
                 for (int i = 0; i < table->getAttrCount(); ++i) {
                     attributeExprs.emplace_back(table->getAttrInfo(i));
-                    tableIndexs.push_back(j);
+                    attributeExprs.back().tableIndex = j;
                 }
             }
         }
@@ -173,18 +159,18 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
         return rc;
     }
     iterateTables(tables.begin(), tables.end(), whereClause,
-                  [this, &tables, &tableIndexs, isStatistic, &attributeExprs, &grouAttrName, &statistics, &group_count, &total_count, &groupAttrExpr, groupAttrTableIndex](
+                  [this, &tables, isStatistic, &attributeExprs, &grouAttrName, &statistics, &group_count, &total_count, &groupAttrExpr](
                           const RM_Record &record) -> void {
                       total_count += 1;
                       for (int i = 0; i < attributeExprs.size(); ++i) {
                           const char *data;
-                          int tableIndex = tableIndexs[i];
+                          Expr &attributeExpr = attributeExprs[i];
+                          int tableIndex = attributeExpr.tableIndex;
                           if (tableIndex == tables.size() - 1) {
                               data = record.getData();
                           } else {
                               data = recordCaches[tableIndex].getData();
                           }
-                          Expr &attributeExpr = attributeExprs[i];
                           attributeExpr.calculate(data);
                           if (isStatistic) {
                               if (statistics[i] != nullptr) {
@@ -193,6 +179,7 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                                       result = reinterpret_cast<Expr *>(statistics[i]);
                                   } else {
                                       const char *group_data;
+                                      int groupAttrTableIndex = groupAttrExpr.tableIndex;
                                       if (groupAttrTableIndex == tables.size() - 1) {
                                           group_data = record.getData();
                                       } else {
@@ -421,7 +408,7 @@ int QL_Manager::iterateTables(Table &table, Expr *condition, QL_Manager::Callbac
             break;
         }
         condition->calculate(record.getData(), table.tableName);
-        if(condition->is_true())
+        if (condition->is_true())
             callback(record);
         condition->init_calculate(table.tableName);
     }
@@ -432,21 +419,26 @@ void QL_Manager::bindAttribute(Expr *expr, const std::vector<std::unique_ptr<Tab
     expr->postorder([&tables](Expr *expr1) {
         if (expr1->nodeType == NodeType::ATTR_NODE) {
             if (!expr1->attribute->table.empty()) {
+                int tableIndex = 0;
                 for (const auto &table: tables) {
                     if (table->tableName == expr1->attribute->table) {
                         int index = table->getColumnIndex(expr1->attribute->attribute);
                         if (index >= 0) {
                             expr1->attrInfo = table->getAttrInfo(index);
                             expr1->dataType = expr1->attrInfo.attrType;
+                            expr1->tableIndex = tableIndex;
+                            expr1->columnIndex = index;
                             return;
                         } else {
                             throw AttrBindException{"", expr1->attribute->attribute, EXPR_NO_SUCH_ATTRIBUTE};
                         }
                     }
+                    tableIndex += 1;
                 }
                 throw AttrBindException{expr1->attribute->table, "", EXPR_NO_SUCH_TABLE};
             } else {
                 expr1->attrInfo.attrOffset = -1;
+                int tableIndex = 0;
                 for (const auto &table: tables) {
                     if (not expr1->attrInfo.tableName.empty()) {
                         throw AttrBindException{"", expr1->attribute->attribute, EXPR_AMBIGUOUS};
@@ -455,8 +447,11 @@ void QL_Manager::bindAttribute(Expr *expr, const std::vector<std::unique_ptr<Tab
                         if (index >= 0) {
                             expr1->attrInfo = table->getAttrInfo(index);
                             expr1->dataType = expr1->attrInfo.attrType;
+                            expr1->tableIndex = tableIndex;
+                            expr1->columnIndex = index;
                         }
                     }
+                    tableIndex += 1;
                 }
                 if (expr1->attrInfo.tableName.empty()) {
                     throw AttrBindException{"", expr1->attribute->attribute, EXPR_NO_SUCH_ATTRIBUTE};

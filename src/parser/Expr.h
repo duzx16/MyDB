@@ -101,7 +101,8 @@ public:
     BindAttribute attrInfo;
     bool is_null = true;
     bool calculated = false;
-
+    int tableIndex = -1;
+    int columnIndex = -1;
 
     Expr *left = nullptr, *right = nullptr;
     union {

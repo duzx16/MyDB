@@ -1,2 +1,2 @@
 use orderDB;
-select * from food, restaurant where food.restaurant_id = restaurant.id;
+select avg(price), restaurant_id from food group by restaurant_id;
