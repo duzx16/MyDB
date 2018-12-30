@@ -75,10 +75,6 @@ bool checkValueIn(void *left, const ConstValueList &constValues, AttrType type, 
 }
 
 int attributeAssign(void *data, const Expr &value, AttrType type, int length) {
-    if (value.is_null) {
-        reinterpret_cast<char *>(data)[-1] = 0;
-        return 0;
-    }
     switch (type) {
         case AttrType::DATE:
             if (value.dataType != type) {
@@ -282,31 +278,63 @@ int Table::insertData(const IdentList *columnList, const ConstValueList *constVa
     int rc;
     if (columnList == nullptr) {
         if (constValues->constValues.size() != attrInfos.size()) {
-            throw std::string("The number of inserted values doesn't match that of columns\n");
-        }
-        std::unique_ptr<char[]> data{new char[recordSize]};
-        for (int i = 0; i < attrInfos.size(); ++i) {
-            const auto &info = attrInfos[i];
-            const Expr &value = *(constValues->constValues[i]);
-            data[info.attrOffset - 1] = 1;
-            rc = attributeAssign(data.get() + info.attrOffset, value, info.attrType, info.attrSize);
-            if (rc != 0) {
-                throw std::string("The type of inserted value doesn't match that of column " + info.attrName + "\n");
-            }
-        }
-        auto result = checkData(data.get());
-        if (!result.empty()) {
-            throw std::string{result};
-        }
-        // todo check insert success here
-        RID rid = fileHandle.insertRec(data.get());
-        rc = insertIndex(data.get(), rid);
-        if (rc != 0) {
-            fileHandle.deleteRec(rid);
+            cerr << std::string("The number of inserted values doesn't match that of columns\n");
             return -1;
         }
     } else {
-        // todo implement optional columns
+        if (columnList->idents.size() != constValues->constValues.size()) {
+            cerr << std::string("The number of inserted values doesn't match that of columns\n");
+            return -1;
+        }
+    }
+    std::unique_ptr<char[]> data{new char[recordSize]};
+    for (int i = 0; i < attrInfos.size(); ++i) {
+        const auto &info = attrInfos[i];
+        int valueIndex;
+        bool isNull;
+        if (columnList == nullptr) {
+            valueIndex = i;
+            isNull = constValues->constValues[i]->is_null;
+        } else {
+            for (valueIndex = 0; valueIndex < columnList->idents.size(); ++valueIndex) {
+                if (info.attrName == columnList->idents[valueIndex]) {
+                    break;
+                }
+            }
+            if (valueIndex < columnList->idents.size()) {
+                isNull = constValues->constValues[valueIndex]->is_null;
+            } else {
+                isNull = true;
+            }
+        }
+        if (isNull) {
+            if (info.notNull) {
+                cerr << "The column " << info.attrName << " can't be null\n";
+                return -1;
+            } else {
+                data.get()[info.attrOffset - 1] = 0;
+            }
+        } else {
+            const Expr &value = *(constValues->constValues[valueIndex]);
+            data[info.attrOffset - 1] = 1;
+            rc = attributeAssign(data.get() + info.attrOffset, value, info.attrType, info.attrSize);
+            if (rc != 0) {
+                cerr << std::string("The type of inserted value doesn't match that of column " + info.attrName + "\n");
+                return -1;
+            }
+        }
+    }
+    auto result = checkData(data.get());
+    if (!result.empty()) {
+        cerr << std::string{result};
+        return -1;
+    }
+    // todo check insert success here
+    RID rid = fileHandle.insertRec(data.get());
+    rc = insertIndex(data.get(), rid);
+    if (rc != 0) {
+        fileHandle.deleteRec(rid);
+        return -1;
     }
     return 0;
 }
@@ -361,14 +389,21 @@ int Table::updateData(const RM_Record &record, const std::vector<int> &attrIndex
         int indexNo = attrIndexes[i];
         const auto &info = attrInfos[indexNo];
         // the type should have been checked
-        if (setClauses->clauses[i].second->is_null and info.notNull) {
-            cerr << "The column " << info.attrName << " can't be null\n";
-            return -1;
-        }
-        rc = attributeAssign(data + info.attrOffset, *setClauses->clauses[i].second, info.attrType, info.attrSize);
-        if (rc != 0) {
-            cerr << "The type of updated value doesn't match that of column " << info.attrName << "\n";
-            return rc;
+        if (setClauses->clauses[i].second->is_null) {
+            if (info.notNull) {
+                cerr << "The column " << info.attrName << " can't be null\n";
+                return -1;
+            } else {
+                data[info.attrOffset - 1] = 0;
+            }
+
+        } else {
+            data[info.attrOffset - 1] = 1;
+            rc = attributeAssign(data + info.attrOffset, *setClauses->clauses[i].second, info.attrType, info.attrSize);
+            if (rc != 0) {
+                cerr << "The type of updated value doesn't match that of column " << info.attrName << "\n";
+                return rc;
+            }
         }
     }
     rc = deleteIndex(data, record.getRID());

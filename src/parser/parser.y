@@ -486,7 +486,7 @@ comparison:
             }
     | expr IS NOTNULL
             {
-                $$ = new Expr(new Expr($1, CompOp::IS_OP, new Expr()), LogicOp::NOT_OP, NULL);
+                $$ = new Expr($1, CompOp::ISNOT_OP, new Expr());
             }
     ;
 

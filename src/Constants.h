@@ -16,7 +16,7 @@ enum class AttrType {
 };
 
 enum class CompOp {
-    EQ_OP = 0, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, IS_OP, LIKE_OP, NO_OP
+    EQ_OP = 0, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, IS_OP, ISNOT_OP, LIKE_OP, NO_OP
 };
 enum class ArithOp {
     ADD_OP = 0, SUB_OP, MUL_OP, DIV_OP, MINUS_OP, NO_OP

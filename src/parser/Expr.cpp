@@ -15,7 +15,7 @@ std::string AttrTypeStr[] = {
 };
 
 std::string CompOpStr[] = {
-        "=", "<", ">", "<=", ">=", "!=", "IS", "LIKE", "NO_OP"
+        "=", "<", ">", "<=", ">=", "!=", "IS", "IS NOT", "LIKE", "NO_OP"
 };
 std::string ArithOpStr[] = {
         "+", "-", "*", "/", "-", "NO"
@@ -169,6 +169,8 @@ void Expr::calculate(const char *data, const std::string &relationName) {
             calculated = true;
             if (oper.comp == CompOp::IS_OP) {
                 value.b = not(left->is_null ^ right->is_null);
+            } else if (oper.comp == CompOp::ISNOT_OP) {
+                value.b = (left->is_null ^ right->is_null);
             } else {
                 if (left->is_null or (right != nullptr and right->is_null)) {
                     is_null = true;
@@ -334,6 +336,7 @@ void Expr::type_check() {
                         }
                         break;
                     case CompOp::IS_OP:
+                    case CompOp::ISNOT_OP:
                         expr->dataType = AttrType::BOOL;
                         break;
                     case CompOp::LIKE_OP:
