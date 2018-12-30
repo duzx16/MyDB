@@ -40,6 +40,8 @@ public:
 
     int insertIndex(char *data, const RID &rid);
 
+    int deleteIndex(char *data, const RID &rid);
+
     RM_FileHandle &getFileHandler();
 
     std::string tableName;

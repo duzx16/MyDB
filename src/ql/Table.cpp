@@ -75,6 +75,10 @@ bool checkValueIn(void *left, const ConstValueList &constValues, AttrType type, 
 }
 
 int attributeAssign(void *data, const Expr &value, AttrType type, int length) {
+    if (value.is_null) {
+        reinterpret_cast<char *>(data)[-1] = 0;
+        return 0;
+    }
     switch (type) {
         case AttrType::DATE:
             if (value.dataType != type) {
@@ -296,12 +300,10 @@ int Table::insertData(const IdentList *columnList, const ConstValueList *constVa
         }
         // todo check insert success here
         RID rid = fileHandle.insertRec(data.get());
-        try {
-            insertIndex(data.get(), rid);
-        }
-        catch (const std::string &strerror) {
+        rc = insertIndex(data.get(), rid);
+        if (rc != 0) {
             fileHandle.deleteRec(rid);
-            throw;
+            return -1;
         }
     } else {
         // todo implement optional columns
@@ -322,7 +324,29 @@ int Table::insertIndex(char *data, const RID &rid) {
                         indexHandles[indexNo]->DeleteEntry(data + attrInfos[indexNo].attrOffset, rid);
                     }
                 }
-                throw "Index insert failed for column " + attrInfos[i].attrName + "\n";
+                cerr << "Index insert failed for column " + attrInfos[i].attrName + "\n";
+                return rc;
+            }
+        }
+    }
+    return 0;
+}
+
+int Table::deleteIndex(char *data, const RID &rid) {
+    int rc;
+    for (int i = 0; i < attrInfos.size(); ++i) {
+        rc = tryOpenIndex(i);
+        if (rc == 0) {
+            rc = indexHandles[i]->DeleteEntry(data + attrInfos[i].attrOffset, rid);
+            if (rc != 0) {
+                for (int indexNo = 0; indexNo < i; ++indexNo) {
+                    rc = tryOpenIndex(indexNo);
+                    if (rc == 0) {
+                        indexHandles[indexNo]->InsertEntry(data + attrInfos[indexNo].attrOffset, rid);
+                    }
+                }
+                cerr << "Index delete failed for column " + attrInfos[i].attrName + "\n";
+                return rc;
             }
         }
     }
@@ -337,13 +361,30 @@ int Table::updateData(const RM_Record &record, const std::vector<int> &attrIndex
         int indexNo = attrIndexes[i];
         const auto &info = attrInfos[indexNo];
         // the type should have been checked
+        if (setClauses->clauses[i].second->is_null and info.notNull) {
+            cerr << "The column " << info.attrName << " can't be null\n";
+            return -1;
+        }
         rc = attributeAssign(data + info.attrOffset, *setClauses->clauses[i].second, info.attrType, info.attrSize);
+        if (rc != 0) {
+            cerr << "The type of updated value doesn't match that of column " << info.attrName << "\n";
+            return rc;
+        }
     }
-    // todo update index
+    rc = deleteIndex(data, record.getRID());
+    if (rc != 0) {
+        return -1;
+    }
     result = checkData(data);
     if (!result.empty()) {
-        throw std::string(result);
+        RM_Record old_record;
+        fileHandle.getRec(record.getRID(), old_record);
+        insertIndex(old_record.getData(), record.getRID());
+        cerr << std::string(result);
+        return -1;
     }
+    // todo check here
+    insertIndex(data, record.getRID());
     fileHandle.updateRec(record);
     return 0;
 }

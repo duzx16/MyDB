@@ -1,3 +1,4 @@
 use orderDB;
 show tables;
-update food set id = id + 'test';
+update customer set gender = 'U';
+select * from customer;

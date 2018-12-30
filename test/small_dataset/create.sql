@@ -13,7 +13,8 @@ CREATE TABLE restaurant (
 CREATE TABLE customer(
 	id INT(10) NOT NULL,
 	name CHAR(25) NOT NULL,
-	gender CHAR(1) NOT NULL
+	gender CHAR(1) NOT NULL,
+	check (gender in ('F', 'M') )
 );
 
 CREATE TABLE food(
