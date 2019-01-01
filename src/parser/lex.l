@@ -12,10 +12,18 @@
 #endif
 #include <cstring>
 
-char *get_text(const char *text) {
+char *get_text(const char *text, bool strip = false) {
     int length = strlen(text);
-    char *buffer = new char[length + 1];
-    memcpy(buffer, text, (length + 1) * sizeof(char));
+    char *buffer;
+    if(not strip) {
+        buffer = new char[length + 1];
+        memcpy(buffer, text, (length + 1) * sizeof(char));
+    } else {
+        buffer = new char[length - 1];
+        memcpy(buffer, text + 1, (length - 1) * sizeof(char));
+        buffer[length - 2] = 0;
+    }
+
     return buffer;
 }
 
@@ -29,6 +37,7 @@ INTEGER         {DIGIT}+
 FLOAT           {DIGIT}+\.{DIGIT}*
 IDENTIFIER      [a-z][a-z0-9_]*
 WHITESPACE      [ \t\n]
+DATE_FORMAT     '[0-9]+-[0-9]+-[0-9]+'
 STRING          '(\\\\|\\n|\\r|\\\"|\\0|\\'|[^'\\])*'
 
 %%
@@ -83,7 +92,8 @@ varchar         { /*printf("varchar "); */ return KVARCHAR; }
 date            { /*printf("date "); */ return KDATE;  }
 {FLOAT}         { /*printf("FLOAT "); */ sscanf(yytext, "%f", &yylval.fvalue); return FLOAT; }
 {INTEGER}       { /*printf("INTEGER "); */ sscanf(yytext, "%d", &yylval.ivalue); return INTEGER; }
-{IDENTIFIER}    { yylval.string = get_text(yytext); /*printf("IDENTIFIER(%s) ", yylval.string);*/ return IDENTIFIER; }
+{DATE_FORMAT}   { yylval.string = get_text(yytext, true); return DATE_FORMAT; }
+{IDENTIFIER}    { yylval.string = get_text(yytext, false); /*printf("IDENTIFIER(%s) ", yylval.string);*/ return IDENTIFIER; }
 "="             { /*printf("= ");*/ return EQ; }
 ">"             { /*printf("> ");*/ return GT; }
 "<"             { /*printf("< ");*/ return LT; }
@@ -91,7 +101,7 @@ date            { /*printf("date "); */ return KDATE;  }
 "<="            { /*printf("<= ");*/ return LE; }
 "<>"            { /*printf("<> ");*/ return NE; }
 
-{STRING}        { yylval.string = get_text(yytext); /*printf("STRING(%s) ", yylval.string);*/ return STRING; }
+{STRING}        { yylval.string = get_text(yytext, false); /*printf("STRING(%s) ", yylval.string);*/ return STRING; }
 {WHITESPACE}    {}
 .               { yyerror((std::string("invalid char ") + yytext).c_str()); }
 

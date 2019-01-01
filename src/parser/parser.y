@@ -52,7 +52,7 @@ class Tree;
 /* number */
 %token <ivalue> INTEGER
 %token <fvalue> FLOAT
-%token <string> STRING IDENTIFIER
+%token <string> STRING IDENTIFIER DATE_FORMAT
 
 /* operator */
 %token EQ GT LT GE LE NE
@@ -363,6 +363,10 @@ attribute:
                 $$ = new AttributeNode($1);
                 delete $1;
             }
+    | KDATE
+            {
+                $$ = new AttributeNode("date");
+            }
     | SUM '(' IDENTIFIER ')'
             {
                 $$ =  new AttributeNode($3, AggregationType::T_SUM);
@@ -537,6 +541,7 @@ constvalue:
     INTEGER         { $$ = new Expr($1); }
     | FLOAT         { $$ = new Expr($1); }
     | STRING        { $$ = new Expr($1); delete $1; }
+    | DATE_FORMAT   { $$ = new Expr($1, true); delete $1; }
     | T_NULL        {
         $$ = new Expr();
     }

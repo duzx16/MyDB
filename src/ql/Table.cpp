@@ -6,6 +6,7 @@
 #include "../rm/RecordManager.h"
 #include "../sm/sm.h"
 #include "../parser/Expr.h"
+#include "../utils/Date.h"
 #include <memory>
 #include <string.h>
 #include <sstream>
@@ -81,10 +82,19 @@ bool checkValueIn(void *left, const ConstValueList &constValues, AttrType type, 
 int attributeAssign(void *data, const Expr &value, AttrType type, int length) {
     switch (type) {
         case AttrType::DATE:
-            if (value.dataType != type) {
+            if (value.dataType == AttrType::DATE) {
+                *reinterpret_cast<int *>(data) = value.value.i;
+            } else if (value.dataType == AttrType::VARCHAR or value.dataType == AttrType::STRING) {
+                int date = parseData(value.value_s.c_str());
+                if (date >= 0) {
+                    *reinterpret_cast<int *>(data) = date;
+                } else {
+                    return -1;
+                }
+            } else {
                 return -1;
             }
-            *reinterpret_cast<int *>(data) = value.value.i;
+            break;
         case AttrType::INT:
             if (value.dataType == AttrType::INT) {
                 *reinterpret_cast<int *>(data) = value.value.i;

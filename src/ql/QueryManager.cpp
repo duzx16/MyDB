@@ -13,58 +13,10 @@
 #include "../rm/RecordManager.h"
 #include "../rm/RM_FileScan.h"
 #include "../parser/Expr.h"
+#include "Aggregation.h"
 
 #include <set>
 
-Expr *init_statistics(AttrType attrType, AggregationType aggregation) {
-    Expr *result = nullptr;
-    switch (aggregation) {
-        case AggregationType::T_AVG:
-        case AggregationType::T_SUM:
-            switch (attrType) {
-                case AttrType::INT:
-                    result = new Expr(0);
-                    break;
-                case AttrType::FLOAT:
-                    result = new Expr(0.0f);
-                    break;
-                default:
-                    break;
-                    // this will never happen
-            }
-            break;
-        case AggregationType::T_MIN:
-            switch (attrType) {
-                case AttrType::INT:
-                    result = new Expr(INT_MAX);
-                    break;
-                case AttrType::FLOAT:
-                    result = new Expr(1e38f);
-                    break;
-                default:
-                    break;
-            }
-            break;
-        case AggregationType::T_MAX:
-            switch (attrType) {
-                case AttrType::INT:
-                    result = new Expr(INT_MIN);
-                    break;
-                case AttrType::FLOAT:
-                    result = new Expr(-1e38f);
-                    break;
-                default:
-                    break;
-            }
-            break;
-        case AggregationType::T_NONE:
-            break;
-    }
-    if (result != nullptr) {
-        result->type_check();
-    }
-    return result;
-}
 
 int QL_Manager::openTables(const std::vector<std::string> &tableNames, std::vector<std::unique_ptr<Table>> &tables) {
     try {
@@ -159,7 +111,7 @@ void optimizeIteration(std::vector<std::unique_ptr<Table>> &tables, Expr *condit
 
 int
 QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause,
-                      const std::string &grouAttrName) {
+                      const std::string &groupAttrName) {
     // if groupAttrName not empty, there must be statistics and only one non-statistics attribute
     // statistics can't appear along with normal attribute
     // aggregate can only appear for numeric column
@@ -195,15 +147,15 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
     });
     // bind the attributes
     std::vector<Expr> attributeExprs;
-    std::vector<void *> statistics;
+    std::vector<Aggregation> statistics;
     bool isStatistic = false;
-    std::map<std::string, int> group_count;
     int total_count = 0;
-    AttributeNode groupAttribute{grouAttrName.c_str()};
+    AttributeNode groupAttribute{groupAttrName.c_str()};
     Expr groupAttrExpr{&groupAttribute};
+    std::set<std::string> groupSet;
     try {
         if (attributes != nullptr) {
-            if (!grouAttrName.empty()) {
+            if (!groupAttrName.empty()) {
                 bindAttribute(&groupAttrExpr, newTables);
                 groupAttrExpr.type_check();
             }
@@ -212,21 +164,10 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                 bindAttribute(&attributeExprs.back(), newTables);
                 attributeExprs.back().type_check();
                 if (attribute->aggregationType != AggregationType::T_NONE) {
-                    if (grouAttrName.empty()) {
-                        Expr *result = init_statistics(attributeExprs.back().dataType,
-                                                       attribute->aggregationType);
-                        statistics.push_back(result);
-                    } else {
-                        statistics.push_back(new std::map<std::string, Expr *>());
-                    }
                     isStatistic = true;
-                } else {
-                    if (grouAttrName.empty()) {
-                        statistics.push_back(nullptr);
-                    } else {
-                        statistics.push_back(new std::map<std::string, Expr *>());
-                    }
                 }
+                statistics.emplace_back(attributeExprs.back().attrInfo, attribute->aggregationType,
+                                        not groupAttrName.empty());
             }
         } else {
             for (int j = 0; j < newTables.size(); ++j) {
@@ -242,11 +183,24 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
         printException(exception);
         return QL_TABLE_FAIL;
     }
-    // begin iterate
-    iterateTables(newTables, 0, whereClause,
-                  [this, isStatistic, &attributeExprs, &grouAttrName, &statistics, &group_count, &total_count, &groupAttrExpr](
-                          const std::vector<RM_Record> &caches) -> void {
+
+// begin iterate
+    iterateTables(newTables,
+                  0, whereClause,
+                  [this, isStatistic, &attributeExprs, &groupAttrName, &statistics, &total_count, &groupSet, &groupAttrExpr](
+                          const std::vector<RM_Record> &caches
+                  ) -> void {
                       total_count += 1;
+                      const char *group_data;
+                      std::string groupAttrStr;
+                      if (not groupAttrName.empty()) {
+                          int groupAttrTableIndex = groupAttrExpr.tableIndex;
+                          group_data = caches[groupAttrTableIndex].getData();
+                          groupAttrExpr.calculate(group_data);
+                          groupAttrStr = groupAttrExpr.to_string();
+                          groupSet.insert(groupAttrStr);
+                          groupAttrExpr.init_calculate();
+                      }
                       for (int i = 0; i < attributeExprs.size(); ++i) {
                           const char *data;
                           Expr &attributeExpr = attributeExprs[i];
@@ -254,53 +208,7 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                           data = caches[tableIndex].getData();
                           attributeExpr.calculate(data);
                           if (isStatistic) {
-                              if (statistics[i] != nullptr) {
-                                  Expr *result;
-                                  if (grouAttrName.empty()) {
-                                      result = reinterpret_cast<Expr *>(statistics[i]);
-                                  } else {
-                                      const char *group_data;
-                                      int groupAttrTableIndex = groupAttrExpr.tableIndex;
-                                      group_data = caches[groupAttrTableIndex].getData();
-                                      groupAttrExpr.calculate(group_data);
-                                      auto &attr_map = *reinterpret_cast<std::map<std::string, Expr *> *>(statistics[i]);
-                                      std::string attribute_str = groupAttrExpr.to_string();
-                                      if (attr_map.find(attribute_str) == attr_map.end()) {
-                                          result = init_statistics(attributeExpr.dataType,
-                                                                   attributeExpr.attribute->aggregationType);
-                                          attr_map[attribute_str] = result;
-                                          group_count[attribute_str] = 0;
-                                      } else {
-                                          result = attr_map[attribute_str];
-                                          group_count[attribute_str] += 1;
-                                      }
-                                      groupAttrExpr.init_calculate();
-                                  }
-                                  switch (attributeExpr.attribute->aggregationType) {
-                                      case AggregationType::T_AVG:
-                                      case AggregationType::T_SUM:
-                                          *result += attributeExpr;
-                                          break;
-                                      case AggregationType::T_MIN:
-                                          if (attributeExpr < *result) {
-                                              (*result).assign(attributeExpr);
-                                          }
-                                          break;
-                                      case AggregationType::T_MAX:
-                                          if (*result < attributeExpr) {
-                                              (*result).assign(attributeExpr);
-                                          }
-                                          break;
-                                      case AggregationType::T_NONE:
-                                          break;
-                                  }
-                              } else {
-                                  if (!grouAttrName.empty()) {
-                                      auto &attr_map = *reinterpret_cast<std::map<std::string, Expr *> *>(statistics[i]);
-                                      std::string attribute_str = attributeExpr.to_string();
-                                      attr_map[attribute_str] = nullptr;
-                                  }
-                              }
+                              statistics[i].accumulate(groupAttrStr, attributeExpr);
                           } else {
                               if (i == attributeExprs.size() - 1) {
                                   cout << attributeExpr.to_string() << "\n";
@@ -313,39 +221,39 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                   }, indexExprs);
 
     if (isStatistic) {
-        if (grouAttrName.empty()) {
+        if (groupAttrName.empty()) {
             for (int i = 0; i < attributes->attributes.size(); ++i) {
-                Expr *result = reinterpret_cast<Expr *>(statistics[i]);
+                Expr *result = statistics[i].expr;
                 if (attributes->attributes[i]->aggregationType == AggregationType::T_AVG) {
                     if (result->dataType != AttrType::FLOAT) {
                         result->dataType = AttrType::FLOAT;
                         result->value.f = result->value.i;
                     }
                     result->value.f /= total_count;
-
                 }
                 cout << result->to_string() << "\t";
             }
             cout << "\n";
         } else {
-            auto &attr_map = *reinterpret_cast<std::map<std::string, Expr *> *>(statistics[0]);
-            for (const auto &entry: attr_map) {
+            for (const auto &entry: groupSet) {
                 for (int i = 0; i < attributes->attributes.size(); ++i) {
                     const AttributeNode &attribute = *attributes->attributes[i];
                     if (attribute.aggregationType == AggregationType::T_NONE) {
-                        cout << entry.first << "\t";
+                        cout << entry << "\t";
                     } else {
-                        Expr *result = (*reinterpret_cast<std::map<std::string, Expr *> *>(statistics[i]))[entry.first];
-                        if (attribute.aggregationType == AggregationType::T_AVG) {
-                            if (result->dataType != AttrType::FLOAT) {
-                                result->dataType = AttrType::FLOAT;
-                                result->value.f = result->value.i;
+                        if (statistics[i].groupData.find(entry) != statistics[i].groupData.end()) {
+                            Expr *result = statistics[i].groupData[entry];
+                            if (attribute.aggregationType == AggregationType::T_AVG) {
+                                if (result->dataType != AttrType::FLOAT) {
+                                    result->dataType = AttrType::FLOAT;
+                                    result->value.f = result->value.i;
+                                }
+                                result->value.f /= statistics[i].groupCount[entry];
                             }
-                            result->value.f /= group_count[entry.first];
+                            cout << result->to_string() << "\t";
+                        } else {
+                            cout << "null\t";
                         }
-                        cout
-                                << result->to_string()
-                                << "\t";
                     }
                 }
                 cout << "\n";

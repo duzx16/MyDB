@@ -47,13 +47,14 @@ class TableConstraintList;
 
 class Expr {
 public:
+
     Expr();
 
     explicit Expr(int i);
 
     explicit Expr(float f);
 
-    explicit Expr(const char *s);
+    explicit Expr(const char *s, bool is_date = false);
 
     explicit Expr(bool b);
 
@@ -83,7 +84,7 @@ public:
 
     bool is_true();
 
-    bool operator<(const Expr &expr);
+    bool operator<(const Expr &expr) const;
 
     Expr &operator+=(const Expr &expr);
 

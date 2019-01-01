@@ -1,5 +1,6 @@
 set(HEADERS
         ${HEADERS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/Aggregation.h
         ${CMAKE_CURRENT_SOURCE_DIR}/QueryManager.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.h
         PARENT_SCOPE
@@ -7,6 +8,7 @@ set(HEADERS
 
 set(SOURCE
         ${SOURCE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/Aggregation.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/QueryManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.cpp
         PARENT_SCOPE

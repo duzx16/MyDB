@@ -41,7 +41,7 @@ private:
     int whereBindCheck(Expr *expr, std::vector<std::unique_ptr<Table>> &tables);
 
 public:
-    int exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause, const std::string &grouAttrName);
+    int exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause, const std::string &groupAttrName);
 
     int exeInsert(std::string relationName, IdentList *columnList, ConstValueLists *insertValueTree);
 

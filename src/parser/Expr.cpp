@@ -5,6 +5,7 @@
 #include "Expr.h"
 #include "Tree.h"
 #include "../utils/FuncTemplate.h"
+#include "../utils/Date.h"
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -51,13 +52,23 @@ Expr::Expr(float f) {
     dataType = AttrType::FLOAT;
 }
 
-Expr::Expr(const char *s) {
+Expr::Expr(const char *s, bool is_date) {
     is_null = false;
     calculated = true;
-    value_s = std::string(s, 1, strlen(s) - 2);;
     nodeType = NodeType::CONST_NODE;
-    oper.constType = AttrType::STRING;
-    dataType = AttrType::STRING;
+    if (not is_date) {
+        value_s = std::string(s, 1, strlen(s) - 2);;
+        oper.constType = AttrType::STRING;
+        dataType = AttrType::STRING;
+    } else {
+        value.i = parseData(s);
+        oper.constType = AttrType::DATE;
+        dataType = AttrType::DATE;
+        if (value.i < 0) {
+            is_null = true;
+            std::cerr << "Incorrect date " << s << "\n";
+        }
+    }
 }
 
 
@@ -65,6 +76,7 @@ Expr::Expr(bool b) {
     is_null = false;
     calculated = true;
     value.b = b;
+    nodeType = NodeType::CONST_NODE;
     oper.constType = AttrType::BOOL;
     dataType = AttrType::BOOL;
 }
@@ -75,7 +87,11 @@ Expr::~Expr() {
     delete right;
 }
 
-Expr::Expr() = default;
+Expr::Expr() {
+    is_null = true;
+    calculated = true;
+    nodeType = NodeType::CONST_NODE;
+}
 
 Expr::Expr(Expr *left, ArithOp op, Expr *right) {
     is_null = false;
@@ -253,9 +269,9 @@ void Expr::calculate(const char *data, const std::string &relationName) {
                             this->value.f = *reinterpret_cast<const float *>(data + this->attrInfo.attrOffset);
                             break;
                         case AttrType::STRING:
+                        case AttrType::VARCHAR:
                             this->value_s = std::string(data + this->attrInfo.attrOffset);
                             break;
-                        case AttrType::VARCHAR:
                         case AttrType::NO_ATTR:
                             break;
                         case AttrType::BOOL:
@@ -415,10 +431,10 @@ void Expr::postorder(std::function<void(Expr *)> callback, std::function<bool(Ex
         }
     }
     if (left != nullptr) {
-        callback(left);
+        left->postorder(callback, stop_condition);
     }
     if (right != nullptr) {
-        callback(right);
+        right->postorder(callback, stop_condition);
     }
     callback(this);
 }
@@ -441,8 +457,7 @@ void Expr::init_calculate(const std::string &tableName) {
                 case NodeType::ARITH_NODE:
                 case NodeType::COMP_NODE:
                 case NodeType::LOGIC_NODE:
-                    expr->calculated = expr->left->calculated and
-                                       (expr->right == nullptr or expr->right->calculated);
+                    expr->calculated = judge_calculated(expr);
                     break;
                 case NodeType::CONST_NODE:
                     expr->calculated = true;
@@ -458,7 +473,7 @@ void Expr::init_calculate(const std::string &tableName) {
                 case NodeType::ARITH_NODE:
                 case NodeType::COMP_NODE:
                 case NodeType::LOGIC_NODE:
-                    expr->calculated = judge_calculated(this);
+                    expr->calculated = judge_calculated(expr);
                     break;
                 case NodeType::CONST_NODE:
                     expr->calculated = true;
@@ -472,7 +487,7 @@ void Expr::init_calculate(const std::string &tableName) {
     }
 }
 
-bool Expr::operator<(const Expr &expr) {
+bool Expr::operator<(const Expr &expr) const {
     if (calculated and expr.calculated) {
         switch (dataType) {
             case AttrType::INT:
@@ -564,7 +579,17 @@ std::string Expr::to_string() const {
                 sstream << value_s;
                 break;
             case AttrType::DATE:
-                //todo implement this
+                sstream.width(4);
+                sstream.fill('0');
+                sstream << value.i / (12 * 31) + 1;
+                sstream << '-';
+                sstream.width(2);
+                sstream.fill('0');
+                sstream << (value.i % (12 * 31)) / 31 + 1;
+                sstream << '-';
+                sstream.width(2);
+                sstream.fill('0');
+                sstream << value.i % 31 + 1;
                 break;
             case AttrType::BOOL:
                 break;
