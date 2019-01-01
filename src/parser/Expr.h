@@ -67,6 +67,8 @@ public:
 
     explicit Expr(const BindAttribute &attribute);
 
+    const void *getValue();
+
     void postorder(std::function<void(Expr *)> callback, std::function<bool(Expr *)> stop_condition = nullptr);
 
     void calculate(const char *data, const std::string &relationName = "");

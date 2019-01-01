@@ -14,6 +14,8 @@
 #include "../rm/RM_FileScan.h"
 #include "../parser/Expr.h"
 
+#include <set>
+
 Expr *init_statistics(AttrType attrType, AggregationType aggregation) {
     Expr *result = nullptr;
     switch (aggregation) {
@@ -94,6 +96,67 @@ int QL_Manager::whereBindCheck(Expr *whereClause, std::vector<std::unique_ptr<Ta
     }
 }
 
+std::set<int> collectTable(Expr &expr, const std::set<int> &before) {
+    //return the tables in expr
+    std::set<int> tableNums;
+    expr.postorder([&tableNums, &before](Expr *expr) -> void {
+        if (expr->nodeType == NodeType::ATTR_NODE) {
+            if (before.find(expr->tableIndex) != before.end()) {
+                tableNums.insert(expr->tableIndex);
+            }
+        }
+    });
+    return tableNums;
+}
+
+void optimizeIteration(std::vector<std::unique_ptr<Table>> &tables, Expr *condition, std::vector<int> &iterationRank,
+                       std::list<Expr *> &indexExprs, std::set<int> &before) {
+    std::set<int> bestRight;
+    Expr *indexAim = nullptr;
+    Expr *current = condition;
+    while (current != nullptr) {
+        if (current->calculated or current->nodeType != NodeType::LOGIC_NODE or
+            current->oper.logic != LogicOp::AND_OP) {
+            break;
+        }
+        Expr *aim = current->right;
+        if (not aim->calculated and aim->nodeType == NodeType::COMP_NODE) {
+            // the left of comparison must be attribute
+            // the left has not been iterated
+            if (before.find(aim->left->tableIndex) == before.end()) {
+                Table &table = *tables[aim->left->tableIndex];
+                // the left is indexed
+                if (table.getIndexAvailable(aim->left->columnIndex)) {
+                    std::set<int> rightTables = collectTable(*aim->right, before);
+                    // the left table not appear in right
+                    if (rightTables.find(aim->left->tableIndex) == rightTables.end() &&
+                        rightTables.size() < bestRight.size()) {
+                        indexAim = aim;
+                        bestRight = rightTables;
+                    }
+                }
+            }
+        }
+        current = current->left;
+    }
+    if (indexAim != nullptr) {
+        for (auto &index: bestRight) {
+            iterationRank.push_back(index);
+            before.insert(index);
+        }
+        iterationRank.push_back(indexAim->left->tableIndex);
+        before.insert(indexAim->left->tableIndex);
+        indexExprs.push_back(indexAim);
+        optimizeIteration(tables, condition, iterationRank, indexExprs, before);
+    } else {
+        for (int i = 0; i < tables.size(); ++i) {
+            if (before.find(i) == before.end()) {
+                iterationRank.push_back(i);
+            }
+        }
+    }
+}
+
 int
 QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause,
                       const std::string &grouAttrName) {
@@ -106,6 +169,31 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
     if (rc != 0) {
         return rc;
     }
+    rc = whereBindCheck(whereClause, tables);
+    if (rc != 0) {
+        return rc;
+    }
+    // optimize the iteration
+    std::vector<int> iterationRank;
+    std::list<Expr *> indexExprs;
+    std::set<int> before;
+    optimizeIteration(tables, whereClause, iterationRank, indexExprs, before);
+    std::vector<std::unique_ptr<Table>> newTables;
+    newTables.reserve(iterationRank.size());
+    for (int i : iterationRank) {
+        newTables.push_back(std::move(tables[i]));
+    }
+    whereClause->postorder([&newTables](Expr *expr) -> void {
+        if (expr->nodeType == NodeType::ATTR_NODE) {
+            for (int i = 0; i < newTables.size(); ++i) {
+                if (expr->attrInfo.tableName == newTables[i]->tableName) {
+                    expr->tableIndex = i;
+                    break;
+                }
+            }
+        }
+    });
+    // bind the attributes
     std::vector<Expr> attributeExprs;
     std::vector<void *> statistics;
     bool isStatistic = false;
@@ -116,12 +204,12 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
     try {
         if (attributes != nullptr) {
             if (!grouAttrName.empty()) {
-                bindAttribute(&groupAttrExpr, tables);
+                bindAttribute(&groupAttrExpr, newTables);
                 groupAttrExpr.type_check();
             }
             for (auto &attribute: attributes->attributes) {
                 attributeExprs.emplace_back(attribute);
-                bindAttribute(&attributeExprs.back(), tables);
+                bindAttribute(&attributeExprs.back(), newTables);
                 attributeExprs.back().type_check();
                 if (attribute->aggregationType != AggregationType::T_NONE) {
                     if (grouAttrName.empty()) {
@@ -141,8 +229,8 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                 }
             }
         } else {
-            for (int j = 0; j < tables.size(); ++j) {
-                const auto &table = tables[j];
+            for (int j = 0; j < newTables.size(); ++j) {
+                const auto &table = newTables[j];
                 for (int i = 0; i < table->getAttrCount(); ++i) {
                     attributeExprs.emplace_back(table->getAttrInfo(i));
                     attributeExprs.back().tableIndex = j;
@@ -154,23 +242,16 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
         printException(exception);
         return QL_TABLE_FAIL;
     }
-    rc = whereBindCheck(whereClause, tables);
-    if (rc != 0) {
-        return rc;
-    }
-    iterateTables(tables.begin(), tables.end(), whereClause,
-                  [this, &tables, isStatistic, &attributeExprs, &grouAttrName, &statistics, &group_count, &total_count, &groupAttrExpr](
-                          const RM_Record &record) -> void {
+    // begin iterate
+    iterateTables(newTables, 0, whereClause,
+                  [this, isStatistic, &attributeExprs, &grouAttrName, &statistics, &group_count, &total_count, &groupAttrExpr](
+                          const std::vector<RM_Record> &caches) -> void {
                       total_count += 1;
                       for (int i = 0; i < attributeExprs.size(); ++i) {
                           const char *data;
                           Expr &attributeExpr = attributeExprs[i];
                           int tableIndex = attributeExpr.tableIndex;
-                          if (tableIndex == tables.size() - 1) {
-                              data = record.getData();
-                          } else {
-                              data = recordCaches[tableIndex].getData();
-                          }
+                          data = caches[tableIndex].getData();
                           attributeExpr.calculate(data);
                           if (isStatistic) {
                               if (statistics[i] != nullptr) {
@@ -180,11 +261,7 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                                   } else {
                                       const char *group_data;
                                       int groupAttrTableIndex = groupAttrExpr.tableIndex;
-                                      if (groupAttrTableIndex == tables.size() - 1) {
-                                          group_data = record.getData();
-                                      } else {
-                                          group_data = recordCaches[groupAttrTableIndex].getData();
-                                      }
+                                      group_data = caches[groupAttrTableIndex].getData();
                                       groupAttrExpr.calculate(group_data);
                                       auto &attr_map = *reinterpret_cast<std::map<std::string, Expr *> *>(statistics[i]);
                                       std::string attribute_str = groupAttrExpr.to_string();
@@ -233,9 +310,7 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                           }
                           attributeExpr.init_calculate();
                       }
-
-
-                  });
+                  }, indexExprs);
 
     if (isStatistic) {
         if (grouAttrName.empty()) {
@@ -336,7 +411,7 @@ int QL_Manager::exeUpdate(std::string relationName, SetClauseList *setClauses, E
         return QL_TABLE_FAIL;
     }
     std::vector<RID> toBeUpdated;
-    iterateTables(tables.begin(), tables.end(), whereClause,
+    iterateTables(*tables[0], whereClause,
                   [&toBeUpdated](const RM_Record &record) -> void {
                       toBeUpdated.push_back(record.getRID());
                   });
@@ -364,7 +439,7 @@ int QL_Manager::exeDelete(std::string relationName, Expr *whereClause) {
         return rc;
     }
     std::vector<RID> toBeDeleted;
-    iterateTables(tables.begin(), tables.end(), whereClause,
+    iterateTables(*tables[0], whereClause,
                   [&toBeDeleted](const RM_Record &record) -> void {
                       toBeDeleted.push_back(record.getRID());
                   });
@@ -400,10 +475,43 @@ void QL_Manager::printException(const AttrBindException &exception) {
 int QL_Manager::iterateTables(Table &table, Expr *condition, QL_Manager::CallbackFunc callback) {
     int rc;
     RM_FileScan fileScan;
-    fileScan.openScan(table.getFileHandler(), nullptr, table.tableName);
+    IX_IndexScan indexScan;
+    bool use_index = false;
+    Expr *current = condition;
+    while (current != nullptr) {
+        if (current->calculated or current->nodeType != NodeType::LOGIC_NODE or
+            current->oper.logic != LogicOp::AND_OP) {
+            break;
+        }
+        Expr *aim = current->right;
+        if (not aim->calculated and aim->nodeType == NodeType::COMP_NODE) {
+            // the left of comparison must be attribute
+            if (aim->right->calculated) {
+                if (aim->left->attrInfo.tableName == table.tableName &&
+                    table.getIndexAvailable(aim->left->columnIndex)) {
+                    indexScan.OpenScan(table.getIndexHandler(current->left->columnIndex), aim->oper.comp,
+                                       aim->getValue());
+                    use_index = true;
+                    break;
+                }
+            }
+        }
+        current = current->left;
+    }
+    if (not use_index) {
+        fileScan.openScan(table.getFileHandler(), nullptr, table.tableName);
+    }
     while (true) {
         RM_Record record;
-        rc = fileScan.getNextRec(record);
+        if (use_index) {
+            RID rid;
+            rc = indexScan.GetNextEntry(rid);
+            if (rc == 0) {
+                table.getFileHandler().getRec(rid, record);
+            }
+        } else {
+            rc = fileScan.getNextRec(record);
+        }
         if (rc) {
             break;
         }
@@ -466,28 +574,49 @@ QL_Manager &QL_Manager::getInstance() {
     return instance;
 }
 
-int QL_Manager::iterateTables(tableListIter begin, tableListIter end, Expr *condition,
-                              QL_Manager::CallbackFunc callback) {
-    if ((end - begin) == 1) {
-        return iterateTables(**begin, condition, std::move(callback));
+int QL_Manager::iterateTables(std::vector<std::unique_ptr<Table>> &tables, int current, Expr *condition,
+                              QL_Manager::MultiTableFunc callback, std::list<Expr *> &indexExprs) {
+    if (current == tables.size()) {
+        callback(recordCaches);
+        return 0;
     }
     int rc;
-    Table &table = **begin;
     RM_FileScan fileScan;
-    fileScan.openScan(table.getFileHandler(), nullptr, table.tableName);
+    IX_IndexScan indexScan;
+    Table &table = *tables[current];
+    bool use_index = false;
+    if (!indexExprs.empty() and indexExprs.front()->left->tableIndex == current) {
+        Expr *indexExpr = indexExprs.front();
+        indexExprs.pop_front();
+        indexScan.OpenScan(table.getIndexHandler(indexExpr->tableIndex), indexExpr->oper.comp,
+                           indexExpr->right->getValue());
+        use_index = true;
+    } else {
+        fileScan.openScan(table.getFileHandler(), nullptr, table.tableName);
+    }
     while (true) {
         RM_Record record;
-        rc = fileScan.getNextRec(record);
+        if (use_index) {
+            RID rid;
+            rc = indexScan.GetNextEntry(rid);
+            if (rc == 0) {
+                if (table.getFileHandler().getRec(rid, record) != 0) {
+                    cerr << "Can't find an entry in the index\n";
+                    return -1;
+                }
+            }
+        } else {
+            rc = fileScan.getNextRec(record);
+        }
         if (rc) {
             break;
         }
         condition->calculate(record.getData(), table.tableName);
-        if (condition->calculated and !condition->is_true()) {
-            continue;
+        if (not condition->calculated or condition->is_true()) {
+            recordCaches.push_back(std::move(record));
+            iterateTables(tables, current + 1, condition, callback, indexExprs);
+            recordCaches.pop_back();
         }
-        recordCaches.push_back(std::move(record));
-        iterateTables(begin + 1, end, condition, callback);
-        recordCaches.pop_back();
         condition->init_calculate(table.tableName);
     }
     return 0;

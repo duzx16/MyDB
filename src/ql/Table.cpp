@@ -45,6 +45,10 @@ int Table::getAttrCount() const {
     return attrInfos.size();
 }
 
+bool Table::getIndexAvailable(int index) {
+    return tryOpenIndex(index);
+}
+
 bool checkValueIn(void *left, const ConstValueList &constValues, AttrType type, int length) {
     for (const auto &it: constValues.constValues) {
         switch (type) {
@@ -503,5 +507,9 @@ std::string Table::printData(const char *data) {
         stream << "\t";
     }
     return stream.str();
+}
+
+IX_IndexHandle &Table::getIndexHandler(int index) {
+    return *indexHandles[index];
 }
 

@@ -441,7 +441,8 @@ void Expr::init_calculate(const std::string &tableName) {
                 case NodeType::ARITH_NODE:
                 case NodeType::COMP_NODE:
                 case NodeType::LOGIC_NODE:
-                    expr->calculated = false;
+                    expr->calculated = expr->left->calculated and
+                                       (expr->right == nullptr or expr->right->calculated);
                     break;
                 case NodeType::CONST_NODE:
                     expr->calculated = true;
@@ -576,5 +577,23 @@ std::string Expr::to_string() const {
 
 bool Expr::is_true() {
     return value.b and not is_null;
+}
+
+const void *Expr::getValue() {
+    switch (dataType) {
+        case AttrType::INT:
+        case AttrType::DATE:
+            return &value.i;
+        case AttrType::FLOAT:
+            return &value.f;
+        case AttrType::STRING:
+        case AttrType::VARCHAR:
+            return value_s.c_str();
+        case AttrType::BOOL:
+            return &value.b;
+        case AttrType::NO_ATTR:
+            break;
+    }
+    return nullptr;
 }
 

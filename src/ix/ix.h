@@ -90,7 +90,7 @@ public:
     ~IX_IndexScan () {}                                 // Destructor
     RC OpenScan      (const IX_IndexHandle &indexHandle, // Initialize index scan
                       CompOp      compOp,
-                      void        *value,
+                      const void        *value,
                       ClientHint  pinHint = ClientHint::NO_HINT) {}
     RC GetNextEntry  (RID &rid) {}                      // Get next matching entry
     RC CloseScan     () {}     	// Terminate index scan

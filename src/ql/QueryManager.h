@@ -13,6 +13,7 @@
 #include "../Constants.h"
 #include <functional>
 #include <memory>
+#include <list>
 
 class QL_Manager {
 private:
@@ -22,13 +23,16 @@ private:
 
     using CallbackFunc = std::function<void(const RM_Record &)>;
 
-    using tableListIter =  std::vector<std::unique_ptr<Table>>::iterator;
+    using MultiTableFunc = std::function<void(const std::vector<RM_Record> &)>;
+
 
     void printException(const AttrBindException &exception);
 
     int iterateTables(Table &table, Expr *condition, CallbackFunc callback);
 
-    int iterateTables(tableListIter begin, tableListIter end, Expr *condition, CallbackFunc callback);
+    int
+    iterateTables(std::vector<std::unique_ptr<Table>> &tables, int current, Expr *condition, MultiTableFunc callback,
+                  std::list<Expr *> &indexExprs);
 
     void bindAttribute(Expr *expr, const std::vector<std::unique_ptr<Table>> &tables);
 
