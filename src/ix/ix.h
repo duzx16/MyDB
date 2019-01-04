@@ -57,24 +57,36 @@ public:
 	LeafNode FindLeafNode(void *pData);
 	
 	void PrintFullLinkList(); // print full link list just for attrtype = int
+	
+	void GetNextRIDPositionInfo(RIDPositionInfo &ridPositionInfo, int dir, bool EQ_OP);
+	void GetGeqRIDPos(void *pData, RIDPositionInfo &ridPositionInfo, bool returnFirstRID);
+	
+	int cmp(void *, void *);
+	
 private:
+	
 	IndexInfo *indexInfo;
 	PF_FileHandle fileHandle;
 	PF_Manager *pfm;
+	PageNum pinnedPageList[MAX_DEPTH];
+	int pinnedPageNum;
 	
-	int cmp(void* a, void* b);
 	RC insertIntoRIDPage(const RID rid, const PageNum pageNum);
 	RC deleteFromRIDPage(const RID rid, const PageNum pageNum);
 	PageNum InsertEntryFromPage(void *pData, PageNum &pageNum, PageNum fatherPage, int nodePos);
-	RC DeleteEntryFromPage(void *pData, PageNum& pageNum, const RID &rid, void *&leafHeadData); 
+	RC DeleteEntryFromPage(void *pData, PageNum& pageNum, PageNum fatherPageNum, const RID &rid, int thisPos); 
 	PageNum FindLeafPageFromPage(void *pData, PageNum pageNum);
-	void GetNextRIDPositionInfo(RIDPositionInfo &ridPositionInfo, int dir, bool EQ_OP);
-	void GetGeqRIDPos(void *pData, RIDPositionInfo &ridPositionInfo, bool returnFirstRID);
+	
 	int getRIDPageSize(const PageNum pageNum);
 	int getLeafNodeSize(const PageNum pageNum);
 	void getPageData(const PageNum pageNum, char*& pageData);
 	void getLeafNode(const PageNum pageNum, LeafNode*& leafNode);
 	void getInternalNode(const PageNum pageNum, InternalNode*& internalNode);
+	PageNum allocateNewPage(PF_PageHandle &pageHandle);
+	void getExistedPage(PageNum pageNum, PF_PageHandle &pageHandle);
+	
+	void addPinnedPage(const PageNum pageNum);
+	void unpinAllPages();
 };
 
 //
@@ -96,6 +108,7 @@ private:
 	int dir;
 	void *skipValue;
 	bool EQ_OP;
+	RIDList *ridHead;
 };
 
 //

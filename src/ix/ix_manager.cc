@@ -27,43 +27,47 @@ char* IX_Manager::GenFileName(const char* filename, int indexNo) {
 RC IX_Manager::CreateIndex(const char* filename, int indexNo, AttrType attrType, int attrLength) {
 	// gen filename
 	char *file = GenFileName(filename, indexNo);
-	// open file with PF_Manager
-	pfm->CreateFile(file);
+	// open file and allocate page 0 : IndexInfo
+	LDB(pfm->CreateFile(file));
 	PF_FileHandle fileHandle;
-	pfm->OpenFile(file, fileHandle);
+	LDB(pfm->OpenFile(file, fileHandle));
 	PF_PageHandle pageHandle;
-	fileHandle.AllocatePage(pageHandle);
+	LDB(fileHandle.AllocatePage(pageHandle));
 	char *pageData;
-	pageHandle.GetData(pageData);
+	LDB(pageHandle.GetData(pageData));
 	PageNum pageNum;
-	pageHandle.GetPageNum(pageNum);
+	LDB(pageHandle.GetPageNum(pageNum));
 	IndexInfo *indexInfo = (IndexInfo*) pageData;
 	indexInfo->attrType = attrType;
 	indexInfo->attrLength = attrLength;
 	indexInfo->rootPageNum = 1;
-	fileHandle.ForcePages(pageNum);
-	fileHandle.UnpinPage(pageNum);
+	LDB(fileHandle.MarkDirty(pageNum));
+	LDB(fileHandle.ForcePages(pageNum));
+	LDB(fileHandle.UnpinPage(pageNum));
 	
-	fileHandle.AllocatePage(pageHandle);
-	pageHandle.GetPageNum(pageNum);
-	pageHandle.GetData(pageData);
+	// allocate page 1 : LeafNode
+	LDB(fileHandle.AllocatePage(pageHandle));
+	LDB(pageHandle.GetPageNum(pageNum));
+	LDB(pageHandle.GetData(pageData));
 	NodePagePacket* nodePagePacket = (NodePagePacket*) pageData;
-	nodePagePacket->nodeType = 1;
+	nodePagePacket->nodeType = LEAF_NODE;
 	(nodePagePacket->leafNode).init();
-	fileHandle.ForcePages(pageNum);
-	fileHandle.UnpinPage(pageNum);
+	LDB(fileHandle.MarkDirty(pageNum));
+	LDB(fileHandle.ForcePages(pageNum));
+	LDB(fileHandle.UnpinPage(pageNum));
 	
-	pfm->CloseFile(fileHandle);
+	LDB(pfm->CloseFile(fileHandle));
 	delete[] file;
 }
 	
 RC IX_Manager::DestroyIndex(const char* filename, int indexNo) {
 	// gen filename
 	char *file = GenFileName(filename, indexNo);
-	pfm->DestroyFile(file);
+	LDB(pfm->DestroyFile(file));
 	delete[] file;
 	return 0;
 }
+
 
 RC IX_Manager::OpenIndex(const char* filename, int indexNo, IX_IndexHandle &indexHandle) {
 	indexHandle.init(GenFileName(filename, indexNo), this->pfm);
@@ -72,5 +76,4 @@ RC IX_Manager::OpenIndex(const char* filename, int indexNo, IX_IndexHandle &inde
 RC IX_Manager::CloseIndex(IX_IndexHandle &indexHandle) {
 	indexHandle.CloseIndex();
 }
-		
 	
