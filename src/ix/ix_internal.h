@@ -5,9 +5,13 @@
 #include "../rm/RID.h"
 #include "../pf/pf.h"
 
-#define D 3
-#define RID_BUCKET_SIZE 400
 
+#define D 100
+#define RID_BUCKET_SIZE 500
+#define MAX_DEPTH 1010
+#define INTERNAL_NODE 0
+#define LEAF_NODE 1
+#define LDB(opt) LineDebug(__LINE__, __FILE__, opt)
 struct IndexInfo {
 	AttrType attrType;
 	int attrLength;
@@ -20,19 +24,21 @@ struct LeafData {
 };
 struct LeafNode {
 	int size;
-	LeafData data[D << 1];
+	LeafData data[D * 2 + 1];
 	PageNum leftPage, rightPage;
 	void init() { size = 0; leftPage = rightPage = -1; }
 	void insertDataIntoPos(void *pData, PageNum pageNum, int pos);
 	void deleteDataAtPos(int pos);
 	void split(LeafNode* splitNode, PageNum newPage, PageNum thisPage);
+	void operator = (const LeafNode &);
 };
 struct InternalNode {
 	int keyCount;
-	PageNum son[2 * D + 1];
+	PageNum son[2 * D + 2];
+	void* pData[2 * D + 2];
 	void init() { keyCount = 0; for (int i = 0; i <= 2 * D; ++i) son[i] = -1; }
-	void* pData[2 * D + 1];
 	void InsertKeyAfterPos(void *pData, PageNum pageNum, int pos);
+	void DeleteKeyAtPos(int pos);
 	void ChangeKey(void *pData, int pos);
 	void Split(InternalNode* splitNode);
 };
@@ -47,13 +53,21 @@ struct RIDPagePacket {
 	RID r[RID_BUCKET_SIZE];
 	RC insertRID(const RID rid);
 	RC deleteRID(const RID rid);
+	void operator = (const RIDPagePacket &);
 };
 struct RIDPositionInfo {
 	LeafNode leafNode;
 	int posInLeaf;
 	RIDPagePacket ridPagePacket;
 	int ridPagePos;
-	RID getCurRID() { return ridPagePacket.r[ridPagePos]; }
+	void *value;
+	int getCurRID(RID &rid);
+};
+struct RIDList {
+	RID rid;
+	RIDList *next;
+	RIDList();
 };
 
+void LineDebug(int line, const char *file, int err);
 #endif

@@ -54,6 +54,7 @@ struct AttrInfo {
     int notNull;
 };
 
+
 //
 // redbase.h
 //   global declarations
@@ -114,6 +115,5 @@ typedef char Boolean;
 #endif
 
 #endif
-
 
 #endif //MYDB_CONSTANTS_H

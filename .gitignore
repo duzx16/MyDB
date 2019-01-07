@@ -1,8 +1,9 @@
 .idea
 cmake-build-debug
-CMakeFiles
+CMakeFiles/
 CMakeCache.txt
 Makefile
 cmake_install.cmake
 libProject_lib.a
 Project.exe
+
