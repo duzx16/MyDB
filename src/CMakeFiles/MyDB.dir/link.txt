@@ -1,3 +1,0 @@
-"D:\Program Files\CMake\bin\cmake.exe" -E remove -f CMakeFiles\MyDB.dir/objects.a
-C:\MinGW\bin\ar.exe cr CMakeFiles\MyDB.dir/objects.a @CMakeFiles\MyDB.dir\objects1.rsp
-C:\MinGW\bin\g++.exe    -Wl,--whole-archive CMakeFiles\MyDB.dir/objects.a -Wl,--no-whole-archive  -o MyDB.exe -Wl,--out-implib,libMyDB.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\MyDB.dir\linklibs.rsp

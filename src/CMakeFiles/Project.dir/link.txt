@@ -1,3 +1,0 @@
-"D:\Program Files\CMake\bin\cmake.exe" -E remove -f CMakeFiles\Project.dir/objects.a
-C:\MinGW\bin\ar.exe cr CMakeFiles\Project.dir/objects.a @CMakeFiles\Project.dir\objects1.rsp
-C:\MinGW\bin\g++.exe    -Wl,--whole-archive CMakeFiles\Project.dir/objects.a -Wl,--no-whole-archive  -o Project.exe -Wl,--out-implib,libProject.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\Project.dir\linklibs.rsp
