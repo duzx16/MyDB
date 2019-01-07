@@ -18,16 +18,6 @@ C:/Users/wyfcy/Desktop/MyDB/src/pf/pf.h
 ix_internal.h
 C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_internal.h
 
-C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_error.cc
-cerrno
--
-cstdio
--
-iostream
--
-ix.h
-C:/Users/wyfcy/Desktop/MyDB/src/ix/ix.h
-
 C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_indexhandle.cc
 ix.h
 C:/Users/wyfcy/Desktop/MyDB/src/ix/ix.h
@@ -38,22 +28,6 @@ cassert
 cstdio
 -
 
-C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_indexscan.cc
-ix.h
-C:/Users/wyfcy/Desktop/MyDB/src/ix/ix.h
-ix_internal.h
-C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_internal.h
-
-C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_internal.cc
-ix_internal.h
-C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_internal.h
-ix.h
-C:/Users/wyfcy/Desktop/MyDB/src/ix/ix.h
-cstdio
--
-cstdlib
--
-
 C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_internal.h
 ../Constants.h
 C:/Users/wyfcy/Desktop/MyDB/src/Constants.h
@@ -61,16 +35,6 @@ C:/Users/wyfcy/Desktop/MyDB/src/Constants.h
 C:/Users/wyfcy/Desktop/MyDB/src/rm/RID.h
 ../pf/pf.h
 C:/Users/wyfcy/Desktop/MyDB/src/pf/pf.h
-
-C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_manager.cc
-ix.h
-C:/Users/wyfcy/Desktop/MyDB/src/ix/ix.h
-ix_internal.h
-C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_internal.h
-cstring
--
-cstdio
--
 
 C:/Users/wyfcy/Desktop/MyDB/src/pf/pf.h
 ../Constants.h

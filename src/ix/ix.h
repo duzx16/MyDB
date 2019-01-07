@@ -25,7 +25,7 @@ class IX_Manager {
     // RM_Manager rmm;
 
 public:
-    IX_Manager   (PF_Manager &pfm);              // Constructor
+    IX_Manager   (PF_Manager *pfm);              // Constructor
     ~IX_Manager  ();                             // Destructor
     RC CreateIndex  (const char *fileName,          // Create new index
                      int        indexNo,
@@ -52,8 +52,8 @@ public:
     RC DeleteEntry     (void *pData, const RID &rid);  // Delete index entry
     RC ForcePages      ();                             // Copy index to disk
 	
-	void init(const char* indexFileName, PF_Manager *_pfm);
-	void CloseIndex();
+	RC init(const char* indexFileName, PF_Manager *_pfm);
+	RC CloseIndex();
 	LeafNode FindLeafNode(void *pData);
 	
 	void PrintFullLinkList(); // print full link list just for attrtype = int
@@ -70,9 +70,11 @@ private:
 	PF_Manager *pfm;
 	PageNum pinnedPageList[MAX_DEPTH];
 	int pinnedPageNum;
+	PageNum disposedPageList[MAX_DEPTH];
+	int disposedPageNum;
 	
 	RC insertIntoRIDPage(const RID rid, const PageNum pageNum);
-	RC deleteFromRIDPage(const RID rid, const PageNum pageNum);
+	RC deleteFromRIDPage(const RID rid, const PageNum pageNum, int &lastRIDCount);
 	PageNum InsertEntryFromPage(void *pData, PageNum &pageNum, PageNum fatherPage, int nodePos);
 	RC DeleteEntryFromPage(void *pData, PageNum& pageNum, PageNum fatherPageNum, const RID &rid, int thisPos); 
 	PageNum FindLeafPageFromPage(void *pData, PageNum pageNum);
@@ -86,7 +88,9 @@ private:
 	void getExistedPage(PageNum pageNum, PF_PageHandle &pageHandle);
 	
 	void addPinnedPage(const PageNum pageNum);
+	void addDisposedPage(const PageNum pageNum);
 	void unpinAllPages();
+	void disposeAllPages();
 };
 
 //
@@ -96,14 +100,14 @@ class IX_IndexScan {
 public:
     IX_IndexScan  ();                                 // Constructor
     ~IX_IndexScan ();                                 // Destructor
-    RC OpenScan      (const IX_IndexHandle &indexHandle, // Initialize index scan
+    RC OpenScan      (IX_IndexHandle &indexHandle, // Initialize index scan
                       CompOp      compOp,
                       void        *value,
                       ClientHint  pinHint = ClientHint::NO_HINT);
     RC GetNextEntry  (RID &rid);                      // Get next matching entry
     RC CloseScan     ();     	// Terminate index scan
 private:
-	IX_IndexHandle indexHandle;
+	IX_IndexHandle *indexHandle;
 	RIDPositionInfo ridPositionInfo;
 	int dir;
 	void *skipValue;

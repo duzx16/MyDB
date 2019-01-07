@@ -5,13 +5,12 @@
 #include "../rm/RID.h"
 #include "../pf/pf.h"
 
-#define D 10
-#define RID_BUCKET_SIZE 400
+#define D 100
+#define RID_BUCKET_SIZE 500
 #define MAX_DEPTH 1010
 #define INTERNAL_NODE 0
 #define LEAF_NODE 1
 #define LDB(opt) LineDebug(__LINE__, __FILE__, opt)
-
 struct IndexInfo {
 	AttrType attrType;
 	int attrLength;
@@ -35,9 +34,10 @@ struct LeafNode {
 struct InternalNode {
 	int keyCount;
 	PageNum son[2 * D + 2];
-	void init() { keyCount = 0; for (int i = 0; i <= 2 * D; ++i) son[i] = -1; }
 	void* pData[2 * D + 2];
+	void init() { keyCount = 0; for (int i = 0; i <= 2 * D; ++i) son[i] = -1; }
 	void InsertKeyAfterPos(void *pData, PageNum pageNum, int pos);
+	void DeleteKeyAtPos(int pos);
 	void ChangeKey(void *pData, int pos);
 	void Split(InternalNode* splitNode);
 };
@@ -59,6 +59,7 @@ struct RIDPositionInfo {
 	int posInLeaf;
 	RIDPagePacket ridPagePacket;
 	int ridPagePos;
+	void *value;
 	int getCurRID(RID &rid);
 };
 struct RIDList {

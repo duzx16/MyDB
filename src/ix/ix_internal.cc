@@ -2,6 +2,7 @@
 #include "ix.h"
 #include <cstdio>
 #include <cstdlib>
+#include <cassert>
 
 RC RIDPagePacket::insertRID(const RID rid) {
 	for (int i = 0; i < size; ++i) {
@@ -35,6 +36,7 @@ RC RIDPagePacket::deleteRID(const RID rid) {
 }
 
 void LeafNode::split(LeafNode* splitNode, PageNum newPage, PageNum thisPage) {
+	assert(size == 2 * D + 1);
 	size = D + 1;
 	splitNode->size = D;
 	for (int i = 0; i < splitNode->size; ++i)
@@ -68,10 +70,19 @@ void InternalNode::InsertKeyAfterPos(void *pdata, PageNum pageNum, int pos) {
 	++keyCount;
 }	
 
+void InternalNode::DeleteKeyAtPos(int pos) {
+	for (int i = pos; i < keyCount; ++i) {
+		son[i] = son[i + 1];
+		pData[i] = pData[i + 1];
+	}
+	--keyCount;
+}
 void InternalNode::Split(InternalNode* splitNode) {
+	assert(keyCount == 2 * D);
 	keyCount = D;
 	splitNode->keyCount = D - 1;
 	splitNode->son[0] = son[D + 1];
+	splitNode->pData[0] = pData[D + 1];
 	for (int i = 1; i <= splitNode->keyCount; ++i) {
 		splitNode->son[i] = son[D + 1 + i];
 		splitNode->pData[i] = pData[D + 1 + i];
