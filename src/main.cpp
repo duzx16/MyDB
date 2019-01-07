@@ -4,12 +4,14 @@
 #include "fileio/BufPageManager.h"
 #include "utils/MyBitMap.h"
 #include "ql/QueryManager.h"
+
 #include <unistd.h>
+#include <fcntl.h>
+#include <cassert>
 #include <vector>
 
 char start_parse(const char *expr_input);
 int yyparse();
-
 
 //int main()
 //{

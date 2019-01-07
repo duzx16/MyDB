@@ -849,8 +849,11 @@ RC PF_BufferMgr::ReadPage(int fd, PageNum pageNum, char *dest)
    int numBytes = read(fd, dest, pageSize);
    if (numBytes < 0)
       return (PF_UNIX);
-   else if (numBytes != pageSize)
+   else if (numBytes != pageSize) {
+	  printf("read %d bytes but expected %d bytes\n", numBytes, pageSize);
       return (PF_INCOMPLETEREAD);
+	  //return 0;
+   }
    else
       return (0);
 }

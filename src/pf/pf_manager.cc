@@ -53,6 +53,7 @@ RC PF_Manager::CreateFile (const char *fileName)
    int numBytes;		// return code form write syscall
 
    // Create file for exclusive use
+   /*
    if ((fd = open(fileName,
 #ifdef PC
          O_BINARY |
@@ -60,7 +61,9 @@ RC PF_Manager::CreateFile (const char *fileName)
          O_CREAT | O_EXCL | O_WRONLY,
          CREATION_MASK)) < 0)
       return (PF_UNIX);
-
+	*/
+	if ((fd = open(fileName, O_BINARY | O_CREAT | O_EXCL | O_WRONLY, CREATION_MASK)) < 0)
+      return (PF_UNIX);
    // Initialize the file header: must reserve FileHdrSize bytes in memory
    // though the actual size of FileHdr is smaller
    char hdrBuf[PF_FILE_HDR_SIZE];
@@ -139,17 +142,20 @@ RC PF_Manager::OpenFile (const char *fileName, PF_FileHandle &fileHandle)
       return (PF_FILEOPEN);
 
    // Open the file
+   /*
    if ((fileHandle.unixfd = open(fileName,
 #ifdef PC
          O_BINARY |
 #endif
          O_RDWR)) < 0)
       return (PF_UNIX);
-
+	*/
+	if ((fileHandle.unixfd = open(fileName, O_BINARY | O_RDWR)) < 0)
+		return PF_UNIX;
    // Read the file header
    {
-      int numBytes = read(fileHandle.unixfd, (char *)&fileHandle.hdr,
-            sizeof(PF_FileHdr));
+      int numBytes = read(fileHandle.unixfd, (char *)&fileHandle.hdr, sizeof(PF_FileHdr));
+	  //printf("filename = %s header = %s\n", fileName, (char*)&fileHandle.hdr);
       if (numBytes != sizeof(PF_FileHdr)) {
          rc = (numBytes < 0) ? PF_UNIX : PF_HDRREAD;
          goto err;

@@ -5,8 +5,10 @@ add_subdirectory(rm)
 add_subdirectory(parser)
 add_subdirectory(ql)
 add_subdirectory(sm)
+add_subdirectory(ix)
 
 add_definitions(-DDEBUG)
+add_definitions("-Wall -g")
 
 add_library(${CMAKE_PROJECT_NAME}_lib ${SOURCE} ${HEADERS})
 add_executable(${CMAKE_PROJECT_NAME} main.cpp)
