@@ -168,8 +168,8 @@ void CreateTable::visit() {
             if (constraint->type == ConstraintType::PRIMARY_CONSTRAINT) {
                 for (int i = 0; i < this->columns->columns.size(); ++i) {
                     if (columns->columns[i]->columnName == constraint->column_list->idents[0]) {
-                        IX_Manager::getInstance().CreateIndex(tableName.c_str(), i, columns->columns[i]->type,
-                                                              columns->columns.size());
+                        SM_Manager::getInstance()->CreateIndex(tableName.c_str(),
+                                                               columns->columns[i]->columnName.c_str());
                     }
                 }
             }
@@ -179,7 +179,7 @@ void CreateTable::visit() {
     for (const auto &it: columns->columns) {
         recordSize += it->size + 1;
     }
-    rc = RecordManager::getInstance().createFile(tableName, recordSize);
+    rc = RecordManager::getInstance().createFile(tableName + "_Record", recordSize);
     DebugPrintf("create table %s end\n", tableName.c_str());
 }
 

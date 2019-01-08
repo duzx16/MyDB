@@ -53,7 +53,7 @@ std::set<int> collectTable(Expr &expr, const std::set<int> &before) {
     std::set<int> tableNums;
     expr.postorder([&tableNums, &before](Expr *expr) -> void {
         if (expr->nodeType == NodeType::ATTR_NODE) {
-            if (before.find(expr->tableIndex) != before.end()) {
+            if (before.find(expr->tableIndex) == before.end()) {
                 tableNums.insert(expr->tableIndex);
             }
         }
@@ -67,11 +67,20 @@ void optimizeIteration(std::vector<std::unique_ptr<Table>> &tables, Expr *condit
     Expr *indexAim = nullptr;
     Expr *current = condition;
     while (current != nullptr) {
-        if (current->calculated or current->nodeType != NodeType::LOGIC_NODE or
-            current->oper.logic != LogicOp::AND_OP) {
+        Expr *aim;
+        if (current->calculated) {
             break;
         }
-        Expr *aim = current->right;
+        if (current->nodeType == NodeType::COMP_NODE) {
+            aim = current;
+        } else if (current->nodeType == NodeType::LOGIC_NODE) {
+            if (current->oper.logic != LogicOp::AND_OP) {
+                break;
+            }
+            aim = current->right;
+        } else {
+            break;
+        }
         if (not aim->calculated and aim->nodeType == NodeType::COMP_NODE) {
             // the left of comparison must be attribute
             // the left has not been iterated
@@ -81,8 +90,8 @@ void optimizeIteration(std::vector<std::unique_ptr<Table>> &tables, Expr *condit
                 if (table.getIndexAvailable(aim->left->columnIndex)) {
                     std::set<int> rightTables = collectTable(*aim->right, before);
                     // the left table not appear in right
-                    if (rightTables.find(aim->left->tableIndex) == rightTables.end() &&
-                        rightTables.size() < bestRight.size()) {
+                    if (rightTables.find(aim->left->tableIndex) == rightTables.end() and
+                        (indexAim == nullptr or rightTables.size() < bestRight.size())) {
                         indexAim = aim;
                         bestRight = rightTables;
                     }
@@ -494,11 +503,12 @@ int QL_Manager::iterateTables(std::vector<std::unique_ptr<Table>> &tables, int c
     RM_FileScan fileScan;
     IX_IndexScan indexScan;
     Table &table = *tables[current];
+    Expr *indexExpr = nullptr;
     bool use_index = false;
     if (!indexExprs.empty() and indexExprs.front()->left->tableIndex == current) {
-        Expr *indexExpr = indexExprs.front();
+        indexExpr = indexExprs.front();
         indexExprs.pop_front();
-        indexScan.OpenScan(table.getIndexHandler(indexExpr->tableIndex), indexExpr->oper.comp,
+        indexScan.OpenScan(table.getIndexHandler(indexExpr->left->columnIndex), indexExpr->oper.comp,
                            indexExpr->right->getValue());
         use_index = true;
     } else {
@@ -528,6 +538,9 @@ int QL_Manager::iterateTables(std::vector<std::unique_ptr<Table>> &tables, int c
             recordCaches.pop_back();
         }
         condition->init_calculate(table.tableName);
+    }
+    if(indexExpr != nullptr) {
+        indexExprs.push_back(indexExpr);
     }
     return 0;
 }

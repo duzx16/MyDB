@@ -39,7 +39,7 @@ int Table::getAttrCount() const {
 }
 
 bool Table::getIndexAvailable(int index) {
-    return tryOpenIndex(index);
+    return not tryOpenIndex(index);
 }
 
 bool checkValueIn(void *left, const ConstValueList &constValues, AttrType type, int length) {
@@ -189,7 +189,7 @@ RM_FileHandle &Table::getFileHandler() {
 
 int Table::tryOpenFile() {
     if (not fileHandle.is_initialized()) {
-        return RecordManager::getInstance().openFile(tableName, fileHandle);
+        return RecordManager::getInstance().openFile(tableName + "_Record", fileHandle);
     }
     return 0;
 }

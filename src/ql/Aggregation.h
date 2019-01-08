@@ -24,11 +24,6 @@ private:
     AggregationType type;
     BindAttribute attrInfo;
     bool is_group;
-
-    union {
-        int i;
-        float f;
-    } value;
 };
 
 

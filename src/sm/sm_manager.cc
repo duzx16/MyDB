@@ -312,6 +312,7 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
         return SM_INDEX_NOTEXIST;
     }
     tableInfo->indexedAttr[tableInfo->indexedAttrSize++] = pos;
+    LDB(fileHandle.UnpinPage(0));
     LDB(fileHandle.ForcePages());
     LDB(pfManager.CloseFile(fileHandle));
     // create index
