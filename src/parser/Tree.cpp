@@ -163,13 +163,23 @@ void CreateTable::visit() {
 
     int rc = (SM_Manager::getInstance())->CreateTable(tableName.c_str(), columns, tableConstraints);
     //todo rc is not correct
-//    if (rc != 0) {
-//        fprintf(stderr, "Create table error\n");
-//        return;
-//    }
+    if (rc != 0) {
+        fprintf(stderr, "Create table error\n");
+        return;
+    }
+    for (const auto &constraint: this->tableConstraints->tbDecs) {
+        if (constraint->type == ConstraintType::PRIMARY_CONSTRAINT) {
+            for (int i = 0; i < this->columns->columns.size(); ++i) {
+                if (columns->columns[i]->columnName == constraint->column_name) {
+                    IX_Manager::getInstance().CreateIndex(tableName.c_str(), i, columns->columns[i]->type,
+                                                          columns->columns.size());
+                }
+            }
+        }
+    }
     unsigned recordSize = 0;
     for (const auto &it: columns->columns) {
-        if(it->type == AttrType::INT) {
+        if (it->type == AttrType::INT) {
             recordSize += sizeof(int) + 1;
         } else {
             recordSize += it->size + 1;
@@ -192,6 +202,14 @@ CreateIndex::~CreateIndex() {
 
 void CreateIndex::visit() {
     DebugPrintf("create index %s\n", relName.c_str());
+    int rc = SM_Manager::getInstance()->CreateIndex(relName.c_str(), attribute->attribute.c_str());
+    if (rc == SM_INDEX_EXISTS) {
+        fprintf(stderr, "The index of attribute %s already exists\n", attribute->attribute.c_str());
+    } else if (rc == SM_INDEX_NOTEXIST) {
+        fprintf(stderr, "The index of attribute %s doesn't exist\n", attribute->attribute.c_str());
+    } else if (rc != 0) {
+        fprintf(stderr, "Unknown error\n");
+    }
 }
 
 
@@ -206,6 +224,12 @@ DropIndex::~DropIndex() {
 
 void DropIndex::visit() {
     DebugPrintf("drop index %s\n", tableName.c_str());
+    int rc = SM_Manager::getInstance()->DropIndex(tableName.c_str(), attribute->attribute.c_str());
+    if (rc == SM_INDEX_NOTEXIST) {
+        fprintf(stderr, "The index of attribute %s doesn't exist\n", attribute->attribute.c_str());
+    } else if (rc != 0) {
+        fprintf(stderr, "Unknown error\n");
+    }
 }
 
 

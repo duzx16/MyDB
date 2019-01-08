@@ -25,8 +25,6 @@ class IX_Manager {
     // RM_Manager rmm;
 
 public:
-
-    IX_Manager   (PF_Manager *pfm);              // Constructor
     ~IX_Manager  ();                             // Destructor
     RC CreateIndex  (const char *fileName,          // Create new index
                      int        indexNo,
@@ -38,7 +36,10 @@ public:
                      int        indexNo,
                      IX_IndexHandle &indexHandle);
     RC CloseIndex   (IX_IndexHandle &indexHandle);  // Close index
+    static RC indexAvailable();
+    static IX_Manager & getInstance();
 private:
+	explicit IX_Manager   (PF_Manager *pfm);              // Constructor
 	char* GenFileName(const char* filename, int indexNo);
 };
 

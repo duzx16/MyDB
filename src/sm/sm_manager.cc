@@ -17,7 +17,7 @@
 #define CHKL printf("line %d is ok\n", __LINE__)
 
 SM_Manager::SM_Manager(): pfManager(PF_Manager::getInstance()) {
-    ixm = new IX_Manager(pfManager);
+    ixm = &IX_Manager::getInstance();
     rmm = &(RecordManager::getInstance());
 }
 

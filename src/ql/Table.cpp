@@ -21,14 +21,6 @@ int Table::getOffset(const std::string &attribute) const {
     return -1;
 }
 
-//ColumnNode *Table::getColumn(const std::string &attribute) const {
-//    for (const auto &it: columns.columns) {
-//        if (attribute == it->columnName)
-//            return it;
-//    }
-//    return nullptr;
-//}
-
 int Table::getColumnIndex(const std::string &attribute) const {
     for (int i = 0; i < attrInfos.size(); ++i) {
         if (attribute == attrInfos[i].attrName) {

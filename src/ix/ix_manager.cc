@@ -88,4 +88,13 @@ RC IX_Manager::CloseIndex(IX_IndexHandle &indexHandle) {
 		return rc;
 	return 0;
 }
+
+RC IX_Manager::indexAvailable() {
+	return 1;
+}
+
+IX_Manager &IX_Manager::getInstance() {
+	static IX_Manager manager(&PF_Manager::getInstance());
+	return manager;
+}
 	
