@@ -331,8 +331,9 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
         return SM_INDEX_NOTEXIST;
     }
     tableInfo->indexedAttr[tableInfo->indexedAttrSize++] = pos;
+	LDB(fileHandle.MarkDirty(0));
+	LDB(fileHandle.ForcePages(0));
     LDB(fileHandle.UnpinPage(0));
-    LDB(fileHandle.ForcePages());
     LDB(pfManager.CloseFile(fileHandle));
     // create index
     if ((rc = ixm->CreateIndex(relName, pos, (tableInfo->attrInfos[pos]).attrType, (tableInfo->attrInfos[pos]).attrSize)) != 0)
@@ -400,8 +401,9 @@ RC SM_Manager::DropIndex(const char *relName, const char *attrName) {
     for (int i = pos; i <= tableInfo->indexedAttrSize - 2; ++i)
         tableInfo->indexedAttr[i] = tableInfo->indexedAttr[i + 1];
     --tableInfo->indexedAttrSize;
-    fileHandle.ForcePages(0);
-    pfManager.CloseFile(fileHandle);
+    LDB(fileHandle.ForcePages(0));
+	LDB(fileHandle.UnpinPage(0));
+    LDB(pfManager.CloseFile(fileHandle));
     return 0;
 }
 

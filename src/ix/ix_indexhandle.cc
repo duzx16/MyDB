@@ -266,6 +266,26 @@ RC IX_IndexHandle::DeleteEntryFromPage(RID rid, PageNum& pageNum, PageNum father
 				}
 				if (leafNode->size == 0) {
 					addDisposedPage(pageNum);
+					if (leafNode->leftPage != -1) {
+						PF_PageHandle leftPageHandle;
+						getExistedPage(leafNode->leftPage, leftPageHandle);
+						char * leftPageData;
+						LDB(leftPageHandle.GetData(leftPageData));
+						LeafNode *leftLeaf = &(((NodePagePacket*)leftPageData)->leafNode);
+						leftLeaf->rightPage = leafNode->rightPage;
+						LDB(fileHandle.MarkDirty(leafNode->leftPage));
+						LDB(fileHandle.ForcePages(leafNode->leftPage));
+					}
+					if (leafNode->rightPage != -1) {
+						PF_PageHandle rightPageHandle;
+						getExistedPage(leafNode->rightPage, rightPageHandle);
+						char *rightPageData;
+						LDB(rightPageHandle.GetData(rightPageData));
+						LeafNode *rightLeaf = &(((NodePagePacket*)rightPageData)->leafNode);
+						rightLeaf->leftPage = leafNode->leftPage;
+						LDB(fileHandle.MarkDirty(leafNode->rightPage));
+						LDB(fileHandle.ForcePages(leafNode->rightPage));
+					}
 					if (fatherPageNum != -1) {
 						//getPageData(fatherPageNum, fatherPageData);
 						getExistedPage(fatherPageNum, fatherPageHandle);
