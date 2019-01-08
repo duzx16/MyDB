@@ -281,30 +281,6 @@ Table::Table(const std::string &tableName) {
     }
 }
 
-int Table::deleteData(const RID &rid) {
-    int rc;
-    RM_Record record;
-    rc = fileHandle.getRec(rid, record);
-    if (rc != 0) {
-        return -1;
-    }
-    for (int i = 0; i < attrInfos.size(); ++i) {
-        if (attrInfos[i].withIndex) {
-            rc = tryOpenIndex(i);
-            if (rc != 0) {
-                attrInfos[i].withIndex = false;
-                continue;
-            }
-            indexHandles[i]->DeleteEntry(rid);
-        }
-    }
-    rc = fileHandle.deleteRec(rid);
-    if (rc != 0) {
-        return -1;
-    }
-    return 0;
-}
-
 Table::~Table() {
     for (auto &it: indexHandles) {
         if (it != nullptr) {
@@ -407,11 +383,30 @@ int Table::insertData(const IdentList *columnList, const ConstValueList *constVa
         cerr << std::string{result};
         return -1;
     }
-    // todo check insert success here
+    // insert record will never fail
     RID rid = fileHandle.insertRec(data.get());
     rc = insertIndex(data.get(), rid);
     if (rc != 0) {
         fileHandle.deleteRec(rid);
+        return -1;
+    }
+    return 0;
+}
+
+int Table::deleteData(const RID &rid) {
+    int rc;
+    RM_Record record;
+    rc = fileHandle.getRec(rid, record);
+    if (rc != 0) {
+        return -1;
+    }
+    rc = deleteIndex(record.getData(), rid);
+    if (rc != 0) {
+        return -1;
+    }
+    rc = fileHandle.deleteRec(rid);
+    if (rc != 0) {
+        insertIndex(record.getData(), rid);
         return -1;
     }
     return 0;
@@ -489,44 +484,26 @@ int Table::updateData(const RM_Record &record, const std::vector<int> &attrIndex
         return -1;
     }
     result = checkData(data);
+    RM_Record old_record;
+    fileHandle.getRec(record.getRID(), old_record);
     if (!result.empty()) {
-        RM_Record old_record;
-        fileHandle.getRec(record.getRID(), old_record);
         insertIndex(old_record.getData(), record.getRID());
         cerr << std::string(result);
         return -1;
     }
-    // todo check here
-    insertIndex(data, record.getRID());
-    fileHandle.updateRec(record);
-    return 0;
-}
-
-std::string Table::printData(const char *data) {
-    std::ostringstream stream;
-    for (const auto &attr: attrInfos) {
-        switch (attr.attrType) {
-            case AttrType::INT:
-                stream << *reinterpret_cast<const int *>(data + attr.attrOffset);
-                break;
-            case AttrType::FLOAT:
-                stream << *reinterpret_cast<const float *>(data + attr.attrOffset);
-                break;
-            case AttrType::STRING:
-            case AttrType::VARCHAR:
-                stream << (data + attr.attrOffset);
-                break;
-            case AttrType::DATE:
-                //todo implement this
-                break;
-            case AttrType::BOOL:
-                break;
-            case AttrType::NO_ATTR:
-                break;
-        }
-        stream << "\t";
+    rc = fileHandle.updateRec(record);
+    if (rc != 0) {
+        insertIndex(old_record.getData(), record.getRID());
+        return -1;
     }
-    return stream.str();
+    rc = insertIndex(data, record.getRID());
+    if (rc != 0) {
+        fileHandle.updateRec(old_record);
+        insertIndex(old_record.getData(), record.getRID());
+        return -1;
+    }
+
+    return 0;
 }
 
 IX_IndexHandle &Table::getIndexHandler(int index) {

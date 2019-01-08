@@ -2,14 +2,14 @@
 #include "ix_internal.h"
 #include <cstdio>
 
-IX_IndexScan::IX_IndexScan() {}
+IX_IndexScan::IX_IndexScan() = default;
 
-IX_IndexScan::~IX_IndexScan() {}
+IX_IndexScan::~IX_IndexScan() = default;
 
 RC IX_IndexScan::OpenScan(IX_IndexHandle &_indexHandle, CompOp compOp, const void *value, ClientHint clientHint) {
 	indexHandle = &_indexHandle;
 	EQ_OP = false;
-	skipValue = NULL;
+	skipValue = nullptr;
 	if (compOp == CompOp::EQ_OP) {
 		indexHandle->GetGeqRIDPos(value, ridPositionInfo, false);
 		if (indexHandle->cmp(indexHandle->getValueFromRecRID(ridPositionInfo.leafNode.data[ridPositionInfo.posInLeaf].recRID), value) != 0)
@@ -47,16 +47,16 @@ RC IX_IndexScan::OpenScan(IX_IndexHandle &_indexHandle, CompOp compOp, const voi
 		indexHandle->GetGeqRIDPos(value, ridPositionInfo, true);
 		dir = 1;
 	}
-	ridHead = NULL;
-	RIDList *tail = NULL;
+	ridHead = nullptr;
+	RIDList *tail = nullptr;
 	RID rid;
 	while (ridPositionInfo.getCurRID(rid) != -1) {
 		//printf("i = %d\n", i++);
-		if (skipValue != NULL && indexHandle->cmp(skipValue, ridPositionInfo.value) == 0)
+		if (skipValue != nullptr && indexHandle->cmp(skipValue, ridPositionInfo.value) == 0)
 			continue;
-		RIDList *p = new RIDList();
+		auto *p = new RIDList();
 		p->rid = rid;
-		if (ridHead == NULL) {
+		if (ridHead == nullptr) {
 			ridHead = p;
 			tail = p;
 		}
@@ -70,7 +70,7 @@ RC IX_IndexScan::OpenScan(IX_IndexHandle &_indexHandle, CompOp compOp, const voi
 }
 
 RC IX_IndexScan::GetNextEntry(RID &rid) {
-	if (ridHead == NULL) {
+	if (ridHead == nullptr) {
 		return IX_EOF;
 	}
 	rid = ridHead->rid;

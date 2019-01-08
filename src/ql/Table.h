@@ -34,8 +34,6 @@ public:
 
     IX_IndexHandle &getIndexHandler(int index);
 
-    std::string printData(const char *data);
-
     std::string checkData(char *data);
 
     int deleteData(const RID &rid);
