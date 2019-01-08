@@ -9,7 +9,9 @@ IX_IndexHandle::IX_IndexHandle() {
 	disposedPageNum = 0;
 }
 
-IX_IndexHandle::~IX_IndexHandle() {}
+IX_IndexHandle::~IX_IndexHandle() {
+    pfm->CloseFile(fileHandle);
+}
 
 RC IX_IndexHandle::CloseIndex() {
 	LDB(fileHandle.UnpinPage(0));

@@ -32,7 +32,6 @@ RID RM_FileHandle::insertRec(const char *pData) {
     }
     char *page_data;
     page_handle.GetData(page_data);
-    _pf_file_handle.MarkDirty(page_num);
 
     MyBitMap bitmap(_header_page.slotMapSize * 8, reinterpret_cast<unsigned *>(page_data + 8));
     unsigned slot_num = bitmap.findLeftOne();
@@ -47,7 +46,7 @@ RID RM_FileHandle::insertRec(const char *pData) {
         }
         reinterpret_cast<int *>(page_data)[1] = 0;
     }
-
+    _pf_file_handle.MarkDirty(page_num);
     if ((rc = _pf_file_handle.UnpinPage(page_num)) != 0) {
         printf("%d\n", rc);
     }
