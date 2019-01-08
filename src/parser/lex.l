@@ -37,7 +37,7 @@ INTEGER         {DIGIT}+
 FLOAT           {DIGIT}+\.{DIGIT}*
 IDENTIFIER      [a-z][a-z0-9_]*
 WHITESPACE      [ \t\n]
-DATE_FORMAT     '[0-9]+-[0-9]+-[0-9]+'
+DATE_FORMAT     '[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}'
 STRING          '(\\\\|\\n|\\r|\\\"|\\0|\\'|[^'\\])*'
 
 %%

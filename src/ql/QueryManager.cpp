@@ -398,21 +398,28 @@ int QL_Manager::iterateTables(Table &table, Expr *condition, QL_Manager::Callbac
     bool use_index = false;
     Expr *current = condition;
     while (current != nullptr) {
-        if (current->calculated or current->nodeType != NodeType::LOGIC_NODE or
-            current->oper.logic != LogicOp::AND_OP) {
+        Expr *aim;
+        if (current->calculated) {
             break;
         }
-        Expr *aim = current->right;
-        if (not aim->calculated and aim->nodeType == NodeType::COMP_NODE) {
-            // the left of comparison must be attribute
-            if (aim->right->calculated) {
-                if (aim->left->attrInfo.tableName == table.tableName &&
-                    table.getIndexAvailable(aim->left->columnIndex)) {
-                    indexScan.OpenScan(table.getIndexHandler(current->left->columnIndex), aim->oper.comp,
-                                       aim->getValue());
-                    use_index = true;
-                    break;
-                }
+        if (current->nodeType == NodeType::COMP_NODE) {
+            aim = current;
+        } else if (current->nodeType == NodeType::LOGIC_NODE) {
+            if (current->oper.logic != LogicOp::AND_OP) {
+                break;
+            }
+            aim = current->right;
+        } else {
+            break;
+        }
+        // the left of comparison must be attribute
+        if (aim->right->calculated) {
+            if (aim->left->attrInfo.tableName == table.tableName &&
+                table.getIndexAvailable(aim->left->columnIndex)) {
+                indexScan.OpenScan(table.getIndexHandler(current->left->columnIndex), aim->oper.comp,
+                                   aim->getValue());
+                use_index = true;
+                break;
             }
         }
         current = current->left;
@@ -539,7 +546,7 @@ int QL_Manager::iterateTables(std::vector<std::unique_ptr<Table>> &tables, int c
         }
         condition->init_calculate(table.tableName);
     }
-    if(indexExpr != nullptr) {
+    if (indexExpr != nullptr) {
         indexExprs.push_back(indexExpr);
     }
     return 0;

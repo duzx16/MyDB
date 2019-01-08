@@ -20,7 +20,6 @@ RC IX_IndexHandle::CloseIndex() {
 }
 
 RC IX_IndexHandle::InsertEntry(const RID &rid) {
-	printf("page = %d, slot = %d\n", rid.getPageNum(), rid.getSlotNum());
 	RC rc;
 	PageNum ridPageNum = InsertEntryFromPage(rid, indexInfo->rootPageNum, -1, -1);
 	if ((rc = insertIntoRIDPage(rid, ridPageNum)) != 0)
