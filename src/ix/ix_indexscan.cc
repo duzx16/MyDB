@@ -12,8 +12,10 @@ RC IX_IndexScan::OpenScan(IX_IndexHandle &_indexHandle, CompOp compOp, const voi
 	skipValue = nullptr;
 	if (compOp == CompOp::EQ_OP) {
 		indexHandle->GetGeqRIDPos(value, ridPositionInfo, false);
-		if (indexHandle->cmp(indexHandle->getValueFromRecRID(ridPositionInfo.leafNode.data[ridPositionInfo.posInLeaf].recRID), value) != 0)
-			ridPositionInfo.ridPagePos = -1;
+		if (ridPositionInfo.ridPagePos != -1) {
+			if (indexHandle->cmp(indexHandle->getValueFromRecRID(ridPositionInfo.leafNode.data[ridPositionInfo.posInLeaf].recRID), value) != 0)
+				ridPositionInfo.ridPagePos = -1;
+		}
 		EQ_OP = true;
 	}
 	else if (compOp == CompOp::LT_OP) {

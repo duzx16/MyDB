@@ -146,7 +146,7 @@ RC PF_Manager::OpenFile (const char *fileName, PF_FileHandle &fileHandle)
    // Open the file
 
    if ((fileHandle.unixfd = open(fileName,
-#ifdef PC
+#ifdef _WIN32
            O_BINARY |
 #endif
                                  O_RDWR)) < 0)

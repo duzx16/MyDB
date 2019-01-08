@@ -3,6 +3,7 @@
 //
 
 #include "Aggregation.h"
+#include <climits>
 
 Expr *init_statistics(AttrType attrType, AggregationType aggregation) {
     Expr *result = nullptr;

@@ -68,6 +68,7 @@ int main(int args, char **argv) {
         }
     }
     else {
+		freopen("../test/small_dataset/create.sql", "r", stdin);
         return yyparse();
     }
 }
