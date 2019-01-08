@@ -157,8 +157,29 @@ CreateTable::~CreateTable() {
 
 void CreateTable::visit() {
     DebugPrintf("create table %s\n", tableName.c_str());
+    if (tableConstraints != nullptr) {
+        for (const auto &it: tableConstraints->tbDecs) {
+            bool found = false;
+            for (const auto &column: columns->columns) {
+                if (it->type == ConstraintType::PRIMARY_CONSTRAINT) {
+                    if (it->column_list->idents[0] == column->columnName) {
+                        found = true;
+                        break;
+                    }
+                } else {
+                    if (it->column_name == column->columnName) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (not found) {
+                cerr << "Can't find the column " << it->column_name << "\n";
+                return;;
+            }
+        }
+    }
     int rc = (SM_Manager::getInstance())->CreateTable(tableName.c_str(), columns, tableConstraints);
-    //todo rc is not correct
     if (rc != 0) {
         fprintf(stderr, "Create table error\n");
         return;
