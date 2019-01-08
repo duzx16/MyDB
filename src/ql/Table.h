@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <map>
+#include <memory>
 
 class Table {
 public:
@@ -25,7 +26,7 @@ public:
 
     int getColumnIndex(const std::string &attribute) const;
 
-    const BindAttribute & getAttrInfo(int index) const;
+    const BindAttribute &getAttrInfo(int index) const;
 
     int getAttrCount() const;
 
@@ -64,7 +65,7 @@ private:
     TableConstraintList tableConstraints;
     RM_FileHandle fileHandle;
     std::vector<IX_IndexHandle *> indexHandles;
-    std::vector<IX_IndexHandle *> foreignIndexs;
+    std::vector<std::unique_ptr<Table>> foreignTables;
     std::vector<int> foreignAttrInt;
     std::vector<int> constrAttrI;
 };

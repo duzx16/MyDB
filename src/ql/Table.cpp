@@ -158,7 +158,7 @@ std::string Table::checkData(char *data) {
                         continue;
                 }
                 IX_IndexScan indexScan;
-                indexScan.OpenScan(*foreignIndexs[i], CompOp::EQ_OP, value);
+                indexScan.OpenScan(foreignTables[i]->getIndexHandler(foreignAttrInt[i]), CompOp::EQ_OP, value);
                 RID rid;
                 rc = indexScan.GetNextEntry(rid);
                 indexScan.CloseScan();
@@ -230,7 +230,6 @@ Table::Table(const std::string &tableName) {
         attrInfos.push_back(std::move(attrInfo));
     }
     for (const auto &it: tableConstraints.tbDecs) {
-        foreignIndexs.push_back(nullptr);
         switch (it->type) {
             case ConstraintType::CHECK_CONSTRAINT:
                 for (int i = 0; i < attrInfos.size(); ++i) {
@@ -296,7 +295,7 @@ int Table::deleteData(const RID &rid) {
                 attrInfos[i].withIndex = false;
                 continue;
             }
-            indexHandles[i]->DeleteEntry(record.getData() + attrInfos[i].attrOffset, rid);
+            indexHandles[i]->DeleteEntry(rid);
         }
     }
     rc = fileHandle.deleteRec(rid);
@@ -321,7 +320,8 @@ int Table::tryOpenIndex(int indexNo) {
             return -1;
         }
         auto *indexHandle = new IX_IndexHandle();
-        int rc = IX_Manager::getInstance().OpenIndex(tableName.c_str(), indexNo, *indexHandle);
+        int rc = IX_Manager::getInstance().OpenIndex(tableName.c_str(), indexNo, *indexHandle, fileHandle,
+                                                     attrInfos[indexNo].attrOffset);
         if (rc != 0) {
             delete indexHandle;
             return -1;
@@ -332,18 +332,22 @@ int Table::tryOpenIndex(int indexNo) {
 }
 
 int Table::tryOpenForeignIndex(int constNo) {
-    if (foreignIndexs[constNo] == nullptr) {
+    if (!foreignTables[constNo]) {
+        int rc;
         if (!IX_Manager::indexAvailable()) {
             return -1;
         }
-        auto *indexHandle = new IX_IndexHandle();
-        int rc = IX_Manager::getInstance().OpenIndex(tableConstraints.tbDecs[constNo]->foreign_table.c_str(),
-                                                     foreignAttrInt[constNo], *indexHandle);
-        if (rc != 0) {
-            delete indexHandle;
+        try {
+            foreignTables[constNo] = std::make_unique<Table>(tableConstraints.tbDecs[constNo]->foreign_table);
+        }
+        catch (const std::string &error) {
+            cerr << error;
             return -1;
         }
-        foreignIndexs[constNo] = indexHandle;
+        rc = foreignTables[constNo]->tryOpenIndex(foreignAttrInt[constNo]);
+        if (rc != 0) {
+            return -1;
+        }
     }
     return 0;
 }
@@ -418,12 +422,12 @@ int Table::insertIndex(char *data, const RID &rid) {
     for (int i = 0; i < attrInfos.size(); ++i) {
         rc = tryOpenIndex(i);
         if (rc == 0) {
-            rc = indexHandles[i]->InsertEntry(data + attrInfos[i].attrOffset, rid);
+            rc = indexHandles[i]->InsertEntry(rid);
             if (rc != 0) {
                 for (int indexNo = 0; indexNo < i; ++indexNo) {
                     rc = tryOpenIndex(indexNo);
                     if (rc == 0) {
-                        indexHandles[indexNo]->DeleteEntry(data + attrInfos[indexNo].attrOffset, rid);
+                        indexHandles[indexNo]->DeleteEntry(rid);
                     }
                 }
                 cerr << "Index insert failed for column " + attrInfos[i].attrName + "\n";
@@ -439,12 +443,12 @@ int Table::deleteIndex(char *data, const RID &rid) {
     for (int i = 0; i < attrInfos.size(); ++i) {
         rc = tryOpenIndex(i);
         if (rc == 0) {
-            rc = indexHandles[i]->DeleteEntry(data + attrInfos[i].attrOffset, rid);
+            rc = indexHandles[i]->DeleteEntry(rid);
             if (rc != 0) {
                 for (int indexNo = 0; indexNo < i; ++indexNo) {
                     rc = tryOpenIndex(indexNo);
                     if (rc == 0) {
-                        indexHandles[indexNo]->InsertEntry(data + attrInfos[indexNo].attrOffset, rid);
+                        indexHandles[indexNo]->InsertEntry(rid);
                     }
                 }
                 cerr << "Index delete failed for column " + attrInfos[i].attrName + "\n";

@@ -75,9 +75,9 @@ RC IX_Manager::DestroyIndex(const char* filename, int indexNo) {
 }
 
 
-RC IX_Manager::OpenIndex(const char* filename, int indexNo, IX_IndexHandle &indexHandle) {
+RC IX_Manager::OpenIndex(const char* filename, int indexNo, IX_IndexHandle &indexHandle, RM_FileHandle &rmFileHandle, int _attrOffset) {
 	RC rc;
-	if ((rc = indexHandle.init(GenFileName(filename, indexNo), this->pfm)) != 0)
+	if ((rc = indexHandle.init(GenFileName(filename, indexNo), this->pfm, &rmFileHandle, _attrOffset)) != 0)
 		return rc;
 	return 0;
 }

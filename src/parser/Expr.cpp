@@ -468,7 +468,7 @@ void Expr::init_calculate(const std::string &tableName) {
             }
         });
     } else {
-        postorder([&tableName, this](Expr *expr) -> void {
+        postorder([&tableName](Expr *expr) -> void {
             switch (expr->nodeType) {
                 case NodeType::ARITH_NODE:
                 case NodeType::COMP_NODE:
