@@ -13,7 +13,7 @@ check(sex in ('man', 'woman')));
 create table course (
 cid int,
 subject varchar(20) not null,
-primary key(cid)
+primary key (cid)
 );
 
 create table grade (
@@ -21,7 +21,12 @@ gid int,
 sid int,
 cid int,
 score int not null,
-primary key(gid));
+primary key (gid)
+);
+
+create index student (sid);
+create index course (cid);
+create index grade (gid);
 
 insert into student values (1001, 'Li', 'man', 20, 'sdwf');
 insert into student values (1002, 'Xu', 'man', 23, 'sdgm');
