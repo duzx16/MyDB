@@ -24,11 +24,14 @@ SM_Manager::SM_Manager(): pfManager(PF_Manager::getInstance()) {
 SM_Manager::~SM_Manager() = default;
 
 RC SM_Manager::CreateDb(const char *dbName) {
+	RC rc;
 #if defined(_WIN32)
-    mkdir(dbName);
+    rc = mkdir(dbName);
 #else
-    mkdir(dbName, S_IRWXU);
+    rc = mkdir(dbName, S_IRWXU);
 #endif
+	if (rc != 0)
+		return rc;
     chdir(dbName);
     LDB(pfManager.CreateFile("TableList"));
     PF_FileHandle fileHandle;
