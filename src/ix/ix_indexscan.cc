@@ -58,7 +58,6 @@ RC IX_IndexScan::OpenScan(IX_IndexHandle &_indexHandle, CompOp compOp, const voi
 			indexHandle->GetNextRIDPositionInfo(ridPositionInfo, dir, EQ_OP);
 			continue;
 		}
-
 		auto *p = new RIDList();
 		p->rid = rid;
 		if (ridHead == nullptr) {

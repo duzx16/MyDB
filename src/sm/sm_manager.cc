@@ -332,6 +332,7 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
         return SM_INDEX_NOTEXIST;
     }
     tableInfo->indexedAttr[tableInfo->indexedAttrSize++] = pos;
+	LDB(fileHandle.MarkDirty(0));
     // create index
     if ((rc = ixm->CreateIndex(relName, pos, (tableInfo->attrInfos[pos]).attrType,
                                (tableInfo->attrInfos[pos]).attrSize)) != 0)
@@ -350,7 +351,6 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
     IX_IndexHandle indexHandle;
     if ((rc = ixm->OpenIndex(relName, pos, indexHandle, rmFileHandle, offset)) != 0)
         return rc;
-    printf("%d\n", offset);
     RM_FileScan rmFileScan;
     if ((rc = rmFileScan.openScan(
             rmFileHandle,
@@ -367,8 +367,8 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
     }
     LDB(ixm->CloseIndex(indexHandle));
     LDB(rmm->closeFile(rmFileHandle));
+    LDB(fileHandle.ForcePages(0));
     LDB(fileHandle.UnpinPage(0));
-    LDB(fileHandle.ForcePages());
     LDB(pfManager.CloseFile(fileHandle));
     return 0;
 }
@@ -404,9 +404,10 @@ RC SM_Manager::DropIndex(const char *relName, const char *attrName) {
     for (int i = pos; i <= tableInfo->indexedAttrSize - 2; ++i)
         tableInfo->indexedAttr[i] = tableInfo->indexedAttr[i + 1];
     --tableInfo->indexedAttrSize;
-    fileHandle.ForcePages(0);
-    LDB(fileHandle.UnpinPage(0));
-    pfManager.CloseFile(fileHandle);
+    LDB(fileHandle.MarkDirty(0));
+    LDB(fileHandle.ForcePages(0));
+	LDB(fileHandle.UnpinPage(0));
+    LDB(pfManager.CloseFile(fileHandle));
     return 0;
 }
 
