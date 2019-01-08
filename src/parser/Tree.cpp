@@ -61,10 +61,12 @@ Select::~Select() {
 void Select::visit() {
     DebugPrintf("select\n");
     bool statistics = false;
-    for (const auto &attribute: this->attributes->attributes) {
-        if (attribute->aggregationType != AggregationType::T_NONE) {
-            statistics = true;
-            break;
+    if(this->attributes != nullptr) {
+        for (const auto &attribute: this->attributes->attributes) {
+            if (attribute->aggregationType != AggregationType::T_NONE) {
+                statistics = true;
+                break;
+            }
         }
     }
     if (statistics) {

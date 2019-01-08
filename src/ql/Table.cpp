@@ -230,6 +230,7 @@ Table::Table(const std::string &tableName) {
         attrInfos.push_back(std::move(attrInfo));
     }
     for (const auto &it: tableConstraints.tbDecs) {
+        foreignTables.emplace_back();
         switch (it->type) {
             case ConstraintType::CHECK_CONSTRAINT:
                 for (int i = 0; i < attrInfos.size(); ++i) {
