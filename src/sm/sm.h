@@ -39,6 +39,7 @@ private:
 	PF_Manager & pfManager;
 	void GenerateTableMetadataDir(const char *tableName, char *s);
 	void GenerateTableRecordDir(const char *tableName, char *s);
+	bool foreignTableExist(const char* relName);
 };
 
 //
@@ -54,6 +55,8 @@ void SM_PrintError(RC rc);
 #define SM_INDEX_NOTEXIST        (START_SM_WARN + 4)
 #define SM_FILE_FORMAT_INCORRECT (START_SM_WARN + 5)
 #define SM_FILE_NOT_FOUND        (START_SM_WARN + 6)
+#define SM_FOREIGN_REL_NOT_FOUND (START_SM_WARN + 7)
+#define SM_FOREIGN_KEY_NOT_FOUND (START_SM_WARN + 8)
 #define SM_LASTWARN SM_FILE_NOT_FOUND
 
 
