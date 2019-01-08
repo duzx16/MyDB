@@ -68,7 +68,7 @@ public:
 	
 	int cmp(const RID, const RID);
 	int cmp(const void*, const void*);
-	void* getValueFromRecRID(const RID rid);
+	char* getValueFromRecRID(const RID rid);
 private:
 	
 	IndexInfo *indexInfo;
