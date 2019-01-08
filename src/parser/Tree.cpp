@@ -140,27 +140,6 @@ CreateTable::~CreateTable() {
 
 void CreateTable::visit() {
     DebugPrintf("create foreign_table %s\n", tableName.c_str());
-    for (auto &it: columns->columns) {
-        switch (it->type) {
-            case AttrType::DATE:
-                it->size = sizeof(int);
-                break;
-            case AttrType::FLOAT:
-                it->size = sizeof(float);
-                break;
-            case AttrType::VARCHAR:
-            case AttrType::STRING:
-                it->size = it->size + 1;
-                break;
-            case AttrType::INT:
-                it->size = it->size;
-                break;
-            case AttrType::BOOL:
-            case AttrType::NO_ATTR:
-                break;
-        }
-    }
-
     int rc = (SM_Manager::getInstance())->CreateTable(tableName.c_str(), columns, tableConstraints);
     //todo rc is not correct
     if (rc != 0) {
@@ -259,12 +238,28 @@ void DropTable::visit() {
 }
 
 /* ColumnNode */
-ColumnNode::ColumnNode(const char *columnName, AttrType type, int size,
+ColumnNode::ColumnNode(const char *columnName, AttrType type, int length,
                        int columnFlag) {
     this->columnName = string(columnName);
     this->type = type;
-    this->size = size;
+    this->length = length;
     this->columnFlag = columnFlag;
+    switch (type) {
+        case AttrType::DATE:
+        case AttrType::INT:
+            size = sizeof(int);
+            break;
+        case AttrType::FLOAT:
+            size = sizeof(float);
+            break;
+        case AttrType::VARCHAR:
+        case AttrType::STRING:
+            size = length + 1;
+            break;
+        case AttrType::BOOL:
+        case AttrType::NO_ATTR:
+            break;
+    }
 }
 
 ColumnNode::~ColumnNode() = default;
@@ -273,8 +268,9 @@ AttrInfo ColumnNode::getAttrInfo() const {
     AttrInfo attrInfo{};
     strncpy(attrInfo.attrName, columnName.c_str(), MAX_NAME);
     attrInfo.attrType = type;
-    attrInfo.attrLength = size;
-    attrInfo.notNull = int((columnFlag & COLUMN_FLAG_NOTNULL) != 0);
+    attrInfo.attrSize = size;
+    attrInfo.attrLength = length;
+    attrInfo.columnFlag = columnFlag;
     return attrInfo;
 }
 

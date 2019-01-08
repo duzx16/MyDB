@@ -300,7 +300,7 @@ public:
 
 class ColumnNode : public Tree {
 public:
-    ColumnNode(const char *columnName, AttrType type, int size = 4,
+    ColumnNode(const char *columnName, AttrType type, int length = 4,
                int columnFlag = 0);
 
     ~ColumnNode() override;
@@ -312,6 +312,7 @@ public:
     std::string columnName;
     AttrType type;
     int size;
+    int length;
     int columnFlag;
 };
 

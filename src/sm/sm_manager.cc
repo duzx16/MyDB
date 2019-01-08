@@ -209,7 +209,7 @@ RC SM_Manager::GetTableInfo(const char *tableName, ColumnDecsList &columns, Tabl
                         attrInfo.attrName,
                         attrInfo.attrType,
                         attrInfo.attrLength,
-                        attrInfo.notNull
+                        attrInfo.columnFlag
                 )
         );
     }
@@ -288,13 +288,13 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
     fileHandle.ForcePages();
     pfManager.CloseFile(fileHandle);
     // create index
-    ixm->CreateIndex(relName, pos, (tableInfo->attrInfos[pos]).attrType, (tableInfo->attrInfos[pos]).attrLength);
+    ixm->CreateIndex(relName, pos, (tableInfo->attrInfos[pos]).attrType, (tableInfo->attrInfos[pos]).attrSize);
     IX_IndexHandle indexHandle;
     ixm->OpenIndex(relName, pos, indexHandle);
     // calc offset
     int offset = 0;
     for (int i = 0; i < pos; ++i)
-        offset += (tableInfo->attrInfos[i]).attrLength;
+        offset += (tableInfo->attrInfos[i]).attrSize;
     // open record scan
     RM_FileHandle rmFileHandle;
     memset(s, 0, sizeof(s));
@@ -304,7 +304,7 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
         rmFileScan.openScan(
                 rmFileHandle,
                 (tableInfo->attrInfos[pos]).attrType,
-                (tableInfo->attrInfos[pos]).attrLength,
+                (tableInfo->attrInfos[pos]).attrSize,
                 offset,
                 CompOp::NO_OP,
                 nullptr
@@ -374,6 +374,7 @@ RC SM_Manager::Help() {
     LDB(fileHandle.UnpinPage(0));
     LDB(pfManager.CloseFile(fileHandle));
     //printf("show tables; out\n");
+    return 0;
 }
 
 RC SM_Manager::Help(const char *relName) {
@@ -395,7 +396,7 @@ RC SM_Manager::Help(const char *relName) {
         AttrInfo *attrInfo = &(tableInfo->attrInfos[i]);
         printf("%s ", attrInfo->attrName);
         printAttrType(attrInfo->attrType);
-        printf(" length = %d\n", attrInfo->attrLength);
+        printf(" length = %d\n", attrInfo->attrSize);
     }
 
     printf("%d Constraints:\n", tableInfo->tableConsCount);

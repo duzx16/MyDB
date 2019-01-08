@@ -49,9 +49,10 @@ enum class ConstraintType {
 
 struct AttrInfo {
     char attrName[MAX_NAME + 1];
+    int attrSize;
     int attrLength;
     AttrType attrType;
-    int notNull;
+    int columnFlag;
 };
 
 
