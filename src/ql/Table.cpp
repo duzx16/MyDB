@@ -486,13 +486,13 @@ int Table::updateData(const RM_Record &record, const std::vector<int> &attrIndex
             }
         }
     }
-    result = checkData(data);
     RM_Record old_record;
+    fileHandle.getRec(record.getRID(), old_record);
     rc = deleteIndex(old_record.getData(), record.getRID());
     if (rc != 0) {
         return -1;
     }
-    fileHandle.getRec(record.getRID(), old_record);
+    result = checkData(data);
     if (!result.empty()) {
         insertIndex(old_record.getData(), record.getRID());
         cerr << std::string(result);

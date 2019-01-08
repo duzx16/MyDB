@@ -328,6 +328,7 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
     }
     if (pos == -1) {
         // index name not found
+        LDB(fileHandle.UnpinPage(0));
         LDB(pfManager.CloseFile(fileHandle));
         return SM_INDEX_NOTEXIST;
     }
@@ -357,7 +358,7 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
             (tableInfo->attrInfos[pos]).attrType,
             (tableInfo->attrInfos[pos]).attrSize,
             offset,
-            CompOp::NO_OP,
+            CompOp::ISNOT_OP,
             nullptr
     )) != 0)
         return rc;

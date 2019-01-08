@@ -187,6 +187,8 @@ void CreateTable::visit() {
             fprintf(stderr, "Foreign key not found\n");
         } else if (rc == SM_FOREIGN_REL_NOT_FOUND) {
             fprintf(stderr, "Foreign relation not table\n");
+        } else if (rc == SM_REL_EXISTS) {
+            fprintf(stderr, "Table already exists\n");
         }
         return;
     }

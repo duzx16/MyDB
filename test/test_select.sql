@@ -1,4 +1,5 @@
 use orderDB;
+select * from orders;
 select * from orders where date is null;
 select * from orders where date > '2018-01-01';
 select * from orders where customer_id>310375;
