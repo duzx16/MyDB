@@ -64,42 +64,61 @@ int RM_FileScan::getNextRec(RM_Record &rec) {
 
 int RM_FileScan::closeScan() {
     delete[] _current_bitdata;
+    _current_bitdata = nullptr;
     return 0;
 }
 
 int
 RM_FileScan::openScan(const RM_FileHandle &fileHandle, AttrType attrType, int attrLength, int attrOffset, CompOp compOp,
                       void *value) {
-    Expr *left = new Expr();
-    left->attrInfo.attrSize = attrLength;
-    left->attrInfo.attrOffset = attrOffset;
-    left->attrInfo.attrType = attrType;
-    left->attrInfo.notNull = false;
-    left->nodeType = NodeType::ATTR_NODE;
+    if (compOp != CompOp::NO_OP) {
+        Expr *left = new Expr();
+        left->attrInfo.attrSize = attrLength;
+        left->attrInfo.attrOffset = attrOffset;
+        left->attrInfo.attrType = attrType;
+        left->attrInfo.notNull = false;
+        left->nodeType = NodeType::ATTR_NODE;
 
-    Expr *right = new Expr();
-    right->oper.constType = attrType;
-    switch (attrType) {
-        case AttrType::INT:
-        case AttrType::DATE:
-            right->value.i = *reinterpret_cast<int *>(value);
-            break;
-        case AttrType::FLOAT:
-            right->value.f = *reinterpret_cast<float *>(value);
-            break;
-        case AttrType::STRING:
-            right->value_s = std::string(reinterpret_cast<char *>(value));
-            break;
-        case AttrType::VARCHAR:
-            break;
-        case AttrType::BOOL:
-            right->value.b = *reinterpret_cast<bool *>(value);
-            break;
-        case AttrType::NO_ATTR:
-            break;
+        Expr *right;
+        if (value != nullptr) {
+            switch (attrType) {
+                case AttrType::INT:
+                case AttrType::DATE: {
+                    int i = *reinterpret_cast<int *>(value);
+                    right = new Expr(i);
+                    break;
+                }
+                case AttrType::FLOAT: {
+                    float f = *reinterpret_cast<float *>(value);
+                    right = new Expr(f);
+                    break;
+                }
+                case AttrType::STRING: {
+                    char *s = reinterpret_cast<char *>(value);
+                    right = new Expr(s);
+                    break;
+                }
+                case AttrType::BOOL: {
+                    bool b = *reinterpret_cast<bool *>(value);
+                    right = new Expr(b);
+                    break;
+                }
+                case AttrType::NO_ATTR:
+                case AttrType::VARCHAR:
+                    right = new Expr();
+                    break;
+            }
+        } else {
+            right = new Expr();
+        }
+
+        Expr *condition = new Expr(left, compOp, right);
+        return openScan(fileHandle, condition, "");
+    } else {
+        return openScan(fileHandle, nullptr, "");
     }
-    right->nodeType = NodeType::CONST_NODE;
+}
 
-    Expr *condition = new Expr(left, compOp, right);
-    return openScan(fileHandle, condition, "");
+RM_FileScan::~RM_FileScan() {
+    closeScan();
 }

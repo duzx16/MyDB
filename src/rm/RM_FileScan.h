@@ -16,11 +16,11 @@ private:
     Expr *_condition;
     unsigned _current_page;
     MyBitMap _current_bitmap = MyBitMap(0, 1);
-    char *_current_bitdata;
+    char *_current_bitdata = nullptr;
     std::string tableName;
 public:
     RM_FileScan() = default;                                // Constructor
-    ~RM_FileScan() = default;                                // Destructor
+    ~RM_FileScan();                                // Destructor
     int openScan(const RM_FileHandle &fileHandle,  // Initialize file scan
                  Expr *condition, const std::string &tableName
     );

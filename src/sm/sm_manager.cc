@@ -337,7 +337,7 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
                 (tableInfo->attrInfos[pos]).attrType,
                 (tableInfo->attrInfos[pos]).attrSize,
                 offset,
-                CompOp::NO_OP,
+                CompOp::IS_OP,
                 nullptr
         )) != 0)
 		return rc;

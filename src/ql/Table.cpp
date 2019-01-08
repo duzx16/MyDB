@@ -415,6 +415,9 @@ int Table::deleteData(const RID &rid) {
 int Table::insertIndex(char *data, const RID &rid) {
     int rc;
     for (int i = 0; i < attrInfos.size(); ++i) {
+        if (not data[attrInfos[i].attrOffset - 1]) {
+            continue;
+        }
         rc = tryOpenIndex(i);
         if (rc == 0) {
             rc = indexHandles[i]->InsertEntry(rid);
@@ -436,6 +439,9 @@ int Table::insertIndex(char *data, const RID &rid) {
 int Table::deleteIndex(char *data, const RID &rid) {
     int rc;
     for (int i = 0; i < attrInfos.size(); ++i) {
+        if (not data[attrInfos[i].attrOffset - 1]) {
+            continue;
+        }
         rc = tryOpenIndex(i);
         if (rc == 0) {
             rc = indexHandles[i]->DeleteEntry(rid);
@@ -479,12 +485,12 @@ int Table::updateData(const RM_Record &record, const std::vector<int> &attrIndex
             }
         }
     }
-    rc = deleteIndex(data, record.getRID());
+    result = checkData(data);
+    RM_Record old_record;
+    rc = deleteIndex(old_record.getData(), record.getRID());
     if (rc != 0) {
         return -1;
     }
-    result = checkData(data);
-    RM_Record old_record;
     fileHandle.getRec(record.getRID(), old_record);
     if (!result.empty()) {
         insertIndex(old_record.getData(), record.getRID());
