@@ -338,7 +338,7 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
     LDB(fileHandle.ForcePages());
     LDB(pfManager.CloseFile(fileHandle));
     // create index
-    if ((rc = ixm->CreateIndex(relName, pos, (tableInfo->attrInfos[pos]).attrType, (tableInfo->attrInfos[pos]).attrLength)) != 0)
+    if ((rc = ixm->CreateIndex(relName, pos, (tableInfo->attrInfos[pos]).attrType, (tableInfo->attrInfos[pos]).attrSize)) != 0)
 		return rc;
 	// calc offset
     int offset = 1;
