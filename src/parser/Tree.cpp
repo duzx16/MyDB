@@ -181,7 +181,11 @@ void CreateTable::visit() {
     }
     int rc = (SM_Manager::getInstance())->CreateTable(tableName.c_str(), columns, tableConstraints);
     if (rc != 0) {
-        fprintf(stderr, "Create table error\n");
+        if (rc == SM_FOREIGN_KEY_NOT_FOUND) {
+            fprintf(stderr, "Foreign key not found\n");
+        } else if (rc == SM_FOREIGN_REL_NOT_FOUND) {
+            fprintf(stderr, "Foreign relation not table\n");
+        }
         return;
     }
     unsigned recordSize = 0;
