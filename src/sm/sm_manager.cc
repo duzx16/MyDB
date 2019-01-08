@@ -13,7 +13,7 @@
 #include <sys/types.h>
 #endif
 
-#define LDB(res) Debug(__FILE__, __LINE__, (res))
+
 #define CHKL printf("line %d is ok\n", __LINE__)
 
 SM_Manager::SM_Manager(): pfManager(PF_Manager::getInstance()) {
@@ -97,15 +97,40 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
         tableInfo->attrInfos[i] = attrInfos[i];
     }
     columns->deleteAttrInfos();
-    //printf("attr inserted\n");
 
     if (tableConstraints != nullptr) {
-        //printf("tableConstraints not nullptr!\n");
         tableInfo->tableConsCount = (tableConstraints->tbDecs).size();
-
-
-        //printf("tableConsCount = %d\n", tableInfo->tableConsCount);
         for (int i = 0; i < tableInfo->tableConsCount; ++i) {
+			TableConstraint *tableConsFrom = tableConstraints->tbDecs[i];
+			if (tableConsFrom->type == ConstraintType::FOREIGN_CONSTRAINT) {
+				// check valid
+				if (!foreignTableExist((tableConsFrom->foreign_table).c_str()))
+					return SM_FOREIGN_REL_NOT_FOUND;
+				memset(s, 0, sizeof s);
+				GenerateTableMetadataDir((tableConsFrom->foreign_table).c_str(), s);
+				PF_FileHandle foreignTableFileHandle;
+				if (pfManager.OpenFile(s, foreignTableFileHandle) != 0)
+					return SM_FOREIGN_REL_NOT_FOUND;
+				PF_PageHandle pageHandle;
+				LDB(foreignTableFileHandle.GetThisPage(0, pageHandle));
+				char *pageData;
+				LDB(pageHandle.GetData(pageData));
+				TableInfo *tableInfo = (TableInfo*)pageData;
+				bool found = false;
+				for (int i = 0; i < tableInfo->tableConsCount; ++i) {
+					LDB(foreignTableFileHandle.GetThisPage(i + 1, pageHandle));
+					LDB(pageHandle.GetData(pageData));
+					TableCons *tableCons = (TableCons*)pageData;
+					if (tableCons->type == ConstraintType::PRIMARY_CONSTRAINT && strcmp(tableCons->column_name, (tableConsFrom->foreign_table).c_str()) == 0) {
+						found = true;
+					}
+					LDB(foreignTableFileHandle.UnpinPage(i + 1));
+				}
+				LDB(foreignTableFileHandle.UnpinPage(0));
+				LDB(pfManager.CloseFile(foreignTableFileHandle));
+				if (!found)
+					return SM_FOREIGN_KEY_NOT_FOUND;
+			}
             // allocate a new page to store a TableCons, pageNum = i + 1
             PF_PageHandle tableConsPageHandle;
             LDB(fileHandle.AllocatePage(tableConsPageHandle));
@@ -113,7 +138,7 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
             LDB(tableConsPageHandle.GetData(tableConsPageData));
 
             auto *tableCons = (TableCons *) tableConsPageData;
-            TableConstraint *tableConsFrom = tableConstraints->tbDecs[i];
+            
             tableCons->type = tableConsFrom->type;
             //printf("hello?\n");
             if (!tableConsFrom->column_name.empty()) {
@@ -178,18 +203,12 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
     LDB(fileHandle.GetThisPage(0, pageHandle));
     LDB(pageHandle.GetData(pageData));
     auto *tableList = (TableList *) pageData;
-    //printf("pre count = %d\n", tableList->tableCount);
-    //printf("tableName = %s\n", tableName);
     ++tableList->tableCount;
-    //printf("aft count = %d\n", tableList->tableCount);
     strcpy(tableList->tables[tableList->tableCount - 1], tableName);
-    //printf("OK\n");
     LDB(fileHandle.MarkDirty(0));
     LDB(fileHandle.ForcePages(0));
     LDB(fileHandle.UnpinPage(0));
     LDB(pfManager.CloseFile(fileHandle));
-    //printf("page updated\n");
-    //printf("~SM_Manager::CreateTable\n");
     return 0;
 }
 
@@ -477,4 +496,24 @@ RC SM_Manager::Help(const char *relName) {
 SM_Manager *SM_Manager::getInstance() {
     static SM_Manager instance;
     return &instance;
+}
+
+bool SM_Manager::foreignTableExist(const char *relName) {
+	PF_FileHandle fileHandle;
+	LDB(pfManager.OpenFile("TableList", fileHandle));
+	PF_PageHandle pageHandle;
+	LDB(fileHandle.GetThisPage(0, pageHandle));
+	char *pageData;
+	LDB(pageHandle.GetData(pageData));
+	TableList *tableList = (TableList*)pageData;
+	bool found = false;
+	for (int i = 0; i < tableList->tableCount; ++i) {
+		if (strcmp(tableList->tables[i], relName) == 0) {
+			found = true;
+			break;
+		}
+	}
+	LDB(fileHandle.UnpinPage(0));
+	LDB(pfManager.CloseFile(fileHandle));
+	return found;
 }
