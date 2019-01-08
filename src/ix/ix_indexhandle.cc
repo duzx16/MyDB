@@ -408,9 +408,21 @@ void IX_IndexHandle::GetGeqRIDPos(const void *pData, RIDPositionInfo &ridPositio
 		LDB(pageHandle.GetData(pageData));
 		NodePagePacket* nodePagePacket = (NodePagePacket*) pageData;
 		if (nodePagePacket->nodeType == INTERNAL_NODE) {
-			int son = (nodePagePacket->internalNode).son[0];
-			unpinAllPages();
-			getExistedPage(son, pageHandle);
+			InternalNode *internalNode = &(nodePagePacket->internalNode);
+			int i;
+			for (i = internalNode->keyCount; i >= 0; --i) {
+				if (cmp(getValueFromRecRID(internalNode->recRID[i]), pData) < 0) {
+					int son = internalNode->son[i];
+					unpinAllPages();
+					getExistedPage(son, pageHandle);
+					break;
+				}
+			}
+			if (i == -1) {
+				int son = internalNode->son[0];
+				unpinAllPages();
+				getExistedPage(son, pageHandle);
+			}
 		}
 		else {
 			leafNode = &(nodePagePacket->leafNode);

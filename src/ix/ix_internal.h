@@ -6,8 +6,8 @@
 #include "../pf/pf.h"
 
 
-#define D (4000 / (sizeof(RID) + 4) / 4)
-#define RID_BUCKET_SIZE (4000 / sizeof(RID))
+const int D = (4050 - 16) / (sizeof(RID) + 4) / 4 - 3;
+const int RID_BUCKET_SIZE = 4000 / sizeof(RID);
 #define MAX_DEPTH 1010
 #define INTERNAL_NODE 0
 #define LEAF_NODE 1
