@@ -607,14 +607,21 @@ int IX_IndexHandle::cmp(const void *a, const void *b) {
 }
 
 int IX_IndexHandle::cmp(const RID ridA, const RID ridB) {
-	void *a = getValueFromRecRID(ridA);
-	void *b = getValueFromRecRID(ridB);
-	return cmp(a, b);
+	char *aChar = getValueFromRecRID(ridA);
+	char *bChar = getValueFromRecRID(ridB);
+	void *a = (void*)aChar;
+	void *b = (void*)bChar;
+	int result = cmp(a, b);
+	delete[] aChar;
+	delete[] bChar;
+	return result;
 }
-void* IX_IndexHandle::getValueFromRecRID(const RID rid) {
+char* IX_IndexHandle::getValueFromRecRID(const RID rid) {
 	char *tupleHead;
 	RM_Record rmRecord;
 	LDB(rmFileHandle->getRec(rid, rmRecord));
 	tupleHead = rmRecord.getData();
-	return tupleHead + attrOffset;
+	char *store = new char[indexInfo->attrLength + 1];
+	memcpy(store, tupleHead + attrOffset, indexInfo->attrLength);
+	return store;
 }
