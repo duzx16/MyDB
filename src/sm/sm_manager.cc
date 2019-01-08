@@ -76,20 +76,64 @@ RC SM_Manager::CloseDb() {
 }
 
 RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, TableConstraintList *tableConstraints) {
-    //printf("SM_Manager::CreateTable\n");
-    char s[1010] = {};
+	char s[1010] = {};
     GenerateTableMetadataDir(tableName, s);
-    //printf("name = %s\n", s);
     if (pfManager.CreateFile(s) != 0) {
         return SM_REL_EXISTS;
     }
+	
+	// check if foreign cons are valid
+	if (tableConstraints != nullptr) {
+		for (int i = 0; i < (tableConstraints->tbDecs).size(); ++i) {
+			TableConstraint *tableConsFrom = tableConstraints->tbDecs[i];
+			if (tableConsFrom->type == ConstraintType::FOREIGN_CONSTRAINT) {
+				// check valid
+				if (!foreignTableExist((tableConsFrom->foreign_table).c_str())) {
+					printf("SM_FOREIGN_REL_NOT_FOUND\n");
+					return SM_FOREIGN_REL_NOT_FOUND;
+				}
+				char foreignTableFile[1010] = {};
+				GenerateTableMetadataDir((tableConsFrom->foreign_table).c_str(), foreignTableFile);
+				PF_FileHandle foreignTableFileHandle;
+				if (pfManager.OpenFile(foreignTableFile, foreignTableFileHandle) != 0)
+					return SM_FOREIGN_REL_NOT_FOUND;
+				PF_PageHandle pageHandle;
+				LDB(foreignTableFileHandle.GetThisPage(0, pageHandle));
+				char *pageData;
+				LDB(pageHandle.GetData(pageData));
+				TableInfo *tableInfo = (TableInfo*)pageData;
+				bool found = false;
+				for (int i = 0; i < tableInfo->tableConsCount; ++i) {
+					LDB(foreignTableFileHandle.GetThisPage(i + 1, pageHandle));
+					LDB(pageHandle.GetData(pageData));
+					TableCons *tableCons = (TableCons*)pageData;
+					if (tableCons->type == ConstraintType::PRIMARY_CONSTRAINT) {
+						for (int j = 0; j < (tableCons->columnList).columnCount; ++j) {
+							if (strcmp((tableCons->columnList).columns[j], (tableConsFrom->foreign_column).c_str()) == 0)
+								found = true;
+						}
+					}
+					LDB(foreignTableFileHandle.UnpinPage(i + 1));
+					if (found)
+						break;
+				}
+				LDB(foreignTableFileHandle.UnpinPage(0));
+				LDB(pfManager.CloseFile(foreignTableFileHandle));
+				if (!found) {
+					printf("SM_FOREIGN_KEY_NOT_FOUND\n");
+					return SM_FOREIGN_KEY_NOT_FOUND;
+				}
+			}
+		}
+	}
+	
+    //printf("SM_Manager::CreateTable\n");
     PF_FileHandle fileHandle;
     LDB(pfManager.OpenFile(s, fileHandle));
     PF_PageHandle pageHandle;
     LDB(fileHandle.AllocatePage(pageHandle));
     char *pageData;
     LDB(pageHandle.GetData(pageData));
-    //printf("allocating page\n");
     auto *tableInfo = (TableInfo *) pageData;
     tableInfo->attrInfoCount = columns->getColumnCount();
     AttrInfo *attrInfos = columns->getAttrInfos();
@@ -102,35 +146,6 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
         tableInfo->tableConsCount = (tableConstraints->tbDecs).size();
         for (int i = 0; i < tableInfo->tableConsCount; ++i) {
 			TableConstraint *tableConsFrom = tableConstraints->tbDecs[i];
-			if (tableConsFrom->type == ConstraintType::FOREIGN_CONSTRAINT) {
-				// check valid
-				if (!foreignTableExist((tableConsFrom->foreign_table).c_str()))
-					return SM_FOREIGN_REL_NOT_FOUND;
-				memset(s, 0, sizeof s);
-				GenerateTableMetadataDir((tableConsFrom->foreign_table).c_str(), s);
-				PF_FileHandle foreignTableFileHandle;
-				if (pfManager.OpenFile(s, foreignTableFileHandle) != 0)
-					return SM_FOREIGN_REL_NOT_FOUND;
-				PF_PageHandle pageHandle;
-				LDB(foreignTableFileHandle.GetThisPage(0, pageHandle));
-				char *pageData;
-				LDB(pageHandle.GetData(pageData));
-				TableInfo *tableInfo = (TableInfo*)pageData;
-				bool found = false;
-				for (int i = 0; i < tableInfo->tableConsCount; ++i) {
-					LDB(foreignTableFileHandle.GetThisPage(i + 1, pageHandle));
-					LDB(pageHandle.GetData(pageData));
-					TableCons *tableCons = (TableCons*)pageData;
-					if (tableCons->type == ConstraintType::PRIMARY_CONSTRAINT && strcmp(tableCons->column_name, (tableConsFrom->foreign_table).c_str()) == 0) {
-						found = true;
-					}
-					LDB(foreignTableFileHandle.UnpinPage(i + 1));
-				}
-				LDB(foreignTableFileHandle.UnpinPage(0));
-				LDB(pfManager.CloseFile(foreignTableFileHandle));
-				if (!found)
-					return SM_FOREIGN_KEY_NOT_FOUND;
-			}
             // allocate a new page to store a TableCons, pageNum = i + 1
             PF_PageHandle tableConsPageHandle;
             LDB(fileHandle.AllocatePage(tableConsPageHandle));
@@ -140,49 +155,31 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
             auto *tableCons = (TableCons *) tableConsPageData;
             
             tableCons->type = tableConsFrom->type;
-            //printf("hello?\n");
             if (!tableConsFrom->column_name.empty()) {
-                //CHKL;
-                //printf("column_name = %s\n", (tableConsFrom->column_name).c_str());
-                //printf("name_length = %d\n", strlen((tableConsFrom->column_name).c_str()));
                 strcpy(tableCons->column_name, (tableConsFrom->column_name).c_str());
-                //memcpy(tableCons->column_name, (tableConsFrom->column_name).c_str(), sizeof (tableCons->column_name));
-                //CHKL;
             }
             if (!tableConsFrom->foreign_table.empty()) {
-                //CHKL;
                 strcpy(tableCons->foreign_table, (tableConsFrom->foreign_table).c_str());
             }
             if (!tableConsFrom->foreign_column.empty()) {
-                //CHKL;
                 strcpy(tableCons->foreign_column, (tableConsFrom->foreign_column).c_str());
             }
-            //printf("hey man\n");
             if (tableConsFrom->const_values != nullptr && tableConsFrom->const_values != NULL) {
-                //printf("const_values not null!\n");
                 for (Expr *expr : tableConsFrom->const_values->constValues) {
-                    if (expr == nullptr) {
-                        //printf("expr null!\n");
-                    }
-                    // insert Expr expr into exprs
                     ConstNode *constNode = getConstNodeFromExpr(expr);
-                    //CHKL;
                     tableCons->constNodes[tableCons->constSize++] = *constNode;
-                    //CHKL;
                     delete constNode;
                 }
-                //printf("const_values inserted\n");
             }
             if (tableConsFrom->column_list != nullptr) {
-                //printf("column_list not null!\n");
                 for (const auto &_ : tableConsFrom->column_list->idents) {
                     (tableCons->columnList).addColumn(_.c_str());
                 }
-                //printf("column_list inserted\n");
             }
 
             PageNum tableConsPageNum;
             LDB(tableConsPageHandle.GetPageNum(tableConsPageNum));
+			//printf("i = %d, tableConsPageNum = %d\n", i, tableConsPageNum);
             assert(tableConsPageNum == i + 1);
             LDB(fileHandle.MarkDirty(tableConsPageNum));
             LDB(fileHandle.ForcePages(tableConsPageNum));
