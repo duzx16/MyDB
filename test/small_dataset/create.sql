@@ -24,10 +24,6 @@ score int not null,
 primary key (gid)
 );
 
-create index student (sid);
-create index course (cid);
-create index grade (gid);
-
 insert into student values (1001, 'Li', 'man', 20, 'sdwf');
 insert into student values (1002, 'Xu', 'man', 23, 'sdgm');
 insert into student values (1003, 'zhao', 'woman', 25, 'sdwf');

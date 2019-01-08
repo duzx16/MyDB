@@ -163,6 +163,11 @@ void CreateTable::visit() {
         fprintf(stderr, "Create table error\n");
         return;
     }
+    unsigned recordSize = 0;
+    for (const auto &it: columns->columns) {
+        recordSize += it->size + 1;
+    }
+    rc = RecordManager::getInstance().createFile(tableName + "_Record", recordSize);
     if (this->tableConstraints != nullptr) {
         for (const auto &constraint: this->tableConstraints->tbDecs) {
             if (constraint->type == ConstraintType::PRIMARY_CONSTRAINT) {
@@ -175,11 +180,6 @@ void CreateTable::visit() {
             }
         }
     }
-    unsigned recordSize = 0;
-    for (const auto &it: columns->columns) {
-        recordSize += it->size + 1;
-    }
-    rc = RecordManager::getInstance().createFile(tableName + "_Record", recordSize);
     DebugPrintf("create table %s end\n", tableName.c_str());
 }
 
