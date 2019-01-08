@@ -17,7 +17,7 @@
 #define CHKL printf("line %d is ok\n", __LINE__)
 
 SM_Manager::SM_Manager() {
-    ixm = new IX_Manager(pfManager);
+    ixm = new IX_Manager(&pfManager);
     rmm = &(RecordManager::getInstance());
 }
 
@@ -250,23 +250,50 @@ RC SM_Manager::GetTableInfo(const char *tableName, ColumnDecsList &columns, Tabl
 }
 
 RC SM_Manager::DropTable(const char *relName) {
-
+	RC rc;
+	// get table metadata
+	char s[1010] = {};
+	GenerateTableMetadataDir(relName, s);
+    PF_FileHandle fileHandle;
+	if ((rc = pfManager.OpenFile(s, fileHandle)) != 0)
+		return rc;
+	PF_PageHandle pageHandle;
+	LDB(fileHandle.GetThisPage(0, pageHandle));
+	char *pageData;
+	LDB(pageHandle.GetData(pageData));
+	TableInfo *tableInfo = (TableInfo*) pageData;
+	// delete all index files
+	for (int i = 0; i < tableInfo->indexedAttrSize; ++i) {
+		if ((rc = ixm->DestroyIndex(relName, tableInfo->indexedAttr[i])) != 0)
+			return rc;
+	}
+	// delete table metadata file
+	if ((rc = pfManager.DestroyFile(s)) != 0)
+		return rc;
+	// delete table rec file
+	GenerateTableRecordDir(relName, s);
+	std::string recFileName(s);
+	if ((rc = rmm->destroyFile(recFileName)) != 0)
+		return rc;
+	return 0;
 }
 
 RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
+	RC rc;
     char s[1010] = {};
     GenerateTableMetadataDir(relName, s);
     PF_FileHandle fileHandle;
-    pfManager.OpenFile(s, fileHandle);
+    if ((rc = pfManager.OpenFile(s, fileHandle)) != 0)
+		return rc;
     PF_PageHandle pageHandle;
-    fileHandle.GetThisPage(0, pageHandle);
+    LDB(fileHandle.GetThisPage(0, pageHandle));
     char *pageData;
-    pageHandle.GetData(pageData);
+    LDB(pageHandle.GetData(pageData));
     auto *tableInfo = (TableInfo *) pageData;
     for (int i = 0; i < tableInfo->indexedAttrSize; ++i) {
         if (strcmp((tableInfo->attrInfos[tableInfo->indexedAttr[i]]).attrName, attrName) == 0) {
             // index existed
-            pfManager.CloseFile(fileHandle);
+            LDB(pfManager.CloseFile(fileHandle));
             return SM_INDEX_EXISTS;
         }
     }
@@ -279,56 +306,59 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
     }
     if (pos == -1) {
         // index name not found
-        pfManager.CloseFile(fileHandle);
+        LDB(pfManager.CloseFile(fileHandle));
         return SM_INDEX_NOTEXIST;
     }
     tableInfo->indexedAttr[tableInfo->indexedAttrSize++] = pos;
-    fileHandle.ForcePages();
-    pfManager.CloseFile(fileHandle);
+    LDB(fileHandle.ForcePages());
+    LDB(pfManager.CloseFile(fileHandle));
     // create index
-    ixm->CreateIndex(relName, pos, (tableInfo->attrInfos[pos]).attrType, (tableInfo->attrInfos[pos]).attrLength);
-    IX_IndexHandle indexHandle;
-    ixm->OpenIndex(relName, pos, indexHandle);
-    // calc offset
+    if ((rc = ixm->CreateIndex(relName, pos, (tableInfo->attrInfos[pos]).attrType, (tableInfo->attrInfos[pos]).attrLength)) != 0)
+		return rc;
+	// calc offset
     int offset = 0;
     for (int i = 0; i < pos; ++i)
         offset += (tableInfo->attrInfos[i]).attrLength;
-    // open record scan
+	// open record scan
     RM_FileHandle rmFileHandle;
     memset(s, 0, sizeof(s));
     GenerateTableRecordDir(relName, s);
-    if (rmm->openFile(s, rmFileHandle) == 0) {
-        RM_FileScan rmFileScan;
-        rmFileScan.openScan(
+	if ((rc = rmm->openFile(s, rmFileHandle)) != 0)
+		return rc;
+	IX_IndexHandle indexHandle;
+    if ((rc = ixm->OpenIndex(relName, pos, indexHandle, rmFileHandle, offset)) != 0)
+		return rc;
+    
+    RM_FileScan rmFileScan;
+    if ((rc = rmFileScan.openScan(
                 rmFileHandle,
                 (tableInfo->attrInfos[pos]).attrType,
                 (tableInfo->attrInfos[pos]).attrLength,
                 offset,
                 CompOp::NO_OP,
                 nullptr
-        );
-        RM_Record rec;
-        while (rmFileScan.getNextRec(rec) == 0) {
-            // insert entry into index
-            char *pdata = rec.getData();
-            RID rid = rec.getRID();
-            indexHandle.InsertEntry(pdata, rid);
-        }
-        indexHandle.ForcePages();
-        rmm->closeFile(rmFileHandle);
-    }
+        )) != 0)
+		return rc;
+    RM_Record rec;
+    while (rmFileScan.getNextRec(rec) == 0) {
+		indexHandle.InsertEntry(rec.getRID());
+	}
+	LDB(ixm->CloseIndex(indexHandle));
+	LDB(rmm->closeFile(rmFileHandle));
     return 0;
 }
 
 RC SM_Manager::DropIndex(const char *relName, const char *attrName) {
+	RC rc;
     char s[1010] = {};
     GenerateTableMetadataDir(relName, s);
     PF_FileHandle fileHandle;
-    pfManager.OpenFile(s, fileHandle);
+    if ((rc = pfManager.OpenFile(s, fileHandle)) != 0)
+		return rc;
     PF_PageHandle pageHandle;
-    fileHandle.GetThisPage(0, pageHandle);
+    LDB(fileHandle.GetThisPage(0, pageHandle));
     char *pageData;
-    pageHandle.GetData(pageData);
+    LDB(pageHandle.GetData(pageData));
     auto *tableInfo = (TableInfo *) pageData;
     // find indexed pos
     int pos = -1;
@@ -339,7 +369,7 @@ RC SM_Manager::DropIndex(const char *relName, const char *attrName) {
         }
     }
     if (pos == -1) {
-        pfManager.CloseFile(fileHandle);
+        LDB(pfManager.CloseFile(fileHandle));
         return SM_INDEX_NOTEXIST;
     }
     // remove index file
@@ -353,8 +383,7 @@ RC SM_Manager::DropIndex(const char *relName, const char *attrName) {
     return 0;
 }
 
-RC SM_Manager::Load(const char *relName, const char *fileName) {
-
+RC SM_Manager::Load(const char *relName, const char *fileName) {	
 }
 
 RC SM_Manager::Help() {

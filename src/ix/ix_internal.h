@@ -6,7 +6,7 @@
 #include "../pf/pf.h"
 
 
-#define D 100
+#define D 70
 #define RID_BUCKET_SIZE 500
 #define MAX_DEPTH 1010
 #define INTERNAL_NODE 0
@@ -18,7 +18,8 @@ struct IndexInfo {
 	PageNum rootPageNum;
 };
 struct LeafData {
-	void *pdata;
+	//void *pdata;
+	RID recRID;
 	PageNum ridPageNum;
 	void init() { ridPageNum = -1; }
 };
@@ -27,7 +28,8 @@ struct LeafNode {
 	LeafData data[D * 2 + 1];
 	PageNum leftPage, rightPage;
 	void init() { size = 0; leftPage = rightPage = -1; }
-	void insertDataIntoPos(void *pData, PageNum pageNum, int pos);
+	//void insertDataIntoPos(void *pData, PageNum pageNum, int pos);
+	void insertDataIntoPos(RID rid, PageNum pageNum, int pos);
 	void deleteDataAtPos(int pos);
 	void split(LeafNode* splitNode, PageNum newPage, PageNum thisPage);
 	void operator = (const LeafNode &);
@@ -35,11 +37,11 @@ struct LeafNode {
 struct InternalNode {
 	int keyCount;
 	PageNum son[2 * D + 2];
-	void* pData[2 * D + 2];
+	RID recRID[2 * D + 2];
 	void init() { keyCount = 0; for (int i = 0; i <= 2 * D; ++i) son[i] = -1; }
-	void InsertKeyAfterPos(void *pData, PageNum pageNum, int pos);
+	//void InsertKeyAfterPos(void *pData, PageNum pageNum, int pos);
+	void InsertKeyAfterPos(RID rid, PageNum pageNum, int pos);
 	void DeleteKeyAtPos(int pos);
-	void ChangeKey(void *pData, int pos);
 	void Split(InternalNode* splitNode);
 };
 struct NodePagePacket {

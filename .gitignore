@@ -6,4 +6,3 @@ Makefile
 cmake_install.cmake
 libProject_lib.a
 Project.exe
-
