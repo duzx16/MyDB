@@ -2,7 +2,7 @@
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/MyDB")
+  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/Project")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -39,6 +39,19 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("C:/Users/wyfcy/Desktop/MyDB/src/fileio/cmake_install.cmake")
   include("C:/Users/wyfcy/Desktop/MyDB/src/rm/cmake_install.cmake")
   include("C:/Users/wyfcy/Desktop/MyDB/src/ix/cmake_install.cmake")
+  include("C:/Users/wyfcy/Desktop/MyDB/src/parser/cmake_install.cmake")
+  include("C:/Users/wyfcy/Desktop/MyDB/src/sm/cmake_install.cmake")
+  include("C:/Users/wyfcy/Desktop/MyDB/src/ql/cmake_install.cmake")
 
 endif()
 
+if(CMAKE_INSTALL_COMPONENT)
+  set(CMAKE_INSTALL_MANIFEST "install_manifest_${CMAKE_INSTALL_COMPONENT}.txt")
+else()
+  set(CMAKE_INSTALL_MANIFEST "install_manifest.txt")
+endif()
+
+string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
+       "${CMAKE_INSTALL_MANIFEST_FILES}")
+file(WRITE "C:/Users/wyfcy/Desktop/MyDB/src/${CMAKE_INSTALL_MANIFEST}"
+     "${CMAKE_INSTALL_MANIFEST_CONTENT}")

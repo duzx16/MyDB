@@ -49,10 +49,10 @@ void LeafNode::split(LeafNode* splitNode, PageNum newPage, PageNum thisPage) {
 	rightPage = newPage;
 }
 
-void LeafNode::insertDataIntoPos(void *pdata, PageNum pageNum, int pos) {
+void LeafNode::insertDataIntoPos(RID rid, PageNum pageNum, int pos) {
 	for (int i = size; i >= pos + 1; --i)
 		data[i] = data[i - 1];
-	data[pos].pdata = pdata;
+	data[pos].recRID = rid;
 	data[pos].ridPageNum = pageNum;
 	++size;
 }
@@ -63,13 +63,13 @@ void LeafNode::deleteDataAtPos(int pos) {
 	--size;
 }
 
-void InternalNode::InsertKeyAfterPos(void *pdata, PageNum pageNum, int pos) {
+void InternalNode::InsertKeyAfterPos(RID rid, PageNum pageNum, int pos) {
 	for (int i = keyCount + 1; i >= pos + 2; --i) {
 		son[i] = son[i - 1];
-		pData[i] = pData[i - 1];
+		recRID[i] = recRID[i - 1];
 	}
 	son[pos + 1] = pageNum;
-	pData[pos + 1] = pdata;
+	recRID[pos + 1] = rid;
 	++keyCount;
 }	
 
@@ -77,7 +77,7 @@ void InternalNode::InsertKeyAfterPos(void *pdata, PageNum pageNum, int pos) {
 void InternalNode::DeleteKeyAtPos(int pos) {
 	for (int i = pos; i < keyCount; ++i) {
 		son[i] = son[i + 1];
-		pData[i] = pData[i + 1];
+		recRID[i] = recRID[i + 1];
 	}
 	--keyCount;
 }
@@ -86,10 +86,10 @@ void InternalNode::Split(InternalNode* splitNode) {
 	keyCount = D;
 	splitNode->keyCount = D - 1;
 	splitNode->son[0] = son[D + 1];
-	splitNode->pData[0] = pData[D + 1];
+	splitNode->recRID[0] = recRID[D + 1];
 	for (int i = 1; i <= splitNode->keyCount; ++i) {
 		splitNode->son[i] = son[D + 1 + i];
-		splitNode->pData[i] = pData[D + 1 + i];
+		splitNode->recRID[i] = recRID[D + 1 + i];
 	}
 }
 

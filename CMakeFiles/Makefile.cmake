@@ -15,8 +15,11 @@ set(CMAKE_MAKEFILE_DEPENDS
   "src/CMakeLists.txt"
   "src/fileio/CMakeLists.txt"
   "src/ix/CMakeLists.txt"
+  "src/parser/CMakeLists.txt"
   "src/pf/CMakeLists.txt"
+  "src/ql/CMakeLists.txt"
   "src/rm/CMakeLists.txt"
+  "src/sm/CMakeLists.txt"
   "src/utils/CMakeLists.txt"
   "D:/Program Files/CMake/share/cmake-3.13/Modules/CMakeCInformation.cmake"
   "D:/Program Files/CMake/share/cmake-3.13/Modules/CMakeCXXInformation.cmake"
@@ -31,6 +34,10 @@ set(CMAKE_MAKEFILE_DEPENDS
   "D:/Program Files/CMake/share/cmake-3.13/Modules/Compiler/GNU-C.cmake"
   "D:/Program Files/CMake/share/cmake-3.13/Modules/Compiler/GNU-CXX.cmake"
   "D:/Program Files/CMake/share/cmake-3.13/Modules/Compiler/GNU.cmake"
+  "D:/Program Files/CMake/share/cmake-3.13/Modules/FindBISON.cmake"
+  "D:/Program Files/CMake/share/cmake-3.13/Modules/FindFLEX.cmake"
+  "D:/Program Files/CMake/share/cmake-3.13/Modules/FindPackageHandleStandardArgs.cmake"
+  "D:/Program Files/CMake/share/cmake-3.13/Modules/FindPackageMessage.cmake"
   "D:/Program Files/CMake/share/cmake-3.13/Modules/Platform/Windows-GNU-C-ABI.cmake"
   "D:/Program Files/CMake/share/cmake-3.13/Modules/Platform/Windows-GNU-C.cmake"
   "D:/Program Files/CMake/share/cmake-3.13/Modules/Platform/Windows-GNU-CXX-ABI.cmake"
@@ -55,6 +62,9 @@ set(CMAKE_MAKEFILE_PRODUCTS
   "src/pf/CMakeFiles/CMakeDirectoryInformation.cmake"
   "src/fileio/CMakeFiles/CMakeDirectoryInformation.cmake"
   "src/rm/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "src/parser/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "src/ql/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "src/sm/CMakeFiles/CMakeDirectoryInformation.cmake"
   "src/ix/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
@@ -62,4 +72,5 @@ set(CMAKE_MAKEFILE_PRODUCTS
 set(CMAKE_DEPEND_INFO_FILES
   "src/CMakeFiles/MyDB.dir/DependInfo.cmake"
   "src/CMakeFiles/MyDB_lib.dir/DependInfo.cmake"
+  "src/parser/CMakeFiles/SqlParser.dir/DependInfo.cmake"
   )

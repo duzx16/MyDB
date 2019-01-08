@@ -4,7 +4,7 @@
 # compile CXX with C:/MinGW/bin/g++.exe
 CXX_FLAGS =   -Wall -g -std=gnu++14
 
-CXX_DEFINES = 
+CXX_DEFINES = -DDEBUG
 
 CXX_INCLUDES = 
 

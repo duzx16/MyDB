@@ -51,6 +51,30 @@ src/CMakeFiles/MyDB_lib.dir/ix/ix_manager.cc.obj: src/ix/ix_manager.cc
 src/CMakeFiles/MyDB_lib.dir/ix/ix_manager.cc.obj: src/pf/pf.h
 src/CMakeFiles/MyDB_lib.dir/ix/ix_manager.cc.obj: src/rm/RID.h
 
+src/CMakeFiles/MyDB_lib.dir/parser/Expr.cpp.obj: src/Constants.h
+src/CMakeFiles/MyDB_lib.dir/parser/Expr.cpp.obj: src/parser/Expr.cpp
+src/CMakeFiles/MyDB_lib.dir/parser/Expr.cpp.obj: src/parser/Expr.h
+src/CMakeFiles/MyDB_lib.dir/parser/Expr.cpp.obj: src/parser/Tree.h
+src/CMakeFiles/MyDB_lib.dir/parser/Expr.cpp.obj: src/utils/FuncTemplate.h
+
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/Constants.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/ix/ix.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/ix/ix_internal.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/parser/Expr.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/parser/Tree.cpp
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/parser/Tree.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/pf/pf.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/ql/QueryManager.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/ql/Table.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/rm/HeaderPage.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/rm/RID.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/rm/RM_FileHandle.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/rm/RM_FileScan.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/rm/RM_Record.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/rm/RecordManager.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/sm/sm.h
+src/CMakeFiles/MyDB_lib.dir/parser/Tree.cpp.obj: src/utils/MyBitMap.h
+
 src/CMakeFiles/MyDB_lib.dir/pf/pf_buffermgr.cc.obj: src/Constants.h
 src/CMakeFiles/MyDB_lib.dir/pf/pf_buffermgr.cc.obj: src/pf/pf.h
 src/CMakeFiles/MyDB_lib.dir/pf/pf_buffermgr.cc.obj: src/pf/pf_buffermgr.cc
@@ -92,7 +116,43 @@ src/CMakeFiles/MyDB_lib.dir/pf/pf_statistics.cc.obj: src/Constants.h
 src/CMakeFiles/MyDB_lib.dir/pf/pf_statistics.cc.obj: src/pf/pf.h
 src/CMakeFiles/MyDB_lib.dir/pf/pf_statistics.cc.obj: src/pf/pf_statistics.cc
 
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/Constants.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/ix/ix.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/ix/ix_internal.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/parser/Expr.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/parser/Tree.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/pf/pf.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/ql/QueryManager.cpp
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/ql/QueryManager.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/ql/Table.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/rm/HeaderPage.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/rm/RID.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/rm/RM_FileHandle.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/rm/RM_FileScan.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/rm/RM_Record.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/rm/RecordManager.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/sm/sm.h
+src/CMakeFiles/MyDB_lib.dir/ql/QueryManager.cpp.obj: src/utils/MyBitMap.h
+
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/Constants.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/ix/ix.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/ix/ix_internal.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/parser/Expr.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/parser/Tree.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/pf/pf.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/ql/Table.cpp
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/ql/Table.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/rm/HeaderPage.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/rm/RID.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/rm/RM_FileHandle.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/rm/RM_FileScan.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/rm/RM_Record.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/rm/RecordManager.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/sm/sm.h
+src/CMakeFiles/MyDB_lib.dir/ql/Table.cpp.obj: src/utils/MyBitMap.h
+
 src/CMakeFiles/MyDB_lib.dir/rm/RM_FileHandle.cpp.obj: src/Constants.h
+src/CMakeFiles/MyDB_lib.dir/rm/RM_FileHandle.cpp.obj: src/parser/Expr.h
 src/CMakeFiles/MyDB_lib.dir/rm/RM_FileHandle.cpp.obj: src/pf/pf.h
 src/CMakeFiles/MyDB_lib.dir/rm/RM_FileHandle.cpp.obj: src/rm/HeaderPage.h
 src/CMakeFiles/MyDB_lib.dir/rm/RM_FileHandle.cpp.obj: src/rm/RID.h
@@ -104,6 +164,7 @@ src/CMakeFiles/MyDB_lib.dir/rm/RM_FileHandle.cpp.obj: src/rm/RecordManager.h
 src/CMakeFiles/MyDB_lib.dir/rm/RM_FileHandle.cpp.obj: src/utils/MyBitMap.h
 
 src/CMakeFiles/MyDB_lib.dir/rm/RM_FileScan.cpp.obj: src/Constants.h
+src/CMakeFiles/MyDB_lib.dir/rm/RM_FileScan.cpp.obj: src/parser/Expr.h
 src/CMakeFiles/MyDB_lib.dir/rm/RM_FileScan.cpp.obj: src/pf/pf.h
 src/CMakeFiles/MyDB_lib.dir/rm/RM_FileScan.cpp.obj: src/rm/HeaderPage.h
 src/CMakeFiles/MyDB_lib.dir/rm/RM_FileScan.cpp.obj: src/rm/RID.h
@@ -114,6 +175,7 @@ src/CMakeFiles/MyDB_lib.dir/rm/RM_FileScan.cpp.obj: src/rm/RM_Record.h
 src/CMakeFiles/MyDB_lib.dir/rm/RM_FileScan.cpp.obj: src/utils/MyBitMap.h
 
 src/CMakeFiles/MyDB_lib.dir/rm/RecordManager.cpp.obj: src/Constants.h
+src/CMakeFiles/MyDB_lib.dir/rm/RecordManager.cpp.obj: src/parser/Expr.h
 src/CMakeFiles/MyDB_lib.dir/rm/RecordManager.cpp.obj: src/pf/pf.h
 src/CMakeFiles/MyDB_lib.dir/rm/RecordManager.cpp.obj: src/rm/HeaderPage.h
 src/CMakeFiles/MyDB_lib.dir/rm/RecordManager.cpp.obj: src/rm/RID.h
@@ -123,6 +185,60 @@ src/CMakeFiles/MyDB_lib.dir/rm/RecordManager.cpp.obj: src/rm/RM_Record.h
 src/CMakeFiles/MyDB_lib.dir/rm/RecordManager.cpp.obj: src/rm/RecordManager.cpp
 src/CMakeFiles/MyDB_lib.dir/rm/RecordManager.cpp.obj: src/rm/RecordManager.h
 src/CMakeFiles/MyDB_lib.dir/rm/RecordManager.cpp.obj: src/utils/MyBitMap.h
+
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/Constants.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/ix/ix.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/ix/ix_internal.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/parser/Expr.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/parser/Tree.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/pf/pf.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/rm/HeaderPage.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/rm/RID.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/rm/RM_FileHandle.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/rm/RM_FileScan.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/rm/RM_Record.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/rm/RecordManager.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/sm/sm.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/sm/sm_error.cc
+src/CMakeFiles/MyDB_lib.dir/sm/sm_error.cc.obj: src/utils/MyBitMap.h
+
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/Constants.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/ix/ix.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/ix/ix_internal.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/parser/Expr.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/parser/Tree.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/pf/pf.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/rm/HeaderPage.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/rm/RID.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/rm/RM_FileHandle.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/rm/RM_FileScan.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/rm/RM_Record.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/rm/RecordManager.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/sm/sm.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/sm/sm_internal.cc
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/sm/sm_internal.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_internal.cc.obj: src/utils/MyBitMap.h
+
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/Constants.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/ix/ix.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/ix/ix_internal.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/parser/Expr.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/parser/Tree.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/pf/pf.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/rm/HeaderPage.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/rm/RID.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/rm/RM_FileHandle.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/rm/RM_FileScan.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/rm/RM_Record.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/rm/RecordManager.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/sm/sm.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/sm/sm_internal.h
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/sm/sm_manager.cc
+src/CMakeFiles/MyDB_lib.dir/sm/sm_manager.cc.obj: src/utils/MyBitMap.h
+
+src/CMakeFiles/MyDB_lib.dir/utils/FuncTemplate.cpp.obj: src/Constants.h
+src/CMakeFiles/MyDB_lib.dir/utils/FuncTemplate.cpp.obj: src/utils/FuncTemplate.cpp
+src/CMakeFiles/MyDB_lib.dir/utils/FuncTemplate.cpp.obj: src/utils/FuncTemplate.h
 
 src/CMakeFiles/MyDB_lib.dir/utils/MyBitMap.cpp.obj: src/utils/MyBitMap.cpp
 src/CMakeFiles/MyDB_lib.dir/utils/MyBitMap.cpp.obj: src/utils/MyBitMap.h

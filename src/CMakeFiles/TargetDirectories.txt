@@ -10,8 +10,12 @@ C:/Users/wyfcy/Desktop/MyDB/src/fileio/CMakeFiles/edit_cache.dir
 C:/Users/wyfcy/Desktop/MyDB/src/fileio/CMakeFiles/rebuild_cache.dir
 C:/Users/wyfcy/Desktop/MyDB/src/rm/CMakeFiles/edit_cache.dir
 C:/Users/wyfcy/Desktop/MyDB/src/rm/CMakeFiles/rebuild_cache.dir
+C:/Users/wyfcy/Desktop/MyDB/src/ix/CMakeFiles/edit_cache.dir
+C:/Users/wyfcy/Desktop/MyDB/src/ix/CMakeFiles/rebuild_cache.dir
 C:/Users/wyfcy/Desktop/MyDB/src/parser/CMakeFiles/edit_cache.dir
 C:/Users/wyfcy/Desktop/MyDB/src/parser/CMakeFiles/SqlParser.dir
 C:/Users/wyfcy/Desktop/MyDB/src/parser/CMakeFiles/rebuild_cache.dir
 C:/Users/wyfcy/Desktop/MyDB/src/sm/CMakeFiles/edit_cache.dir
 C:/Users/wyfcy/Desktop/MyDB/src/sm/CMakeFiles/rebuild_cache.dir
+C:/Users/wyfcy/Desktop/MyDB/src/ql/CMakeFiles/edit_cache.dir
+C:/Users/wyfcy/Desktop/MyDB/src/ql/CMakeFiles/rebuild_cache.dir

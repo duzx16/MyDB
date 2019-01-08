@@ -6,6 +6,11 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_CHECK_CXX
   "C:/Users/wyfcy/Desktop/MyDB/src/fileio/BufPageManager.cpp" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/fileio/BufPageManager.obj"
   "C:/Users/wyfcy/Desktop/MyDB/src/fileio/FileManager.cpp" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/fileio/FileManager.obj"
+  "C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_error.cc" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/ix/ix_error.obj"
+  "C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_indexhandle.cc" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj"
+  "C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_indexscan.cc" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj"
+  "C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_internal.cc" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/ix/ix_internal.obj"
+  "C:/Users/wyfcy/Desktop/MyDB/src/ix/ix_manager.cc" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/ix/ix_manager.obj"
   "C:/Users/wyfcy/Desktop/MyDB/src/parser/Expr.cpp" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/parser/Expr.obj"
   "C:/Users/wyfcy/Desktop/MyDB/src/parser/Tree.cpp" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/parser/Tree.obj"
   "C:/Users/wyfcy/Desktop/MyDB/src/pf/pf_buffermgr.cc" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/pf/pf_buffermgr.obj"
@@ -15,12 +20,15 @@ set(CMAKE_DEPENDS_CHECK_CXX
   "C:/Users/wyfcy/Desktop/MyDB/src/pf/pf_manager.cc" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/pf/pf_manager.obj"
   "C:/Users/wyfcy/Desktop/MyDB/src/pf/pf_pagehandle.cc" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/pf/pf_pagehandle.obj"
   "C:/Users/wyfcy/Desktop/MyDB/src/pf/pf_statistics.cc" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/pf/pf_statistics.obj"
+  "C:/Users/wyfcy/Desktop/MyDB/src/ql/QueryManager.cpp" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/ql/QueryManager.obj"
+  "C:/Users/wyfcy/Desktop/MyDB/src/ql/Table.cpp" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/ql/Table.obj"
   "C:/Users/wyfcy/Desktop/MyDB/src/rm/RM_FileHandle.cpp" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/rm/RM_FileHandle.obj"
   "C:/Users/wyfcy/Desktop/MyDB/src/rm/RM_FileScan.cpp" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/rm/RM_FileScan.obj"
   "C:/Users/wyfcy/Desktop/MyDB/src/rm/RecordManager.cpp" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/rm/RecordManager.obj"
   "C:/Users/wyfcy/Desktop/MyDB/src/sm/sm_error.cc" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/sm/sm_error.obj"
   "C:/Users/wyfcy/Desktop/MyDB/src/sm/sm_internal.cc" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/sm/sm_internal.obj"
   "C:/Users/wyfcy/Desktop/MyDB/src/sm/sm_manager.cc" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/sm/sm_manager.obj"
+  "C:/Users/wyfcy/Desktop/MyDB/src/utils/FuncTemplate.cpp" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/utils/FuncTemplate.obj"
   "C:/Users/wyfcy/Desktop/MyDB/src/utils/MyBitMap.cpp" "C:/Users/wyfcy/Desktop/MyDB/src/CMakeFiles/Project_lib.dir/utils/MyBitMap.obj"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")

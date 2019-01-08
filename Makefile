@@ -135,6 +135,19 @@ MyDB_lib/fast:
 	$(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/build
 .PHONY : MyDB_lib/fast
 
+#=============================================================================
+# Target rules for targets named SqlParser
+
+# Build rule for target.
+SqlParser: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 SqlParser
+.PHONY : SqlParser
+
+# fast build rule for target.
+SqlParser/fast:
+	$(MAKE) -f src\parser\CMakeFiles\SqlParser.dir\build.make src/parser/CMakeFiles/SqlParser.dir/build
+.PHONY : SqlParser/fast
+
 # Help Target
 help:
 	@echo The following are some of the valid targets for this Makefile:
@@ -145,6 +158,7 @@ help:
 	@echo ... rebuild_cache
 	@echo ... MyDB
 	@echo ... MyDB_lib
+	@echo ... SqlParser
 .PHONY : help
 
 

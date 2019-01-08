@@ -16,9 +16,61 @@ CMakeFiles/Project_lib.dir/fileio/FileManager.obj: fileio/FileManager.h
 CMakeFiles/Project_lib.dir/fileio/FileManager.obj: utils/MyBitMap.h
 CMakeFiles/Project_lib.dir/fileio/FileManager.obj: utils/pagedef.h
 
+CMakeFiles/Project_lib.dir/ix/ix_error.obj: Constants.h
+CMakeFiles/Project_lib.dir/ix/ix_error.obj: ix/ix.h
+CMakeFiles/Project_lib.dir/ix/ix_error.obj: ix/ix_error.cc
+CMakeFiles/Project_lib.dir/ix/ix_error.obj: ix/ix_internal.h
+CMakeFiles/Project_lib.dir/ix/ix_error.obj: pf/pf.h
+CMakeFiles/Project_lib.dir/ix/ix_error.obj: rm/HeaderPage.h
+CMakeFiles/Project_lib.dir/ix/ix_error.obj: rm/RID.h
+CMakeFiles/Project_lib.dir/ix/ix_error.obj: rm/RM_FileHandle.h
+CMakeFiles/Project_lib.dir/ix/ix_error.obj: rm/RM_Record.h
+
+CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj: Constants.h
+CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj: ix/ix.h
+CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj: ix/ix_indexhandle.cc
+CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj: ix/ix_internal.h
+CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj: pf/pf.h
+CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj: rm/HeaderPage.h
+CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj: rm/RID.h
+CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj: rm/RM_FileHandle.h
+CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj: rm/RM_Record.h
+
+CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj: Constants.h
+CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj: ix/ix.h
+CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj: ix/ix_indexscan.cc
+CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj: ix/ix_internal.h
+CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj: pf/pf.h
+CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj: rm/HeaderPage.h
+CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj: rm/RID.h
+CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj: rm/RM_FileHandle.h
+CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj: rm/RM_Record.h
+
+CMakeFiles/Project_lib.dir/ix/ix_internal.obj: Constants.h
+CMakeFiles/Project_lib.dir/ix/ix_internal.obj: ix/ix.h
+CMakeFiles/Project_lib.dir/ix/ix_internal.obj: ix/ix_internal.cc
+CMakeFiles/Project_lib.dir/ix/ix_internal.obj: ix/ix_internal.h
+CMakeFiles/Project_lib.dir/ix/ix_internal.obj: pf/pf.h
+CMakeFiles/Project_lib.dir/ix/ix_internal.obj: rm/HeaderPage.h
+CMakeFiles/Project_lib.dir/ix/ix_internal.obj: rm/RID.h
+CMakeFiles/Project_lib.dir/ix/ix_internal.obj: rm/RM_FileHandle.h
+CMakeFiles/Project_lib.dir/ix/ix_internal.obj: rm/RM_Record.h
+
+CMakeFiles/Project_lib.dir/ix/ix_manager.obj: Constants.h
+CMakeFiles/Project_lib.dir/ix/ix_manager.obj: ix/ix.h
+CMakeFiles/Project_lib.dir/ix/ix_manager.obj: ix/ix_internal.h
+CMakeFiles/Project_lib.dir/ix/ix_manager.obj: ix/ix_manager.cc
+CMakeFiles/Project_lib.dir/ix/ix_manager.obj: pf/pf.h
+CMakeFiles/Project_lib.dir/ix/ix_manager.obj: rm/HeaderPage.h
+CMakeFiles/Project_lib.dir/ix/ix_manager.obj: rm/RID.h
+CMakeFiles/Project_lib.dir/ix/ix_manager.obj: rm/RM_FileHandle.h
+CMakeFiles/Project_lib.dir/ix/ix_manager.obj: rm/RM_Record.h
+
 CMakeFiles/Project_lib.dir/parser/Expr.obj: Constants.h
 CMakeFiles/Project_lib.dir/parser/Expr.obj: parser/Expr.cpp
 CMakeFiles/Project_lib.dir/parser/Expr.obj: parser/Expr.h
+CMakeFiles/Project_lib.dir/parser/Expr.obj: parser/Tree.h
+CMakeFiles/Project_lib.dir/parser/Expr.obj: utils/FuncTemplate.h
 
 CMakeFiles/Project_lib.dir/parser/Tree.obj: Constants.h
 CMakeFiles/Project_lib.dir/parser/Tree.obj: ix/ix.h
@@ -27,6 +79,8 @@ CMakeFiles/Project_lib.dir/parser/Tree.obj: parser/Expr.h
 CMakeFiles/Project_lib.dir/parser/Tree.obj: parser/Tree.cpp
 CMakeFiles/Project_lib.dir/parser/Tree.obj: parser/Tree.h
 CMakeFiles/Project_lib.dir/parser/Tree.obj: pf/pf.h
+CMakeFiles/Project_lib.dir/parser/Tree.obj: ql/QueryManager.h
+CMakeFiles/Project_lib.dir/parser/Tree.obj: ql/Table.h
 CMakeFiles/Project_lib.dir/parser/Tree.obj: rm/HeaderPage.h
 CMakeFiles/Project_lib.dir/parser/Tree.obj: rm/RID.h
 CMakeFiles/Project_lib.dir/parser/Tree.obj: rm/RM_FileHandle.h
@@ -77,6 +131,41 @@ CMakeFiles/Project_lib.dir/pf/pf_statistics.obj: Constants.h
 CMakeFiles/Project_lib.dir/pf/pf_statistics.obj: pf/pf.h
 CMakeFiles/Project_lib.dir/pf/pf_statistics.obj: pf/pf_statistics.cc
 
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: Constants.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: ix/ix.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: ix/ix_internal.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: parser/Expr.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: parser/Tree.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: pf/pf.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: ql/QueryManager.cpp
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: ql/QueryManager.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: ql/Table.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: rm/HeaderPage.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: rm/RID.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: rm/RM_FileHandle.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: rm/RM_FileScan.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: rm/RM_Record.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: rm/RecordManager.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: sm/sm.h
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: utils/MyBitMap.h
+
+CMakeFiles/Project_lib.dir/ql/Table.obj: Constants.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: ix/ix.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: ix/ix_internal.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: parser/Expr.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: parser/Tree.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: pf/pf.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: ql/Table.cpp
+CMakeFiles/Project_lib.dir/ql/Table.obj: ql/Table.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: rm/HeaderPage.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: rm/RID.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: rm/RM_FileHandle.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: rm/RM_FileScan.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: rm/RM_Record.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: rm/RecordManager.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: sm/sm.h
+CMakeFiles/Project_lib.dir/ql/Table.obj: utils/MyBitMap.h
+
 CMakeFiles/Project_lib.dir/rm/RM_FileHandle.obj: Constants.h
 CMakeFiles/Project_lib.dir/rm/RM_FileHandle.obj: pf/pf.h
 CMakeFiles/Project_lib.dir/rm/RM_FileHandle.obj: rm/HeaderPage.h
@@ -89,6 +178,7 @@ CMakeFiles/Project_lib.dir/rm/RM_FileHandle.obj: rm/RecordManager.h
 CMakeFiles/Project_lib.dir/rm/RM_FileHandle.obj: utils/MyBitMap.h
 
 CMakeFiles/Project_lib.dir/rm/RM_FileScan.obj: Constants.h
+CMakeFiles/Project_lib.dir/rm/RM_FileScan.obj: parser/Expr.h
 CMakeFiles/Project_lib.dir/rm/RM_FileScan.obj: pf/pf.h
 CMakeFiles/Project_lib.dir/rm/RM_FileScan.obj: rm/HeaderPage.h
 CMakeFiles/Project_lib.dir/rm/RM_FileScan.obj: rm/RID.h
@@ -158,6 +248,10 @@ CMakeFiles/Project_lib.dir/sm/sm_manager.obj: sm/sm.h
 CMakeFiles/Project_lib.dir/sm/sm_manager.obj: sm/sm_internal.h
 CMakeFiles/Project_lib.dir/sm/sm_manager.obj: sm/sm_manager.cc
 CMakeFiles/Project_lib.dir/sm/sm_manager.obj: utils/MyBitMap.h
+
+CMakeFiles/Project_lib.dir/utils/FuncTemplate.obj: Constants.h
+CMakeFiles/Project_lib.dir/utils/FuncTemplate.obj: utils/FuncTemplate.cpp
+CMakeFiles/Project_lib.dir/utils/FuncTemplate.obj: utils/FuncTemplate.h
 
 CMakeFiles/Project_lib.dir/utils/MyBitMap.obj: utils/MyBitMap.cpp
 CMakeFiles/Project_lib.dir/utils/MyBitMap.obj: utils/MyBitMap.h

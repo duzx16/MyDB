@@ -7,6 +7,8 @@
 #IncludeRegexTransform: 
 
 C:/Users/wyfcy/Desktop/MyDB/src/Constants.h
+string
+-
 
 C:/Users/wyfcy/Desktop/MyDB/src/parser/Expr.h
 ../Constants.h

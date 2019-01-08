@@ -47,24 +47,13 @@ RM = "D:\Program Files\CMake\bin\cmake.exe" -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = C:\Users\wyfcy\Desktop\MyDB
+CMAKE_SOURCE_DIR = C:\Users\wyfcy\Desktop\MyDB\src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = C:\Users\wyfcy\Desktop\MyDB
+CMAKE_BINARY_DIR = C:\Users\wyfcy\Desktop\MyDB\src
 
 #=============================================================================
 # Targets provided globally by CMake.
-
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	"D:\Program Files\CMake\bin\cmake.exe" -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
 
 # Special rule for the target edit_cache
 edit_cache:
@@ -77,16 +66,27 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	"D:\Program Files\CMake\bin\cmake.exe" -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
+
 # The main all target
 all: cmake_check_build_system
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(CMAKE_COMMAND) -E cmake_progress_start C:\Users\wyfcy\Desktop\MyDB\CMakeFiles C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles\progress.marks
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f CMakeFiles\Makefile2 src/all
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\wyfcy\Desktop\MyDB\CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles\progress.marks
+	$(MAKE) -f CMakeFiles\Makefile2 all
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f CMakeFiles\Makefile2 src/clean
+	$(MAKE) -f CMakeFiles\Makefile2 clean
 .PHONY : clean
 
 # The main clean target
@@ -96,561 +96,462 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f CMakeFiles\Makefile2 src/preinstall
+	$(MAKE) -f CMakeFiles\Makefile2 preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f CMakeFiles\Makefile2 src/preinstall
+	$(MAKE) -f CMakeFiles\Makefile2 preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles\Makefile.cmake 1
+	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles\Makefile.cmake 1
 .PHONY : depend
 
-# Convenience name for target.
-src/CMakeFiles/MyDB.dir/rule:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f CMakeFiles\Makefile2 src/CMakeFiles/MyDB.dir/rule
-.PHONY : src/CMakeFiles/MyDB.dir/rule
+#=============================================================================
+# Target rules for targets named Project_lib
 
-# Convenience name for target.
-MyDB: src/CMakeFiles/MyDB.dir/rule
-
-.PHONY : MyDB
+# Build rule for target.
+Project_lib: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 Project_lib
+.PHONY : Project_lib
 
 # fast build rule for target.
-MyDB/fast:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB.dir\build.make src/CMakeFiles/MyDB.dir/build
-.PHONY : MyDB/fast
+Project_lib/fast:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/build
+.PHONY : Project_lib/fast
 
-# Convenience name for target.
-src/CMakeFiles/MyDB_lib.dir/rule:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f CMakeFiles\Makefile2 src/CMakeFiles/MyDB_lib.dir/rule
-.PHONY : src/CMakeFiles/MyDB_lib.dir/rule
+#=============================================================================
+# Target rules for targets named Project
 
-# Convenience name for target.
-MyDB_lib: src/CMakeFiles/MyDB_lib.dir/rule
-
-.PHONY : MyDB_lib
+# Build rule for target.
+Project: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 Project
+.PHONY : Project
 
 # fast build rule for target.
-MyDB_lib/fast:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/build
-.PHONY : MyDB_lib/fast
+Project/fast:
+	$(MAKE) -f CMakeFiles\Project.dir\build.make CMakeFiles/Project.dir/build
+.PHONY : Project/fast
 
-fileio/BufPageManager.obj: fileio/BufPageManager.cpp.obj
+#=============================================================================
+# Target rules for targets named SqlParser
 
+# Build rule for target.
+SqlParser: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 SqlParser
+.PHONY : SqlParser
+
+# fast build rule for target.
+SqlParser/fast:
+	$(MAKE) -f parser\CMakeFiles\SqlParser.dir\build.make parser/CMakeFiles/SqlParser.dir/build
+.PHONY : SqlParser/fast
+
+# target to build an object file
+fileio/BufPageManager.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/fileio/BufPageManager.obj
 .PHONY : fileio/BufPageManager.obj
 
-# target to build an object file
-fileio/BufPageManager.cpp.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/fileio/BufPageManager.cpp.obj
-.PHONY : fileio/BufPageManager.cpp.obj
-
-fileio/BufPageManager.i: fileio/BufPageManager.cpp.i
-
+# target to preprocess a source file
+fileio/BufPageManager.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/fileio/BufPageManager.i
 .PHONY : fileio/BufPageManager.i
 
-# target to preprocess a source file
-fileio/BufPageManager.cpp.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/fileio/BufPageManager.cpp.i
-.PHONY : fileio/BufPageManager.cpp.i
-
-fileio/BufPageManager.s: fileio/BufPageManager.cpp.s
-
+# target to generate assembly for a file
+fileio/BufPageManager.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/fileio/BufPageManager.s
 .PHONY : fileio/BufPageManager.s
 
-# target to generate assembly for a file
-fileio/BufPageManager.cpp.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/fileio/BufPageManager.cpp.s
-.PHONY : fileio/BufPageManager.cpp.s
-
-fileio/FileManager.obj: fileio/FileManager.cpp.obj
-
+# target to build an object file
+fileio/FileManager.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/fileio/FileManager.obj
 .PHONY : fileio/FileManager.obj
 
-# target to build an object file
-fileio/FileManager.cpp.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/fileio/FileManager.cpp.obj
-.PHONY : fileio/FileManager.cpp.obj
-
-fileio/FileManager.i: fileio/FileManager.cpp.i
-
+# target to preprocess a source file
+fileio/FileManager.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/fileio/FileManager.i
 .PHONY : fileio/FileManager.i
 
-# target to preprocess a source file
-fileio/FileManager.cpp.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/fileio/FileManager.cpp.i
-.PHONY : fileio/FileManager.cpp.i
-
-fileio/FileManager.s: fileio/FileManager.cpp.s
-
+# target to generate assembly for a file
+fileio/FileManager.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/fileio/FileManager.s
 .PHONY : fileio/FileManager.s
 
-# target to generate assembly for a file
-fileio/FileManager.cpp.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/fileio/FileManager.cpp.s
-.PHONY : fileio/FileManager.cpp.s
-
-ix/ix_error.obj: ix/ix_error.cc.obj
-
+# target to build an object file
+ix/ix_error.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_error.obj
 .PHONY : ix/ix_error.obj
 
-# target to build an object file
-ix/ix_error.cc.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_error.cc.obj
-.PHONY : ix/ix_error.cc.obj
-
-ix/ix_error.i: ix/ix_error.cc.i
-
+# target to preprocess a source file
+ix/ix_error.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_error.i
 .PHONY : ix/ix_error.i
 
-# target to preprocess a source file
-ix/ix_error.cc.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_error.cc.i
-.PHONY : ix/ix_error.cc.i
-
-ix/ix_error.s: ix/ix_error.cc.s
-
+# target to generate assembly for a file
+ix/ix_error.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_error.s
 .PHONY : ix/ix_error.s
 
-# target to generate assembly for a file
-ix/ix_error.cc.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_error.cc.s
-.PHONY : ix/ix_error.cc.s
-
-ix/ix_indexhandle.obj: ix/ix_indexhandle.cc.obj
-
+# target to build an object file
+ix/ix_indexhandle.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj
 .PHONY : ix/ix_indexhandle.obj
 
-# target to build an object file
-ix/ix_indexhandle.cc.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_indexhandle.cc.obj
-.PHONY : ix/ix_indexhandle.cc.obj
-
-ix/ix_indexhandle.i: ix/ix_indexhandle.cc.i
-
+# target to preprocess a source file
+ix/ix_indexhandle.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_indexhandle.i
 .PHONY : ix/ix_indexhandle.i
 
-# target to preprocess a source file
-ix/ix_indexhandle.cc.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_indexhandle.cc.i
-.PHONY : ix/ix_indexhandle.cc.i
-
-ix/ix_indexhandle.s: ix/ix_indexhandle.cc.s
-
+# target to generate assembly for a file
+ix/ix_indexhandle.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_indexhandle.s
 .PHONY : ix/ix_indexhandle.s
 
-# target to generate assembly for a file
-ix/ix_indexhandle.cc.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_indexhandle.cc.s
-.PHONY : ix/ix_indexhandle.cc.s
-
-ix/ix_indexscan.obj: ix/ix_indexscan.cc.obj
-
+# target to build an object file
+ix/ix_indexscan.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj
 .PHONY : ix/ix_indexscan.obj
 
-# target to build an object file
-ix/ix_indexscan.cc.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_indexscan.cc.obj
-.PHONY : ix/ix_indexscan.cc.obj
-
-ix/ix_indexscan.i: ix/ix_indexscan.cc.i
-
+# target to preprocess a source file
+ix/ix_indexscan.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_indexscan.i
 .PHONY : ix/ix_indexscan.i
 
-# target to preprocess a source file
-ix/ix_indexscan.cc.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_indexscan.cc.i
-.PHONY : ix/ix_indexscan.cc.i
-
-ix/ix_indexscan.s: ix/ix_indexscan.cc.s
-
+# target to generate assembly for a file
+ix/ix_indexscan.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_indexscan.s
 .PHONY : ix/ix_indexscan.s
 
-# target to generate assembly for a file
-ix/ix_indexscan.cc.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_indexscan.cc.s
-.PHONY : ix/ix_indexscan.cc.s
-
-ix/ix_internal.obj: ix/ix_internal.cc.obj
-
+# target to build an object file
+ix/ix_internal.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_internal.obj
 .PHONY : ix/ix_internal.obj
 
-# target to build an object file
-ix/ix_internal.cc.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_internal.cc.obj
-.PHONY : ix/ix_internal.cc.obj
-
-ix/ix_internal.i: ix/ix_internal.cc.i
-
+# target to preprocess a source file
+ix/ix_internal.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_internal.i
 .PHONY : ix/ix_internal.i
 
-# target to preprocess a source file
-ix/ix_internal.cc.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_internal.cc.i
-.PHONY : ix/ix_internal.cc.i
-
-ix/ix_internal.s: ix/ix_internal.cc.s
-
+# target to generate assembly for a file
+ix/ix_internal.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_internal.s
 .PHONY : ix/ix_internal.s
 
-# target to generate assembly for a file
-ix/ix_internal.cc.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_internal.cc.s
-.PHONY : ix/ix_internal.cc.s
-
-ix/ix_manager.obj: ix/ix_manager.cc.obj
-
+# target to build an object file
+ix/ix_manager.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_manager.obj
 .PHONY : ix/ix_manager.obj
 
-# target to build an object file
-ix/ix_manager.cc.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_manager.cc.obj
-.PHONY : ix/ix_manager.cc.obj
-
-ix/ix_manager.i: ix/ix_manager.cc.i
-
+# target to preprocess a source file
+ix/ix_manager.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_manager.i
 .PHONY : ix/ix_manager.i
 
-# target to preprocess a source file
-ix/ix_manager.cc.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_manager.cc.i
-.PHONY : ix/ix_manager.cc.i
-
-ix/ix_manager.s: ix/ix_manager.cc.s
-
+# target to generate assembly for a file
+ix/ix_manager.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ix/ix_manager.s
 .PHONY : ix/ix_manager.s
 
-# target to generate assembly for a file
-ix/ix_manager.cc.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/ix/ix_manager.cc.s
-.PHONY : ix/ix_manager.cc.s
-
-main.obj: main.cpp.obj
-
+# target to build an object file
+main.obj:
+	$(MAKE) -f CMakeFiles\Project.dir\build.make CMakeFiles/Project.dir/main.obj
 .PHONY : main.obj
 
-# target to build an object file
-main.cpp.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB.dir\build.make src/CMakeFiles/MyDB.dir/main.cpp.obj
-.PHONY : main.cpp.obj
-
-main.i: main.cpp.i
-
+# target to preprocess a source file
+main.i:
+	$(MAKE) -f CMakeFiles\Project.dir\build.make CMakeFiles/Project.dir/main.i
 .PHONY : main.i
 
-# target to preprocess a source file
-main.cpp.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB.dir\build.make src/CMakeFiles/MyDB.dir/main.cpp.i
-.PHONY : main.cpp.i
-
-main.s: main.cpp.s
-
+# target to generate assembly for a file
+main.s:
+	$(MAKE) -f CMakeFiles\Project.dir\build.make CMakeFiles/Project.dir/main.s
 .PHONY : main.s
 
+# target to build an object file
+parser/Expr.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/parser/Expr.obj
+.PHONY : parser/Expr.obj
+
+# target to preprocess a source file
+parser/Expr.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/parser/Expr.i
+.PHONY : parser/Expr.i
+
 # target to generate assembly for a file
-main.cpp.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB.dir\build.make src/CMakeFiles/MyDB.dir/main.cpp.s
-.PHONY : main.cpp.s
+parser/Expr.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/parser/Expr.s
+.PHONY : parser/Expr.s
 
-pf/pf_buffermgr.obj: pf/pf_buffermgr.cc.obj
+# target to build an object file
+parser/Tree.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/parser/Tree.obj
+.PHONY : parser/Tree.obj
 
+# target to preprocess a source file
+parser/Tree.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/parser/Tree.i
+.PHONY : parser/Tree.i
+
+# target to generate assembly for a file
+parser/Tree.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/parser/Tree.s
+.PHONY : parser/Tree.s
+
+# target to build an object file
+pf/pf_buffermgr.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_buffermgr.obj
 .PHONY : pf/pf_buffermgr.obj
 
-# target to build an object file
-pf/pf_buffermgr.cc.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_buffermgr.cc.obj
-.PHONY : pf/pf_buffermgr.cc.obj
-
-pf/pf_buffermgr.i: pf/pf_buffermgr.cc.i
-
+# target to preprocess a source file
+pf/pf_buffermgr.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_buffermgr.i
 .PHONY : pf/pf_buffermgr.i
 
-# target to preprocess a source file
-pf/pf_buffermgr.cc.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_buffermgr.cc.i
-.PHONY : pf/pf_buffermgr.cc.i
-
-pf/pf_buffermgr.s: pf/pf_buffermgr.cc.s
-
+# target to generate assembly for a file
+pf/pf_buffermgr.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_buffermgr.s
 .PHONY : pf/pf_buffermgr.s
 
-# target to generate assembly for a file
-pf/pf_buffermgr.cc.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_buffermgr.cc.s
-.PHONY : pf/pf_buffermgr.cc.s
-
-pf/pf_error.obj: pf/pf_error.cc.obj
-
+# target to build an object file
+pf/pf_error.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_error.obj
 .PHONY : pf/pf_error.obj
 
-# target to build an object file
-pf/pf_error.cc.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_error.cc.obj
-.PHONY : pf/pf_error.cc.obj
-
-pf/pf_error.i: pf/pf_error.cc.i
-
+# target to preprocess a source file
+pf/pf_error.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_error.i
 .PHONY : pf/pf_error.i
 
-# target to preprocess a source file
-pf/pf_error.cc.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_error.cc.i
-.PHONY : pf/pf_error.cc.i
-
-pf/pf_error.s: pf/pf_error.cc.s
-
+# target to generate assembly for a file
+pf/pf_error.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_error.s
 .PHONY : pf/pf_error.s
 
-# target to generate assembly for a file
-pf/pf_error.cc.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_error.cc.s
-.PHONY : pf/pf_error.cc.s
-
-pf/pf_filehandle.obj: pf/pf_filehandle.cc.obj
-
+# target to build an object file
+pf/pf_filehandle.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_filehandle.obj
 .PHONY : pf/pf_filehandle.obj
 
-# target to build an object file
-pf/pf_filehandle.cc.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_filehandle.cc.obj
-.PHONY : pf/pf_filehandle.cc.obj
-
-pf/pf_filehandle.i: pf/pf_filehandle.cc.i
-
+# target to preprocess a source file
+pf/pf_filehandle.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_filehandle.i
 .PHONY : pf/pf_filehandle.i
 
-# target to preprocess a source file
-pf/pf_filehandle.cc.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_filehandle.cc.i
-.PHONY : pf/pf_filehandle.cc.i
-
-pf/pf_filehandle.s: pf/pf_filehandle.cc.s
-
+# target to generate assembly for a file
+pf/pf_filehandle.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_filehandle.s
 .PHONY : pf/pf_filehandle.s
 
-# target to generate assembly for a file
-pf/pf_filehandle.cc.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_filehandle.cc.s
-.PHONY : pf/pf_filehandle.cc.s
-
-pf/pf_hashtable.obj: pf/pf_hashtable.cc.obj
-
+# target to build an object file
+pf/pf_hashtable.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_hashtable.obj
 .PHONY : pf/pf_hashtable.obj
 
-# target to build an object file
-pf/pf_hashtable.cc.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_hashtable.cc.obj
-.PHONY : pf/pf_hashtable.cc.obj
-
-pf/pf_hashtable.i: pf/pf_hashtable.cc.i
-
+# target to preprocess a source file
+pf/pf_hashtable.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_hashtable.i
 .PHONY : pf/pf_hashtable.i
 
-# target to preprocess a source file
-pf/pf_hashtable.cc.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_hashtable.cc.i
-.PHONY : pf/pf_hashtable.cc.i
-
-pf/pf_hashtable.s: pf/pf_hashtable.cc.s
-
+# target to generate assembly for a file
+pf/pf_hashtable.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_hashtable.s
 .PHONY : pf/pf_hashtable.s
 
-# target to generate assembly for a file
-pf/pf_hashtable.cc.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_hashtable.cc.s
-.PHONY : pf/pf_hashtable.cc.s
-
-pf/pf_manager.obj: pf/pf_manager.cc.obj
-
+# target to build an object file
+pf/pf_manager.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_manager.obj
 .PHONY : pf/pf_manager.obj
 
-# target to build an object file
-pf/pf_manager.cc.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_manager.cc.obj
-.PHONY : pf/pf_manager.cc.obj
-
-pf/pf_manager.i: pf/pf_manager.cc.i
-
+# target to preprocess a source file
+pf/pf_manager.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_manager.i
 .PHONY : pf/pf_manager.i
 
-# target to preprocess a source file
-pf/pf_manager.cc.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_manager.cc.i
-.PHONY : pf/pf_manager.cc.i
-
-pf/pf_manager.s: pf/pf_manager.cc.s
-
+# target to generate assembly for a file
+pf/pf_manager.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_manager.s
 .PHONY : pf/pf_manager.s
 
-# target to generate assembly for a file
-pf/pf_manager.cc.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_manager.cc.s
-.PHONY : pf/pf_manager.cc.s
-
-pf/pf_pagehandle.obj: pf/pf_pagehandle.cc.obj
-
+# target to build an object file
+pf/pf_pagehandle.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_pagehandle.obj
 .PHONY : pf/pf_pagehandle.obj
 
-# target to build an object file
-pf/pf_pagehandle.cc.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_pagehandle.cc.obj
-.PHONY : pf/pf_pagehandle.cc.obj
-
-pf/pf_pagehandle.i: pf/pf_pagehandle.cc.i
-
+# target to preprocess a source file
+pf/pf_pagehandle.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_pagehandle.i
 .PHONY : pf/pf_pagehandle.i
 
-# target to preprocess a source file
-pf/pf_pagehandle.cc.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_pagehandle.cc.i
-.PHONY : pf/pf_pagehandle.cc.i
-
-pf/pf_pagehandle.s: pf/pf_pagehandle.cc.s
-
+# target to generate assembly for a file
+pf/pf_pagehandle.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_pagehandle.s
 .PHONY : pf/pf_pagehandle.s
 
-# target to generate assembly for a file
-pf/pf_pagehandle.cc.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_pagehandle.cc.s
-.PHONY : pf/pf_pagehandle.cc.s
-
-pf/pf_statistics.obj: pf/pf_statistics.cc.obj
-
+# target to build an object file
+pf/pf_statistics.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_statistics.obj
 .PHONY : pf/pf_statistics.obj
 
-# target to build an object file
-pf/pf_statistics.cc.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_statistics.cc.obj
-.PHONY : pf/pf_statistics.cc.obj
-
-pf/pf_statistics.i: pf/pf_statistics.cc.i
-
+# target to preprocess a source file
+pf/pf_statistics.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_statistics.i
 .PHONY : pf/pf_statistics.i
 
-# target to preprocess a source file
-pf/pf_statistics.cc.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_statistics.cc.i
-.PHONY : pf/pf_statistics.cc.i
-
-pf/pf_statistics.s: pf/pf_statistics.cc.s
-
+# target to generate assembly for a file
+pf/pf_statistics.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/pf/pf_statistics.s
 .PHONY : pf/pf_statistics.s
 
+# target to build an object file
+ql/QueryManager.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ql/QueryManager.obj
+.PHONY : ql/QueryManager.obj
+
+# target to preprocess a source file
+ql/QueryManager.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ql/QueryManager.i
+.PHONY : ql/QueryManager.i
+
 # target to generate assembly for a file
-pf/pf_statistics.cc.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/pf/pf_statistics.cc.s
-.PHONY : pf/pf_statistics.cc.s
+ql/QueryManager.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ql/QueryManager.s
+.PHONY : ql/QueryManager.s
 
-rm/RM_FileHandle.obj: rm/RM_FileHandle.cpp.obj
+# target to build an object file
+ql/Table.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ql/Table.obj
+.PHONY : ql/Table.obj
 
+# target to preprocess a source file
+ql/Table.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ql/Table.i
+.PHONY : ql/Table.i
+
+# target to generate assembly for a file
+ql/Table.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/ql/Table.s
+.PHONY : ql/Table.s
+
+# target to build an object file
+rm/RM_FileHandle.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/rm/RM_FileHandle.obj
 .PHONY : rm/RM_FileHandle.obj
 
-# target to build an object file
-rm/RM_FileHandle.cpp.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/rm/RM_FileHandle.cpp.obj
-.PHONY : rm/RM_FileHandle.cpp.obj
-
-rm/RM_FileHandle.i: rm/RM_FileHandle.cpp.i
-
+# target to preprocess a source file
+rm/RM_FileHandle.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/rm/RM_FileHandle.i
 .PHONY : rm/RM_FileHandle.i
 
-# target to preprocess a source file
-rm/RM_FileHandle.cpp.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/rm/RM_FileHandle.cpp.i
-.PHONY : rm/RM_FileHandle.cpp.i
-
-rm/RM_FileHandle.s: rm/RM_FileHandle.cpp.s
-
+# target to generate assembly for a file
+rm/RM_FileHandle.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/rm/RM_FileHandle.s
 .PHONY : rm/RM_FileHandle.s
 
-# target to generate assembly for a file
-rm/RM_FileHandle.cpp.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/rm/RM_FileHandle.cpp.s
-.PHONY : rm/RM_FileHandle.cpp.s
-
-rm/RM_FileScan.obj: rm/RM_FileScan.cpp.obj
-
+# target to build an object file
+rm/RM_FileScan.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/rm/RM_FileScan.obj
 .PHONY : rm/RM_FileScan.obj
 
-# target to build an object file
-rm/RM_FileScan.cpp.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/rm/RM_FileScan.cpp.obj
-.PHONY : rm/RM_FileScan.cpp.obj
-
-rm/RM_FileScan.i: rm/RM_FileScan.cpp.i
-
+# target to preprocess a source file
+rm/RM_FileScan.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/rm/RM_FileScan.i
 .PHONY : rm/RM_FileScan.i
 
-# target to preprocess a source file
-rm/RM_FileScan.cpp.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/rm/RM_FileScan.cpp.i
-.PHONY : rm/RM_FileScan.cpp.i
-
-rm/RM_FileScan.s: rm/RM_FileScan.cpp.s
-
+# target to generate assembly for a file
+rm/RM_FileScan.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/rm/RM_FileScan.s
 .PHONY : rm/RM_FileScan.s
 
-# target to generate assembly for a file
-rm/RM_FileScan.cpp.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/rm/RM_FileScan.cpp.s
-.PHONY : rm/RM_FileScan.cpp.s
-
-rm/RecordManager.obj: rm/RecordManager.cpp.obj
-
+# target to build an object file
+rm/RecordManager.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/rm/RecordManager.obj
 .PHONY : rm/RecordManager.obj
 
-# target to build an object file
-rm/RecordManager.cpp.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/rm/RecordManager.cpp.obj
-.PHONY : rm/RecordManager.cpp.obj
-
-rm/RecordManager.i: rm/RecordManager.cpp.i
-
+# target to preprocess a source file
+rm/RecordManager.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/rm/RecordManager.i
 .PHONY : rm/RecordManager.i
 
-# target to preprocess a source file
-rm/RecordManager.cpp.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/rm/RecordManager.cpp.i
-.PHONY : rm/RecordManager.cpp.i
-
-rm/RecordManager.s: rm/RecordManager.cpp.s
-
+# target to generate assembly for a file
+rm/RecordManager.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/rm/RecordManager.s
 .PHONY : rm/RecordManager.s
 
-# target to generate assembly for a file
-rm/RecordManager.cpp.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/rm/RecordManager.cpp.s
-.PHONY : rm/RecordManager.cpp.s
-
-utils/MyBitMap.obj: utils/MyBitMap.cpp.obj
-
-.PHONY : utils/MyBitMap.obj
-
 # target to build an object file
-utils/MyBitMap.cpp.obj:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/utils/MyBitMap.cpp.obj
-.PHONY : utils/MyBitMap.cpp.obj
-
-utils/MyBitMap.i: utils/MyBitMap.cpp.i
-
-.PHONY : utils/MyBitMap.i
+sm/sm_error.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/sm/sm_error.obj
+.PHONY : sm/sm_error.obj
 
 # target to preprocess a source file
-utils/MyBitMap.cpp.i:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/utils/MyBitMap.cpp.i
-.PHONY : utils/MyBitMap.cpp.i
-
-utils/MyBitMap.s: utils/MyBitMap.cpp.s
-
-.PHONY : utils/MyBitMap.s
+sm/sm_error.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/sm/sm_error.i
+.PHONY : sm/sm_error.i
 
 # target to generate assembly for a file
-utils/MyBitMap.cpp.s:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(MAKE) -f src\CMakeFiles\MyDB_lib.dir\build.make src/CMakeFiles/MyDB_lib.dir/utils/MyBitMap.cpp.s
-.PHONY : utils/MyBitMap.cpp.s
+sm/sm_error.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/sm/sm_error.s
+.PHONY : sm/sm_error.s
+
+# target to build an object file
+sm/sm_internal.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/sm/sm_internal.obj
+.PHONY : sm/sm_internal.obj
+
+# target to preprocess a source file
+sm/sm_internal.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/sm/sm_internal.i
+.PHONY : sm/sm_internal.i
+
+# target to generate assembly for a file
+sm/sm_internal.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/sm/sm_internal.s
+.PHONY : sm/sm_internal.s
+
+# target to build an object file
+sm/sm_manager.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/sm/sm_manager.obj
+.PHONY : sm/sm_manager.obj
+
+# target to preprocess a source file
+sm/sm_manager.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/sm/sm_manager.i
+.PHONY : sm/sm_manager.i
+
+# target to generate assembly for a file
+sm/sm_manager.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/sm/sm_manager.s
+.PHONY : sm/sm_manager.s
+
+# target to build an object file
+utils/FuncTemplate.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/utils/FuncTemplate.obj
+.PHONY : utils/FuncTemplate.obj
+
+# target to preprocess a source file
+utils/FuncTemplate.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/utils/FuncTemplate.i
+.PHONY : utils/FuncTemplate.i
+
+# target to generate assembly for a file
+utils/FuncTemplate.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/utils/FuncTemplate.s
+.PHONY : utils/FuncTemplate.s
+
+# target to build an object file
+utils/MyBitMap.obj:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/utils/MyBitMap.obj
+.PHONY : utils/MyBitMap.obj
+
+# target to preprocess a source file
+utils/MyBitMap.i:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/utils/MyBitMap.i
+.PHONY : utils/MyBitMap.i
+
+# target to generate assembly for a file
+utils/MyBitMap.s:
+	$(MAKE) -f CMakeFiles\Project_lib.dir\build.make CMakeFiles/Project_lib.dir/utils/MyBitMap.s
+.PHONY : utils/MyBitMap.s
 
 # Help Target
 help:
@@ -658,10 +559,11 @@ help:
 	@echo ... all (the default if no target is provided)
 	@echo ... clean
 	@echo ... depend
-	@echo ... rebuild_cache
-	@echo ... MyDB
-	@echo ... MyDB_lib
+	@echo ... Project_lib
+	@echo ... Project
 	@echo ... edit_cache
+	@echo ... rebuild_cache
+	@echo ... SqlParser
 	@echo ... fileio/BufPageManager.obj
 	@echo ... fileio/BufPageManager.i
 	@echo ... fileio/BufPageManager.s
@@ -686,6 +588,12 @@ help:
 	@echo ... main.obj
 	@echo ... main.i
 	@echo ... main.s
+	@echo ... parser/Expr.obj
+	@echo ... parser/Expr.i
+	@echo ... parser/Expr.s
+	@echo ... parser/Tree.obj
+	@echo ... parser/Tree.i
+	@echo ... parser/Tree.s
 	@echo ... pf/pf_buffermgr.obj
 	@echo ... pf/pf_buffermgr.i
 	@echo ... pf/pf_buffermgr.s
@@ -707,6 +615,12 @@ help:
 	@echo ... pf/pf_statistics.obj
 	@echo ... pf/pf_statistics.i
 	@echo ... pf/pf_statistics.s
+	@echo ... ql/QueryManager.obj
+	@echo ... ql/QueryManager.i
+	@echo ... ql/QueryManager.s
+	@echo ... ql/Table.obj
+	@echo ... ql/Table.i
+	@echo ... ql/Table.s
 	@echo ... rm/RM_FileHandle.obj
 	@echo ... rm/RM_FileHandle.i
 	@echo ... rm/RM_FileHandle.s
@@ -716,6 +630,18 @@ help:
 	@echo ... rm/RecordManager.obj
 	@echo ... rm/RecordManager.i
 	@echo ... rm/RecordManager.s
+	@echo ... sm/sm_error.obj
+	@echo ... sm/sm_error.i
+	@echo ... sm/sm_error.s
+	@echo ... sm/sm_internal.obj
+	@echo ... sm/sm_internal.i
+	@echo ... sm/sm_internal.s
+	@echo ... sm/sm_manager.obj
+	@echo ... sm/sm_manager.i
+	@echo ... sm/sm_manager.s
+	@echo ... utils/FuncTemplate.obj
+	@echo ... utils/FuncTemplate.i
+	@echo ... utils/FuncTemplate.s
 	@echo ... utils/MyBitMap.obj
 	@echo ... utils/MyBitMap.i
 	@echo ... utils/MyBitMap.s
@@ -730,6 +656,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /d C:\Users\wyfcy\Desktop\MyDB && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles\Makefile.cmake 0
+	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles\Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

@@ -69,9 +69,22 @@ CMakeFiles/Project_lib.dir/utils/MyBitMap.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Project_lib.dir/utils/MyBitMap.s"
 	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\wyfcy\Desktop\MyDB\src\utils\MyBitMap.cpp -o CMakeFiles\Project_lib.dir\utils\MyBitMap.s
 
+CMakeFiles/Project_lib.dir/utils/FuncTemplate.obj: CMakeFiles/Project_lib.dir/flags.make
+CMakeFiles/Project_lib.dir/utils/FuncTemplate.obj: utils/FuncTemplate.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/Project_lib.dir/utils/FuncTemplate.obj"
+	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\utils\FuncTemplate.obj -c C:\Users\wyfcy\Desktop\MyDB\src\utils\FuncTemplate.cpp
+
+CMakeFiles/Project_lib.dir/utils/FuncTemplate.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Project_lib.dir/utils/FuncTemplate.i"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\wyfcy\Desktop\MyDB\src\utils\FuncTemplate.cpp > CMakeFiles\Project_lib.dir\utils\FuncTemplate.i
+
+CMakeFiles/Project_lib.dir/utils/FuncTemplate.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Project_lib.dir/utils/FuncTemplate.s"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\wyfcy\Desktop\MyDB\src\utils\FuncTemplate.cpp -o CMakeFiles\Project_lib.dir\utils\FuncTemplate.s
+
 CMakeFiles/Project_lib.dir/pf/pf_buffermgr.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/pf/pf_buffermgr.obj: pf/pf_buffermgr.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_buffermgr.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_buffermgr.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\pf\pf_buffermgr.obj -c C:\Users\wyfcy\Desktop\MyDB\src\pf\pf_buffermgr.cc
 
 CMakeFiles/Project_lib.dir/pf/pf_buffermgr.i: cmake_force
@@ -84,7 +97,7 @@ CMakeFiles/Project_lib.dir/pf/pf_buffermgr.s: cmake_force
 
 CMakeFiles/Project_lib.dir/pf/pf_error.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/pf/pf_error.obj: pf/pf_error.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_error.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_error.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\pf\pf_error.obj -c C:\Users\wyfcy\Desktop\MyDB\src\pf\pf_error.cc
 
 CMakeFiles/Project_lib.dir/pf/pf_error.i: cmake_force
@@ -97,7 +110,7 @@ CMakeFiles/Project_lib.dir/pf/pf_error.s: cmake_force
 
 CMakeFiles/Project_lib.dir/pf/pf_filehandle.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/pf/pf_filehandle.obj: pf/pf_filehandle.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_filehandle.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_filehandle.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\pf\pf_filehandle.obj -c C:\Users\wyfcy\Desktop\MyDB\src\pf\pf_filehandle.cc
 
 CMakeFiles/Project_lib.dir/pf/pf_filehandle.i: cmake_force
@@ -110,7 +123,7 @@ CMakeFiles/Project_lib.dir/pf/pf_filehandle.s: cmake_force
 
 CMakeFiles/Project_lib.dir/pf/pf_hashtable.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/pf/pf_hashtable.obj: pf/pf_hashtable.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_hashtable.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_hashtable.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\pf\pf_hashtable.obj -c C:\Users\wyfcy\Desktop\MyDB\src\pf\pf_hashtable.cc
 
 CMakeFiles/Project_lib.dir/pf/pf_hashtable.i: cmake_force
@@ -123,7 +136,7 @@ CMakeFiles/Project_lib.dir/pf/pf_hashtable.s: cmake_force
 
 CMakeFiles/Project_lib.dir/pf/pf_manager.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/pf/pf_manager.obj: pf/pf_manager.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_manager.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_manager.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\pf\pf_manager.obj -c C:\Users\wyfcy\Desktop\MyDB\src\pf\pf_manager.cc
 
 CMakeFiles/Project_lib.dir/pf/pf_manager.i: cmake_force
@@ -136,7 +149,7 @@ CMakeFiles/Project_lib.dir/pf/pf_manager.s: cmake_force
 
 CMakeFiles/Project_lib.dir/pf/pf_pagehandle.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/pf/pf_pagehandle.obj: pf/pf_pagehandle.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_pagehandle.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_pagehandle.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\pf\pf_pagehandle.obj -c C:\Users\wyfcy\Desktop\MyDB\src\pf\pf_pagehandle.cc
 
 CMakeFiles/Project_lib.dir/pf/pf_pagehandle.i: cmake_force
@@ -149,7 +162,7 @@ CMakeFiles/Project_lib.dir/pf/pf_pagehandle.s: cmake_force
 
 CMakeFiles/Project_lib.dir/pf/pf_statistics.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/pf/pf_statistics.obj: pf/pf_statistics.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_statistics.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/Project_lib.dir/pf/pf_statistics.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\pf\pf_statistics.obj -c C:\Users\wyfcy\Desktop\MyDB\src\pf\pf_statistics.cc
 
 CMakeFiles/Project_lib.dir/pf/pf_statistics.i: cmake_force
@@ -162,7 +175,7 @@ CMakeFiles/Project_lib.dir/pf/pf_statistics.s: cmake_force
 
 CMakeFiles/Project_lib.dir/fileio/BufPageManager.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/fileio/BufPageManager.obj: fileio/BufPageManager.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/Project_lib.dir/fileio/BufPageManager.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/Project_lib.dir/fileio/BufPageManager.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\fileio\BufPageManager.obj -c C:\Users\wyfcy\Desktop\MyDB\src\fileio\BufPageManager.cpp
 
 CMakeFiles/Project_lib.dir/fileio/BufPageManager.i: cmake_force
@@ -175,7 +188,7 @@ CMakeFiles/Project_lib.dir/fileio/BufPageManager.s: cmake_force
 
 CMakeFiles/Project_lib.dir/fileio/FileManager.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/fileio/FileManager.obj: fileio/FileManager.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/Project_lib.dir/fileio/FileManager.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/Project_lib.dir/fileio/FileManager.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\fileio\FileManager.obj -c C:\Users\wyfcy\Desktop\MyDB\src\fileio\FileManager.cpp
 
 CMakeFiles/Project_lib.dir/fileio/FileManager.i: cmake_force
@@ -188,7 +201,7 @@ CMakeFiles/Project_lib.dir/fileio/FileManager.s: cmake_force
 
 CMakeFiles/Project_lib.dir/rm/RecordManager.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/rm/RecordManager.obj: rm/RecordManager.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/Project_lib.dir/rm/RecordManager.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/Project_lib.dir/rm/RecordManager.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\rm\RecordManager.obj -c C:\Users\wyfcy\Desktop\MyDB\src\rm\RecordManager.cpp
 
 CMakeFiles/Project_lib.dir/rm/RecordManager.i: cmake_force
@@ -201,7 +214,7 @@ CMakeFiles/Project_lib.dir/rm/RecordManager.s: cmake_force
 
 CMakeFiles/Project_lib.dir/rm/RM_FileHandle.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/rm/RM_FileHandle.obj: rm/RM_FileHandle.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/Project_lib.dir/rm/RM_FileHandle.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/Project_lib.dir/rm/RM_FileHandle.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\rm\RM_FileHandle.obj -c C:\Users\wyfcy\Desktop\MyDB\src\rm\RM_FileHandle.cpp
 
 CMakeFiles/Project_lib.dir/rm/RM_FileHandle.i: cmake_force
@@ -214,7 +227,7 @@ CMakeFiles/Project_lib.dir/rm/RM_FileHandle.s: cmake_force
 
 CMakeFiles/Project_lib.dir/rm/RM_FileScan.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/rm/RM_FileScan.obj: rm/RM_FileScan.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/Project_lib.dir/rm/RM_FileScan.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/Project_lib.dir/rm/RM_FileScan.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\rm\RM_FileScan.obj -c C:\Users\wyfcy\Desktop\MyDB\src\rm\RM_FileScan.cpp
 
 CMakeFiles/Project_lib.dir/rm/RM_FileScan.i: cmake_force
@@ -225,9 +238,74 @@ CMakeFiles/Project_lib.dir/rm/RM_FileScan.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Project_lib.dir/rm/RM_FileScan.s"
 	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\wyfcy\Desktop\MyDB\src\rm\RM_FileScan.cpp -o CMakeFiles\Project_lib.dir\rm\RM_FileScan.s
 
+CMakeFiles/Project_lib.dir/ix/ix_manager.obj: CMakeFiles/Project_lib.dir/flags.make
+CMakeFiles/Project_lib.dir/ix/ix_manager.obj: ix/ix_manager.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/Project_lib.dir/ix/ix_manager.obj"
+	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\ix\ix_manager.obj -c C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_manager.cc
+
+CMakeFiles/Project_lib.dir/ix/ix_manager.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Project_lib.dir/ix/ix_manager.i"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_manager.cc > CMakeFiles\Project_lib.dir\ix\ix_manager.i
+
+CMakeFiles/Project_lib.dir/ix/ix_manager.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Project_lib.dir/ix/ix_manager.s"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_manager.cc -o CMakeFiles\Project_lib.dir\ix\ix_manager.s
+
+CMakeFiles/Project_lib.dir/ix/ix_error.obj: CMakeFiles/Project_lib.dir/flags.make
+CMakeFiles/Project_lib.dir/ix/ix_error.obj: ix/ix_error.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/Project_lib.dir/ix/ix_error.obj"
+	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\ix\ix_error.obj -c C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_error.cc
+
+CMakeFiles/Project_lib.dir/ix/ix_error.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Project_lib.dir/ix/ix_error.i"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_error.cc > CMakeFiles\Project_lib.dir\ix\ix_error.i
+
+CMakeFiles/Project_lib.dir/ix/ix_error.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Project_lib.dir/ix/ix_error.s"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_error.cc -o CMakeFiles\Project_lib.dir\ix\ix_error.s
+
+CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj: CMakeFiles/Project_lib.dir/flags.make
+CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj: ix/ix_indexhandle.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj"
+	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\ix\ix_indexhandle.obj -c C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_indexhandle.cc
+
+CMakeFiles/Project_lib.dir/ix/ix_indexhandle.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Project_lib.dir/ix/ix_indexhandle.i"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_indexhandle.cc > CMakeFiles\Project_lib.dir\ix\ix_indexhandle.i
+
+CMakeFiles/Project_lib.dir/ix/ix_indexhandle.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Project_lib.dir/ix/ix_indexhandle.s"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_indexhandle.cc -o CMakeFiles\Project_lib.dir\ix\ix_indexhandle.s
+
+CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj: CMakeFiles/Project_lib.dir/flags.make
+CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj: ix/ix_indexscan.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj"
+	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\ix\ix_indexscan.obj -c C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_indexscan.cc
+
+CMakeFiles/Project_lib.dir/ix/ix_indexscan.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Project_lib.dir/ix/ix_indexscan.i"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_indexscan.cc > CMakeFiles\Project_lib.dir\ix\ix_indexscan.i
+
+CMakeFiles/Project_lib.dir/ix/ix_indexscan.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Project_lib.dir/ix/ix_indexscan.s"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_indexscan.cc -o CMakeFiles\Project_lib.dir\ix\ix_indexscan.s
+
+CMakeFiles/Project_lib.dir/ix/ix_internal.obj: CMakeFiles/Project_lib.dir/flags.make
+CMakeFiles/Project_lib.dir/ix/ix_internal.obj: ix/ix_internal.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/Project_lib.dir/ix/ix_internal.obj"
+	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\ix\ix_internal.obj -c C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_internal.cc
+
+CMakeFiles/Project_lib.dir/ix/ix_internal.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Project_lib.dir/ix/ix_internal.i"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_internal.cc > CMakeFiles\Project_lib.dir\ix\ix_internal.i
+
+CMakeFiles/Project_lib.dir/ix/ix_internal.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Project_lib.dir/ix/ix_internal.s"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\wyfcy\Desktop\MyDB\src\ix\ix_internal.cc -o CMakeFiles\Project_lib.dir\ix\ix_internal.s
+
 CMakeFiles/Project_lib.dir/parser/Expr.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/parser/Expr.obj: parser/Expr.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/Project_lib.dir/parser/Expr.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/Project_lib.dir/parser/Expr.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\parser\Expr.obj -c C:\Users\wyfcy\Desktop\MyDB\src\parser\Expr.cpp
 
 CMakeFiles/Project_lib.dir/parser/Expr.i: cmake_force
@@ -240,7 +318,7 @@ CMakeFiles/Project_lib.dir/parser/Expr.s: cmake_force
 
 CMakeFiles/Project_lib.dir/parser/Tree.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/parser/Tree.obj: parser/Tree.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/Project_lib.dir/parser/Tree.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building CXX object CMakeFiles/Project_lib.dir/parser/Tree.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\parser\Tree.obj -c C:\Users\wyfcy\Desktop\MyDB\src\parser\Tree.cpp
 
 CMakeFiles/Project_lib.dir/parser/Tree.i: cmake_force
@@ -253,7 +331,7 @@ CMakeFiles/Project_lib.dir/parser/Tree.s: cmake_force
 
 CMakeFiles/Project_lib.dir/sm/sm_error.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/sm/sm_error.obj: sm/sm_error.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/Project_lib.dir/sm/sm_error.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building CXX object CMakeFiles/Project_lib.dir/sm/sm_error.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\sm\sm_error.obj -c C:\Users\wyfcy\Desktop\MyDB\src\sm\sm_error.cc
 
 CMakeFiles/Project_lib.dir/sm/sm_error.i: cmake_force
@@ -266,7 +344,7 @@ CMakeFiles/Project_lib.dir/sm/sm_error.s: cmake_force
 
 CMakeFiles/Project_lib.dir/sm/sm_manager.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/sm/sm_manager.obj: sm/sm_manager.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/Project_lib.dir/sm/sm_manager.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building CXX object CMakeFiles/Project_lib.dir/sm/sm_manager.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\sm\sm_manager.obj -c C:\Users\wyfcy\Desktop\MyDB\src\sm\sm_manager.cc
 
 CMakeFiles/Project_lib.dir/sm/sm_manager.i: cmake_force
@@ -279,7 +357,7 @@ CMakeFiles/Project_lib.dir/sm/sm_manager.s: cmake_force
 
 CMakeFiles/Project_lib.dir/sm/sm_internal.obj: CMakeFiles/Project_lib.dir/flags.make
 CMakeFiles/Project_lib.dir/sm/sm_internal.obj: sm/sm_internal.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/Project_lib.dir/sm/sm_internal.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building CXX object CMakeFiles/Project_lib.dir/sm/sm_internal.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\sm\sm_internal.obj -c C:\Users\wyfcy\Desktop\MyDB\src\sm\sm_internal.cc
 
 CMakeFiles/Project_lib.dir/sm/sm_internal.i: cmake_force
@@ -290,9 +368,36 @@ CMakeFiles/Project_lib.dir/sm/sm_internal.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Project_lib.dir/sm/sm_internal.s"
 	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\wyfcy\Desktop\MyDB\src\sm\sm_internal.cc -o CMakeFiles\Project_lib.dir\sm\sm_internal.s
 
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: CMakeFiles/Project_lib.dir/flags.make
+CMakeFiles/Project_lib.dir/ql/QueryManager.obj: ql/QueryManager.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building CXX object CMakeFiles/Project_lib.dir/ql/QueryManager.obj"
+	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\ql\QueryManager.obj -c C:\Users\wyfcy\Desktop\MyDB\src\ql\QueryManager.cpp
+
+CMakeFiles/Project_lib.dir/ql/QueryManager.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Project_lib.dir/ql/QueryManager.i"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\wyfcy\Desktop\MyDB\src\ql\QueryManager.cpp > CMakeFiles\Project_lib.dir\ql\QueryManager.i
+
+CMakeFiles/Project_lib.dir/ql/QueryManager.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Project_lib.dir/ql/QueryManager.s"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\wyfcy\Desktop\MyDB\src\ql\QueryManager.cpp -o CMakeFiles\Project_lib.dir\ql\QueryManager.s
+
+CMakeFiles/Project_lib.dir/ql/Table.obj: CMakeFiles/Project_lib.dir/flags.make
+CMakeFiles/Project_lib.dir/ql/Table.obj: ql/Table.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building CXX object CMakeFiles/Project_lib.dir/ql/Table.obj"
+	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Project_lib.dir\ql\Table.obj -c C:\Users\wyfcy\Desktop\MyDB\src\ql\Table.cpp
+
+CMakeFiles/Project_lib.dir/ql/Table.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Project_lib.dir/ql/Table.i"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\wyfcy\Desktop\MyDB\src\ql\Table.cpp > CMakeFiles\Project_lib.dir\ql\Table.i
+
+CMakeFiles/Project_lib.dir/ql/Table.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Project_lib.dir/ql/Table.s"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\wyfcy\Desktop\MyDB\src\ql\Table.cpp -o CMakeFiles\Project_lib.dir\ql\Table.s
+
 # Object files for target Project_lib
 Project_lib_OBJECTS = \
 "CMakeFiles/Project_lib.dir/utils/MyBitMap.obj" \
+"CMakeFiles/Project_lib.dir/utils/FuncTemplate.obj" \
 "CMakeFiles/Project_lib.dir/pf/pf_buffermgr.obj" \
 "CMakeFiles/Project_lib.dir/pf/pf_error.obj" \
 "CMakeFiles/Project_lib.dir/pf/pf_filehandle.obj" \
@@ -305,16 +410,24 @@ Project_lib_OBJECTS = \
 "CMakeFiles/Project_lib.dir/rm/RecordManager.obj" \
 "CMakeFiles/Project_lib.dir/rm/RM_FileHandle.obj" \
 "CMakeFiles/Project_lib.dir/rm/RM_FileScan.obj" \
+"CMakeFiles/Project_lib.dir/ix/ix_manager.obj" \
+"CMakeFiles/Project_lib.dir/ix/ix_error.obj" \
+"CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj" \
+"CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj" \
+"CMakeFiles/Project_lib.dir/ix/ix_internal.obj" \
 "CMakeFiles/Project_lib.dir/parser/Expr.obj" \
 "CMakeFiles/Project_lib.dir/parser/Tree.obj" \
 "CMakeFiles/Project_lib.dir/sm/sm_error.obj" \
 "CMakeFiles/Project_lib.dir/sm/sm_manager.obj" \
-"CMakeFiles/Project_lib.dir/sm/sm_internal.obj"
+"CMakeFiles/Project_lib.dir/sm/sm_internal.obj" \
+"CMakeFiles/Project_lib.dir/ql/QueryManager.obj" \
+"CMakeFiles/Project_lib.dir/ql/Table.obj"
 
 # External object files for target Project_lib
 Project_lib_EXTERNAL_OBJECTS =
 
 libProject_lib.a: CMakeFiles/Project_lib.dir/utils/MyBitMap.obj
+libProject_lib.a: CMakeFiles/Project_lib.dir/utils/FuncTemplate.obj
 libProject_lib.a: CMakeFiles/Project_lib.dir/pf/pf_buffermgr.obj
 libProject_lib.a: CMakeFiles/Project_lib.dir/pf/pf_error.obj
 libProject_lib.a: CMakeFiles/Project_lib.dir/pf/pf_filehandle.obj
@@ -327,14 +440,21 @@ libProject_lib.a: CMakeFiles/Project_lib.dir/fileio/FileManager.obj
 libProject_lib.a: CMakeFiles/Project_lib.dir/rm/RecordManager.obj
 libProject_lib.a: CMakeFiles/Project_lib.dir/rm/RM_FileHandle.obj
 libProject_lib.a: CMakeFiles/Project_lib.dir/rm/RM_FileScan.obj
+libProject_lib.a: CMakeFiles/Project_lib.dir/ix/ix_manager.obj
+libProject_lib.a: CMakeFiles/Project_lib.dir/ix/ix_error.obj
+libProject_lib.a: CMakeFiles/Project_lib.dir/ix/ix_indexhandle.obj
+libProject_lib.a: CMakeFiles/Project_lib.dir/ix/ix_indexscan.obj
+libProject_lib.a: CMakeFiles/Project_lib.dir/ix/ix_internal.obj
 libProject_lib.a: CMakeFiles/Project_lib.dir/parser/Expr.obj
 libProject_lib.a: CMakeFiles/Project_lib.dir/parser/Tree.obj
 libProject_lib.a: CMakeFiles/Project_lib.dir/sm/sm_error.obj
 libProject_lib.a: CMakeFiles/Project_lib.dir/sm/sm_manager.obj
 libProject_lib.a: CMakeFiles/Project_lib.dir/sm/sm_internal.obj
+libProject_lib.a: CMakeFiles/Project_lib.dir/ql/QueryManager.obj
+libProject_lib.a: CMakeFiles/Project_lib.dir/ql/Table.obj
 libProject_lib.a: CMakeFiles/Project_lib.dir/build.make
 libProject_lib.a: CMakeFiles/Project_lib.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Linking CXX static library libProject_lib.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=C:\Users\wyfcy\Desktop\MyDB\src\CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Linking CXX static library libProject_lib.a"
 	$(CMAKE_COMMAND) -P CMakeFiles\Project_lib.dir\cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\Project_lib.dir\link.txt --verbose=$(VERBOSE)
 

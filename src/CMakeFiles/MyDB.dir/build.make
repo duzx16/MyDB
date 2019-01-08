@@ -78,6 +78,7 @@ MyDB_EXTERNAL_OBJECTS =
 
 src/MyDB.exe: src/CMakeFiles/MyDB.dir/main.cpp.obj
 src/MyDB.exe: src/CMakeFiles/MyDB.dir/build.make
+src/MyDB.exe: src/parser/libSqlParser.a
 src/MyDB.exe: src/libMyDB_lib.a
 src/MyDB.exe: src/CMakeFiles/MyDB.dir/linklibs.rsp
 src/MyDB.exe: src/CMakeFiles/MyDB.dir/objects1.rsp

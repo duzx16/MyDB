@@ -4,14 +4,21 @@
 CMakeFiles/Project.dir/main.obj: Constants.h
 CMakeFiles/Project.dir/main.obj: fileio/BufPageManager.h
 CMakeFiles/Project.dir/main.obj: fileio/FileManager.h
+CMakeFiles/Project.dir/main.obj: ix/ix.h
+CMakeFiles/Project.dir/main.obj: ix/ix_internal.h
 CMakeFiles/Project.dir/main.obj: main.cpp
+CMakeFiles/Project.dir/main.obj: parser/Expr.h
+CMakeFiles/Project.dir/main.obj: parser/Tree.h
 CMakeFiles/Project.dir/main.obj: pf/pf.h
+CMakeFiles/Project.dir/main.obj: ql/QueryManager.h
+CMakeFiles/Project.dir/main.obj: ql/Table.h
 CMakeFiles/Project.dir/main.obj: rm/HeaderPage.h
 CMakeFiles/Project.dir/main.obj: rm/RID.h
 CMakeFiles/Project.dir/main.obj: rm/RM_FileHandle.h
 CMakeFiles/Project.dir/main.obj: rm/RM_FileScan.h
 CMakeFiles/Project.dir/main.obj: rm/RM_Record.h
 CMakeFiles/Project.dir/main.obj: rm/RecordManager.h
+CMakeFiles/Project.dir/main.obj: sm/sm.h
 CMakeFiles/Project.dir/main.obj: utils/MyBitMap.h
 CMakeFiles/Project.dir/main.obj: utils/pagedef.h
 

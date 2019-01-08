@@ -13,6 +13,7 @@
 #include "../rm/RID.h"
 #include "../pf/pf.h"
 #include "ix_internal.h"
+#include "../rm/RM_FileHandle.h"
 
 class IX_IndexHandle;
 
@@ -36,7 +37,9 @@ public:
                      int        indexNo);
     RC OpenIndex    (const char *fileName,          // Open index
                      int        indexNo,
-                     IX_IndexHandle &indexHandle);
+                     IX_IndexHandle &indexHandle,
+					 RM_FileHandle &rmFileHandle,
+					 int _attrOffset);
     RC CloseIndex   (IX_IndexHandle &indexHandle);  // Close index
 private:
 	char* GenFileName(const char* filename, int indexNo);
@@ -49,11 +52,11 @@ class IX_IndexHandle {
 public:
     IX_IndexHandle  ();                             // Constructor
     ~IX_IndexHandle ();                             // Destructor
-    RC InsertEntry     (void *pData, const RID &rid);  // Insert new index entry
-    RC DeleteEntry     (void *pData, const RID &rid);  // Delete index entry
+    RC InsertEntry     (const RID &rid);  // Insert new index entry
+    RC DeleteEntry     (const RID &rid);  // Delete index entry
     RC ForcePages      ();                             // Copy index to disk
 	
-	RC init(const char* indexFileName, PF_Manager *_pfm);
+	RC init(const char* indexFileName, PF_Manager *_pfm, RM_FileHandle *_rmFileHandle, int _attrOffset);
 	RC CloseIndex();
 	LeafNode FindLeafNode(void *pData);
 	
@@ -62,22 +65,27 @@ public:
 	void GetNextRIDPositionInfo(RIDPositionInfo &ridPositionInfo, int dir, bool EQ_OP);
 	void GetGeqRIDPos(void *pData, RIDPositionInfo &ridPositionInfo, bool returnFirstRID);
 	
-	int cmp(void *, void *);
-	
+	int cmp(const RID, const RID);
+	int cmp(void*, void*);
+	void* getValueFromRecRID(const RID rid);
 private:
 	
 	IndexInfo *indexInfo;
 	PF_FileHandle fileHandle;
 	PF_Manager *pfm;
+	RM_FileHandle *rmFileHandle;
+	int attrOffset;
 	PageNum pinnedPageList[MAX_DEPTH];
 	int pinnedPageNum;
 	PageNum disposedPageList[MAX_DEPTH];
 	int disposedPageNum;
 	
+	
+	
 	RC insertIntoRIDPage(const RID rid, const PageNum pageNum);
 	RC deleteFromRIDPage(const RID rid, const PageNum pageNum, int &lastRIDCount);
-	PageNum InsertEntryFromPage(void *pData, PageNum &pageNum, PageNum fatherPage, int nodePos);
-	RC DeleteEntryFromPage(void *pData, PageNum& pageNum, PageNum fatherPageNum, const RID &rid, int thisPos); 
+	PageNum InsertEntryFromPage(RID rid, PageNum &pageNum, PageNum fatherPage, int nodePos);
+	RC DeleteEntryFromPage(RID rid, PageNum& pageNum, PageNum fatherPageNum, int thisPos); 
 	PageNum FindLeafPageFromPage(void *pData, PageNum pageNum);
 	
 	int getRIDPageSize(const PageNum pageNum);
