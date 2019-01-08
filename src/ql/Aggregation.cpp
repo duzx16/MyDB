@@ -57,6 +57,12 @@ Expr *init_statistics(AttrType attrType, AggregationType aggregation) {
 Aggregation::Aggregation(const BindAttribute &attrInfo, AggregationType type, bool isGroup) {
     is_group = isGroup;
     this->type = type;
+    this->attrInfo = attrInfo;
+    if (this->type != AggregationType::T_NONE) {
+        if (this->attrInfo.attrType != AttrType::INT and this->attrInfo.attrType != AttrType::FLOAT) {
+            throw "The type of column " + attrInfo.attrName + " can't be aggregated\n";
+        }
+    }
     expr = nullptr;
     if (not isGroup) {
         expr = init_statistics(attrInfo.attrType, type);
@@ -64,7 +70,6 @@ Aggregation::Aggregation(const BindAttribute &attrInfo, AggregationType type, bo
     if (expr != nullptr) {
         expr->type_check();
     }
-    this->attrInfo = attrInfo;
 }
 
 Aggregation::~Aggregation() {

@@ -112,8 +112,8 @@ void optimizeIteration(std::vector<std::unique_ptr<Table>> &tables, Expr *condit
 int
 QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause,
                       const std::string &groupAttrName) {
-    // if groupAttrName not empty, there must be statistics and only one non-statistics attribute
-    // statistics can't appear along with normal attribute
+    // if groupAttrName not empty, there must be statistics and only one non-statistics attribute (checked before)
+    // statistics can't appear along with normal attribute (checked before)
     // aggregate can only appear for numeric column
     std::vector<std::unique_ptr<Table>> tables;
     int rc = 0;
@@ -182,9 +182,12 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
     } catch (AttrBindException &exception) {
         printException(exception);
         return QL_TABLE_FAIL;
+    } catch (const std::string &error) {
+        cerr << error;
+        return QL_TYPE_CHECK;
     }
 
-// begin iterate
+    // begin iterate
     iterateTables(newTables,
                   0, whereClause,
                   [isStatistic, &attributeExprs, &groupAttrName, &statistics, &total_count, &groupSet, &groupAttrExpr](

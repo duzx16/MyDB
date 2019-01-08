@@ -60,6 +60,23 @@ Select::~Select() {
 
 void Select::visit() {
     DebugPrintf("select\n");
+    bool statistics = false;
+    for (const auto &attribute: this->attributes->attributes) {
+        if (attribute->aggregationType != AggregationType::T_NONE) {
+            statistics = true;
+            break;
+        }
+    }
+    if (statistics) {
+        for (const auto &attribute: this->attributes->attributes) {
+            if (attribute->aggregationType == AggregationType::T_NONE) {
+                if (not(attribute->attribute == groupAttrName)) {
+                    cerr << "Can't select column " + attribute->attribute + " along with aggregating function\n";
+                    return;
+                }
+            }
+        }
+    }
     QL_Manager::getInstance().exeSelect(attributes, relations, whereClause, groupAttrName);
 }
 
@@ -210,7 +227,7 @@ void DropIndex::visit() {
 }
 
 
-/* DropDatabaseTree */
+/* DropDatabase */
 DropDatabase::DropDatabase(const char *dbName) {
     this->dbName = string(dbName);
 }
@@ -218,7 +235,7 @@ DropDatabase::DropDatabase(const char *dbName) {
 DropDatabase::~DropDatabase() = default;
 
 void DropDatabase::visit() {
-    (SM_Manager::getInstance())->DropDb(dbName.c_str());
+    SM_Manager::getInstance()->DropDb(dbName.c_str());
 }
 
 /* DropTableTree */
@@ -230,9 +247,16 @@ DropTable::~DropTable() = default;
 
 void DropTable::visit() {
     DebugPrintf("drop foreign_table %s\n", tableName.c_str());
-    // todo not implemented yet
-    (SM_Manager::getInstance())->DropTable(tableName.c_str());
-    RecordManager::getInstance().destroyFile(tableName);
+    int rc = SM_Manager::getInstance()->DropTable(tableName.c_str());
+    if (rc == 0) {
+        rc = RecordManager::getInstance().destroyFile(tableName);
+        if (rc != 0) {
+            cerr << "The record file doesn't exist\n";
+        }
+    } else {
+        cerr << "Delete error, the table doesn't exist\n";
+    }
+
 }
 
 /* ColumnNode */
@@ -245,14 +269,14 @@ ColumnNode::ColumnNode(const char *columnName, AttrType type, int length,
     switch (type) {
         case AttrType::DATE:
         case AttrType::INT:
-            size = sizeof(int);
+            this->size = sizeof(int);
             break;
         case AttrType::FLOAT:
-            size = sizeof(float);
+            this->size = sizeof(float);
             break;
         case AttrType::VARCHAR:
         case AttrType::STRING:
-            size = length + 1;
+            this->size = length + 1;
             break;
         case AttrType::BOOL:
         case AttrType::NO_ATTR:
