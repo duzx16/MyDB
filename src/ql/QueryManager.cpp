@@ -187,7 +187,7 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
 // begin iterate
     iterateTables(newTables,
                   0, whereClause,
-                  [this, isStatistic, &attributeExprs, &groupAttrName, &statistics, &total_count, &groupSet, &groupAttrExpr](
+                  [isStatistic, &attributeExprs, &groupAttrName, &statistics, &total_count, &groupSet, &groupAttrExpr](
                           const std::vector<RM_Record> &caches
                   ) -> void {
                       total_count += 1;
@@ -351,7 +351,6 @@ int QL_Manager::exeDelete(std::string relationName, Expr *whereClause) {
                   [&toBeDeleted](const RM_Record &record) -> void {
                       toBeDeleted.push_back(record.getRID());
                   });
-    RM_FileHandle &fileHandle = tables[0]->getFileHandler();
     for (auto &it: toBeDeleted) {
         rc = tables[0]->deleteData(it);
         if (rc != 0) {

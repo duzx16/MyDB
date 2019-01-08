@@ -6,7 +6,7 @@ IX_IndexScan::IX_IndexScan() {}
 
 IX_IndexScan::~IX_IndexScan() {}
 
-RC IX_IndexScan::OpenScan(IX_IndexHandle &_indexHandle, CompOp compOp, void *value, ClientHint clientHint) {
+RC IX_IndexScan::OpenScan(IX_IndexHandle &_indexHandle, CompOp compOp, const void *value, ClientHint clientHint) {
 	indexHandle = &_indexHandle;
 	EQ_OP = false;
 	skipValue = NULL;

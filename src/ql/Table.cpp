@@ -230,19 +230,33 @@ Table::Table(const std::string &tableName) {
         attrInfos.push_back(std::move(attrInfo));
     }
     for (const auto &it: tableConstraints.tbDecs) {
-        for (int i = 0; i < attrInfos.size(); ++i) {
-            if (attrInfos[i].attrName == it->column_name) {
-                constrAttrI.push_back(i);
-                break;
-            }
-        }
         foreignIndexs.push_back(nullptr);
         switch (it->type) {
             case ConstraintType::CHECK_CONSTRAINT:
+                for (int i = 0; i < attrInfos.size(); ++i) {
+                    if (attrInfos[i].attrName == it->column_name) {
+                        constrAttrI.push_back(i);
+                        break;
+                    }
+                }
+                foreignAttrInt.push_back(-1);
+                break;
             case ConstraintType::PRIMARY_CONSTRAINT:
+                for (int i = 0; i < attrInfos.size(); ++i) {
+                    if (attrInfos[i].attrName == it->column_list->idents[0]) {
+                        constrAttrI.push_back(i);
+                        break;
+                    }
+                }
                 foreignAttrInt.push_back(-1);
                 break;
             case ConstraintType::FOREIGN_CONSTRAINT: {
+                for (int i = 0; i < attrInfos.size(); ++i) {
+                    if (attrInfos[i].attrName == it->column_name) {
+                        constrAttrI.push_back(i);
+                        break;
+                    }
+                }
                 ColumnDecsList foreign_columns;
                 TableConstraintList foreign_constraint;
                 rc = SM_Manager::getInstance()->GetTableInfo(it->foreign_table.c_str(), foreign_columns,

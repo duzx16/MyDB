@@ -292,9 +292,9 @@ RC SM_Manager::CreateIndex(const char *relName, const char *attrName) {
     IX_IndexHandle indexHandle;
     ixm->OpenIndex(relName, pos, indexHandle);
     // calc offset
-    int offset = 0;
+    int offset = 1;
     for (int i = 0; i < pos; ++i)
-        offset += (tableInfo->attrInfos[i]).attrSize;
+        offset += (tableInfo->attrInfos[i]).attrSize + 1;
     // open record scan
     RM_FileHandle rmFileHandle;
     memset(s, 0, sizeof(s));

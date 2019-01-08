@@ -36,7 +36,7 @@ PageNum IX_IndexHandle::InsertEntryFromPage(void *pData, PageNum &pageNum, PageN
 		getExistedPage(pageNum, pageHandle);
 	}
 	LDB(pageHandle.GetData(pageData));
-	
+
 	NodePagePacket* nodePagePacket = (NodePagePacket*)pageData;
 	if (nodePagePacket->nodeType == LEAF_NODE) {
 		// leaf node
@@ -59,13 +59,13 @@ PageNum IX_IndexHandle::InsertEntryFromPage(void *pData, PageNum &pageNum, PageN
 					pos = leafNode->size;
 			}
 		}
-		
+
 		PageNum newRIDPageNum;
 		PF_PageHandle newRIDPageHandle;
 		LDB(fileHandle.AllocatePage(newRIDPageHandle));
 		LDB(newRIDPageHandle.GetPageNum(newRIDPageNum));
 		LDB(fileHandle.UnpinPage(newRIDPageNum));
-		
+
 		leafNode->insertDataIntoPos(pData, newRIDPageNum, pos);
 		LDB(fileHandle.MarkDirty(pageNum));
 		LDB(fileHandle.ForcePages(pageNum));
@@ -107,8 +107,8 @@ PageNum IX_IndexHandle::InsertEntryFromPage(void *pData, PageNum &pageNum, PageN
 			}
 			LDB(fileHandle.ForcePages(fatherPage));
 		}
-		return newRIDPageNum;	
-			
+		return newRIDPageNum;
+
 	}
 	else {
 		// internal node
@@ -128,7 +128,7 @@ PageNum IX_IndexHandle::InsertEntryFromPage(void *pData, PageNum &pageNum, PageN
 		NodePagePacket* nodePagePacket = (NodePagePacket*)pageData;
 		internalNode = &(nodePagePacket->internalNode);
 		*/
-		
+
 		if (internalNode->keyCount == D * 2) {
 			PF_PageHandle splitNodePageHandle;
 			PageNum splitNodePageNum = allocateNewPage(splitNodePageHandle);
@@ -140,7 +140,7 @@ PageNum IX_IndexHandle::InsertEntryFromPage(void *pData, PageNum &pageNum, PageN
 			InternalNode* splitNode = &(((NodePagePacket*)splitNodePageData)->internalNode);
 			splitNode->init();
 			internalNode->Split(splitNode);
-			
+
 			LDB(fileHandle.ForcePages(pageNum));
 			LDB(fileHandle.ForcePages(splitNodePageNum));
 			// modify father page
@@ -372,7 +372,7 @@ void IX_IndexHandle::PrintFullLinkList() {
 		if (nodePagePacket->nodeType == INTERNAL_NODE)
 			getExistedPage((nodePagePacket->internalNode).son[0], pageHandle);
 		else {
-			leafNode = &(nodePagePacket->leafNode); 
+			leafNode = &(nodePagePacket->leafNode);
 			break;
 		}
 	}
@@ -382,7 +382,7 @@ void IX_IndexHandle::PrintFullLinkList() {
 		}
 		int rightPage = leafNode->rightPage;
 		unpinAllPages();
-		
+
 		if (rightPage == -1)
 			break;
 		getExistedPage(rightPage, pageHandle);
@@ -392,7 +392,7 @@ void IX_IndexHandle::PrintFullLinkList() {
 	unpinAllPages();
 }
 
-void IX_IndexHandle::GetGeqRIDPos(void *pData, RIDPositionInfo &ridPositionInfo, bool returnFirstRID) {
+void IX_IndexHandle::GetGeqRIDPos(const void *pData, RIDPositionInfo &ridPositionInfo, bool returnFirstRID) {
 	PF_PageHandle pageHandle;
 	char *pageData;
 	//getExistedPage(2, pageHandle);
@@ -407,7 +407,7 @@ void IX_IndexHandle::GetGeqRIDPos(void *pData, RIDPositionInfo &ridPositionInfo,
 			getExistedPage(son, pageHandle);
 		}
 		else {
-			leafNode = &(nodePagePacket->leafNode); 
+			leafNode = &(nodePagePacket->leafNode);
 			break;
 		}
 	}
@@ -431,7 +431,7 @@ void IX_IndexHandle::GetGeqRIDPos(void *pData, RIDPositionInfo &ridPositionInfo,
 			break;
 		int rightPage = leafNode->rightPage;
 		unpinAllPages();
-		
+
 		if (rightPage == -1)
 			break;
 		getExistedPage(rightPage, pageHandle);
@@ -537,16 +537,16 @@ void IX_IndexHandle::unpinAllPages() {
 }
 
 void IX_IndexHandle::disposeAllPages() {
-	
+
 	bool rebuild = false;
 	for (int i = 0; i < disposedPageNum; ++i) {
 		if (disposedPageList[i] == indexInfo->rootPageNum)
 			rebuild = true;
 		LDB(fileHandle.DisposePage(disposedPageList[i]));
 	}
-	
+
 	disposedPageNum = 0;
-	
+
 	if (rebuild) {
 		PF_PageHandle pageHandle;
 		PageNum pageNum;
@@ -564,7 +564,7 @@ void IX_IndexHandle::disposeAllPages() {
 		LDB(fileHandle.MarkDirty(0));
 		LDB(fileHandle.ForcePages(0));
 	}
-	
+
 }
 
 RC IX_IndexHandle::ForcePages() {
@@ -572,11 +572,12 @@ RC IX_IndexHandle::ForcePages() {
 	return 0;
 }
 
-int IX_IndexHandle::cmp(void *a, void *b) {
-	if (a == NULL || b == NULL)
+int IX_IndexHandle::cmp(const void *a, const void *b) {
+	if (a == nullptr || b == nullptr)
 		return 0;
 	if (indexInfo->attrType == AttrType::INT) {
-		int _a = *(int*)a, _b = *(int*)b;
+		int _a = *(int*)a;
+		int _b = *(int*)b;
 		return _a - _b;
 	}
 	if (indexInfo->attrType == AttrType::FLOAT) {

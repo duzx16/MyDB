@@ -61,9 +61,9 @@ public:
 	void PrintFullLinkList(); // print full link list just for attrtype = int
 	
 	void GetNextRIDPositionInfo(RIDPositionInfo &ridPositionInfo, int dir, bool EQ_OP);
-	void GetGeqRIDPos(void *pData, RIDPositionInfo &ridPositionInfo, bool returnFirstRID);
+	void GetGeqRIDPos(const void *pData, RIDPositionInfo &ridPositionInfo, bool returnFirstRID);
 	
-	int cmp(void *, void *);
+	int cmp(const void *, const void *);
 	
 private:
 	
@@ -105,7 +105,7 @@ public:
     ~IX_IndexScan ();                                 // Destructor
     RC OpenScan      (IX_IndexHandle &indexHandle, // Initialize index scan
                       CompOp      compOp,
-                      void        *value,
+                      const void        *value,
                       ClientHint  pinHint = ClientHint::NO_HINT);
     RC GetNextEntry  (RID &rid);                      // Get next matching entry
     RC CloseScan     ();     	// Terminate index scan
@@ -113,7 +113,7 @@ private:
 	IX_IndexHandle *indexHandle;
 	RIDPositionInfo ridPositionInfo;
 	int dir;
-	void *skipValue;
+	const void *skipValue;
 	bool EQ_OP;
 
 	RIDList *ridHead;

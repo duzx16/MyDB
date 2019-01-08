@@ -139,33 +139,31 @@ CreateTable::~CreateTable() {
 }
 
 void CreateTable::visit() {
-    DebugPrintf("create foreign_table %s\n", tableName.c_str());
+    DebugPrintf("create table %s\n", tableName.c_str());
     int rc = (SM_Manager::getInstance())->CreateTable(tableName.c_str(), columns, tableConstraints);
     //todo rc is not correct
     if (rc != 0) {
         fprintf(stderr, "Create table error\n");
         return;
     }
-    for (const auto &constraint: this->tableConstraints->tbDecs) {
-        if (constraint->type == ConstraintType::PRIMARY_CONSTRAINT) {
-            for (int i = 0; i < this->columns->columns.size(); ++i) {
-                if (columns->columns[i]->columnName == constraint->column_name) {
-                    IX_Manager::getInstance().CreateIndex(tableName.c_str(), i, columns->columns[i]->type,
-                                                          columns->columns.size());
+    if (this->tableConstraints != nullptr) {
+        for (const auto &constraint: this->tableConstraints->tbDecs) {
+            if (constraint->type == ConstraintType::PRIMARY_CONSTRAINT) {
+                for (int i = 0; i < this->columns->columns.size(); ++i) {
+                    if (columns->columns[i]->columnName == constraint->column_list->idents[0]) {
+                        IX_Manager::getInstance().CreateIndex(tableName.c_str(), i, columns->columns[i]->type,
+                                                              columns->columns.size());
+                    }
                 }
             }
         }
     }
     unsigned recordSize = 0;
     for (const auto &it: columns->columns) {
-        if (it->type == AttrType::INT) {
-            recordSize += sizeof(int) + 1;
-        } else {
-            recordSize += it->size + 1;
-        }
+        recordSize += it->size + 1;
     }
-    RecordManager::getInstance().createFile(tableName, recordSize);
-    DebugPrintf("create foreign_table %s end\n", tableName.c_str());
+    rc = RecordManager::getInstance().createFile(tableName, recordSize);
+    DebugPrintf("create table %s end\n", tableName.c_str());
 }
 
 

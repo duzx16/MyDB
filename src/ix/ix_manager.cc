@@ -40,7 +40,7 @@ RC IX_Manager::CreateIndex(const char* filename, int indexNo, AttrType attrType,
 	LDB(pageHandle.GetData(pageData));
 	PageNum pageNum;
 	LDB(pageHandle.GetPageNum(pageNum));
-	IndexInfo *indexInfo = (IndexInfo*) pageData;
+	auto *indexInfo = (IndexInfo*) pageData;
 	indexInfo->attrType = attrType;
 	indexInfo->attrLength = attrLength;
 	indexInfo->rootPageNum = 1;
@@ -52,7 +52,7 @@ RC IX_Manager::CreateIndex(const char* filename, int indexNo, AttrType attrType,
 	LDB(fileHandle.AllocatePage(pageHandle));
 	LDB(pageHandle.GetPageNum(pageNum));
 	LDB(pageHandle.GetData(pageData));
-	NodePagePacket* nodePagePacket = (NodePagePacket*) pageData;
+	auto * nodePagePacket = (NodePagePacket*) pageData;
 	nodePagePacket->nodeType = LEAF_NODE;
 	(nodePagePacket->leafNode).init();
 	LDB(fileHandle.MarkDirty(pageNum));
