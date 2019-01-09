@@ -64,7 +64,7 @@ public:
 	void PrintFullLinkList(); // print full link list just for attrtype = int
 	
 	void GetNextRIDPositionInfo(RIDPositionInfo &ridPositionInfo, int dir, bool EQ_OP);
-	void GetGeqRIDPos(const void *pData, RIDPositionInfo &ridPositionInfo, bool returnFirstRID);
+	void GetGeqRIDPos(const void *pData, RIDPositionInfo &ridPositionInfo, bool returnFirstRID, bool LE);
 	
 	int cmp(const RID, const RID);
 	int cmp(const void*, const void*);
@@ -127,7 +127,7 @@ private:
 	const void *skipValue;
 	bool EQ_OP;
 
-	RIDList *ridHead;
+	RIDList *ridHead, *tail;
 };
 
 //

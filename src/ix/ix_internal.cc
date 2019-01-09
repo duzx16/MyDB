@@ -117,7 +117,7 @@ void RIDPagePacket::operator = (const RIDPagePacket &o) {
 }
 
 RIDList::RIDList() {
-	next = NULL;
+	next = prev = NULL;
 }
 
 int RIDPositionInfo::getCurRID(RID &rid) {
