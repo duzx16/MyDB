@@ -5,8 +5,6 @@
 #include "FuncTemplate.h"
 #include <regex>
 
-
-
 bool comp_function(const std::string &a, const std::string &b, CompOp compOp) {
     if (compOp == CompOp::LIKE_OP) {
         std::string regexStr;
@@ -80,6 +78,24 @@ bool logic_function(bool a, bool b, LogicOp logicOp) {
             return not a;
         case LogicOp::NO_OP:
             break;
+    }
+    return false;
+}
+
+bool isComparison(CompOp op) {
+    switch (op) {
+        case CompOp::EQ_OP:
+        case CompOp::GE_OP:
+        case CompOp::GT_OP:
+        case CompOp::LE_OP:
+        case CompOp::LT_OP:
+        case CompOp::NE_OP:
+            return true;
+        case CompOp::NO_OP:
+        case CompOp::LIKE_OP:
+        case CompOp::IS_OP:
+        case CompOp::ISNOT_OP:
+            return false;
     }
     return false;
 }

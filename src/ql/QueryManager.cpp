@@ -13,6 +13,7 @@
 #include "../rm/RecordManager.h"
 #include "../rm/RM_FileScan.h"
 #include "../parser/Expr.h"
+#include "../utils/FuncTemplate.h"
 #include "Aggregation.h"
 
 #include <set>
@@ -81,7 +82,7 @@ void optimizeIteration(std::vector<std::unique_ptr<Table>> &tables, Expr *condit
         } else {
             break;
         }
-        if (not aim->calculated and aim->nodeType == NodeType::COMP_NODE) {
+        if (not aim->calculated and aim->nodeType == NodeType::COMP_NODE and isComparison(aim->oper.comp)) {
             // the left of comparison must be attribute
             // the left has not been iterated
             if (before.find(aim->left->tableIndex) == before.end()) {
@@ -414,8 +415,8 @@ int QL_Manager::iterateTables(Table &table, Expr *condition, QL_Manager::Callbac
         }
         // the left of comparison must be attribute
         if (aim->right->calculated) {
-            if (aim->left->attrInfo.tableName == table.tableName &&
-                table.getIndexAvailable(aim->left->columnIndex)) {
+            if (aim->left->attrInfo.tableName == table.tableName and
+                table.getIndexAvailable(aim->left->columnIndex and isComparison(aim->oper.comp))) {
                 indexScan.OpenScan(table.getIndexHandler(current->left->columnIndex), aim->oper.comp,
                                    aim->getValue());
                 use_index = true;

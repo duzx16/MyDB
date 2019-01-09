@@ -55,5 +55,6 @@ T arith_function(T a, T b, ArithOp arithOp) {
 }
 
 bool logic_function(bool a, bool b, LogicOp logicOp);
+bool isComparison(CompOp op);
 
 #endif //MYDB_FUNCTEMPLATE_H
