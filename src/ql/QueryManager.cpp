@@ -415,8 +415,8 @@ int QL_Manager::iterateTables(Table &table, Expr *condition, QL_Manager::Callbac
         }
         // the left of comparison must be attribute
         if (aim->right->calculated) {
-            if (aim->left->attrInfo.tableName == table.tableName and
-                table.getIndexAvailable(aim->left->columnIndex and isComparison(aim->oper.comp))) {
+            if (aim->left->attrInfo.tableName == table.tableName and table.getIndexAvailable(aim->left->columnIndex) and
+                isComparison(aim->oper.comp)) {
                 indexScan.OpenScan(table.getIndexHandler(current->left->columnIndex), aim->oper.comp,
                                    aim->getValue());
                 use_index = true;

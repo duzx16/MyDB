@@ -40,6 +40,7 @@ class Tree;
 }
 
 /* keyword */
+%token QUIT
 %token SELECT DELETE UPDATE INSERT
 %token CREATE DROP USE SHOW TABLES
 %token DATABASES DATABASE TABLE
@@ -94,6 +95,10 @@ sql:
 command:
             {
 
+            }
+    | QUIT
+            {
+                YYACCEPT;
             }
     | SHOW DATABASES
             {

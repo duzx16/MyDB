@@ -51,6 +51,7 @@ STRING          '(\\\\|\\n|\\r|\\\"|\\0|\\'|[^'\\])*'
 "-"             { /*printf("- "); */ return yytext[0]; }
 "/"             { /*printf("/ "); */ return yytext[0]; }
 "*"             { /*printf("* "); */ return yytext[0]; }
+QUIT            { /*printf("QUIT");*/return QUIT;       }
 CREATE          { /*printf("CREATE "); */ return CREATE; }
 DROP            { /*printf("DROP "); */ return DROP; }
 USE             { /*printf("USE "); */ return USE; }
