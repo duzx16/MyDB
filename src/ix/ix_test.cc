@@ -11,24 +11,63 @@ char indFile[110] = "TestIndexFile";
 int v[100010];
 RID r[100010];
 std::pair<int, int> stp[100010];
-const int n = 20000;
+const int n = 10000;
+const int m = n / 2;
+const int half_m = m / 2;
 const int gap = n / 10;
-
-void checkResultList(IX_IndexHandle &indexHandle) {
+int validID[100010];
+void checkResultList(IX_IndexHandle &indexHandle, CompOp compOp, void *value) {
 	RID rid;
 	for (int i = 0; i < n; ++i)
 		stp[i] = std::make_pair(v[i], i);
 	std::sort(stp, stp + n);
 	int count = 0;
-	IX_IndexScan indexScan;
-	LDB(indexScan.OpenScan(indexHandle, CompOp::NO_OP, NULL, ClientHint::NO_HINT));
-	while (indexScan.GetNextEntry(rid) != IX_EOF) {
-		int pos = stp[count++].second;
-		//assert(rid.getPageNum() == r[pos].getPageNum());
-		//assert(rid.getSlotNum() == r[pos].getSlotNum());
-		assert(v[pos] == *(int*)indexHandle.getValueFromRecRID(rid));
+	for (int i = 0; i < n; ++i) {
+		bool cond = false;
+		switch (compOp) {
+			case CompOp::LE_OP: {
+				cond = indexHandle.cmp((void*)(&(stp[i].first)), value) <= 0;
+				break;
+			}
+			case CompOp::LT_OP: {
+				cond = indexHandle.cmp((void*)(&(stp[i].first)), value) < 0;
+				break;
+			}
+			case CompOp::GE_OP: {
+				cond = indexHandle.cmp((void*)(&(stp[i].first)), value) >= 0;
+				break;
+			}
+			case CompOp::GT_OP: {
+				cond = indexHandle.cmp((void*)(&(stp[i].first)), value) > 0;
+				break;
+			}
+			case CompOp::NO_OP: {
+				cond = true;
+				break;
+			}
+			case CompOp::EQ_OP: {
+				cond = indexHandle.cmp((void*)(&(stp[i].first)), value) == 0;
+				break;
+			}
+			case CompOp::NE_OP: {
+				cond = indexHandle.cmp((void*)(&(stp[i].first)), value) != 0;
+				break;
+			}
+			default: {
+				break;
+			}
+		}
+		if (cond)
+			validID[count++] = stp[i].second;
 	}
-	assert(count == n);
+	int pointer = 0;
+	IX_IndexScan indexScan;
+	LDB(indexScan.OpenScan(indexHandle, compOp, value, ClientHint::NO_HINT));
+	while (indexScan.GetNextEntry(rid) != IX_EOF) {
+		//printf("expected = %d get = %d\n", v[validID[pointer]], *(int*)indexHandle.getValueFromRecRID(rid));
+		assert(v[validID[pointer++]] == *(int*)indexHandle.getValueFromRecRID(rid));
+	}
+	assert(count == pointer);
 }
 
 void IX_Test() {
@@ -47,8 +86,8 @@ void IX_Test() {
 	LDB(rmm->openFile(recFile, rmFileHandle));
 	RID rid;
 	for (int i = 0; i < n; ++i) {
-		//v[i] = rand();
-		v[i] = 100000 + i;
+		v[i] = rand() % m + 1;
+		//v[i] = 100000 + i;
 		rid = rmFileHandle.insertRec((char*)(v + i));
 		r[i] = rid;
 		//printf("i = %d, vi = %d, ri = (%ld, %u)\n", i, v[i], r[i].getPageNum(), r[i].getSlotNum());
@@ -75,7 +114,10 @@ void IX_Test() {
 		indexHandle.InsertEntry(rid);
 		//indexHandle.checkLinkListIsValid();
 	}
-	checkResultList(indexHandle);
+	checkResultList(indexHandle, CompOp::LE_OP, new int(half_m));
+	checkResultList(indexHandle, CompOp::LT_OP, new int(half_m));
+	checkResultList(indexHandle, CompOp::GE_OP, new int(half_m));
+	checkResultList(indexHandle, CompOp::GT_OP, new int(half_m));
 	printf("test after insertion passed...\n");
 	LDB(rmFileScan.closeScan());
 	LDB(ixm->CloseIndex(indexHandle));
@@ -127,7 +169,13 @@ void IX_Test() {
 		//checkResultList(indexHandle);
 	}
 	// check result is correct
-	checkResultList(indexHandle);
+	checkResultList(indexHandle, CompOp::LE_OP, new int(-m * 2));
+	checkResultList(indexHandle, CompOp::LE_OP, new int(0));
+	checkResultList(indexHandle, CompOp::GE_OP, new int(-m * 2));
+	checkResultList(indexHandle, CompOp::GE_OP, new int(0));
+	checkResultList(indexHandle, CompOp::EQ_OP, new int(-half_m));
+	checkResultList(indexHandle, CompOp::NE_OP, new int(-half_m));
+	checkResultList(indexHandle, CompOp::NO_OP, NULL);
 	printf("test after update passed...\n");
 	LDB(ixm->CloseIndex(indexHandle));
 	LDB(rmm->closeFile(rmFileHandle));

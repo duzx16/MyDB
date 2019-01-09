@@ -480,7 +480,7 @@ void IX_IndexHandle::PrintFullLinkList() {
 	unpinAllPages();
 }
 */
-void IX_IndexHandle::GetGeqRIDPos(const void *pData, RIDPositionInfo &ridPositionInfo, bool returnFirstRID) {
+void IX_IndexHandle::GetGeqRIDPos(const void *pData, RIDPositionInfo &ridPositionInfo, bool returnFirstRID, bool LE) {
 	PF_PageHandle pageHandle;
 	char *pageData;
 	//getExistedPage(2, pageHandle);
@@ -493,6 +493,8 @@ void IX_IndexHandle::GetGeqRIDPos(const void *pData, RIDPositionInfo &ridPositio
 			InternalNode *internalNode = &(nodePagePacket->internalNode);
 			int i;
 			for (i = internalNode->keyCount; i >= 0; --i) {
+				if (i != 0 && returnFirstRID)
+					continue;
 				if (cmp(getValueFromRecRID(internalNode->recRID[i]), pData) < 0) {
 					int son = internalNode->son[i];
 					unpinAllPages();
@@ -532,8 +534,19 @@ void IX_IndexHandle::GetGeqRIDPos(const void *pData, RIDPositionInfo &ridPositio
 		int rightPage = leafNode->rightPage;
 		unpinAllPages();
 
-		if (rightPage == -1)
+		if (rightPage == -1) {
+			if (LE && leafNode->size > 0) {
+				ridPositionInfo.leafNode = *leafNode;
+				ridPositionInfo.posInLeaf = leafNode->size - 1;
+				ridPositionInfo.ridPagePos = 0;
+				getExistedPage((leafNode->data[leafNode->size - 1]).ridPageNum, pageHandle);
+				LDB(pageHandle.GetData(pageData));
+				ridPositionInfo.ridPagePacket = *(RIDPagePacket*)pageData;
+				ridPositionInfo.value = getValueFromRecRID((leafNode->data[leafNode->size - 1]).recRID);
+				find = true;
+			}
 			break;
+		}
 		getExistedPage(rightPage, pageHandle);
 		LDB(pageHandle.GetData(pageData));
 		leafNode = &(((NodePagePacket*) pageData)->leafNode);
@@ -597,10 +610,10 @@ void IX_IndexHandle::GetNextRIDPositionInfo(RIDPositionInfo &ridPositionInfo, in
 					getExistedPage(ridPositionInfo.leafNode.leftPage, pageHandle);
 					LDB(pageHandle.GetData(pageData));
 					ridPositionInfo.leafNode = ((NodePagePacket*)pageData)->leafNode;
-					ridPositionInfo.posInLeaf = 0;
-					ridPositionInfo.value = getValueFromRecRID(ridPositionInfo.leafNode.data[0].recRID);
+					ridPositionInfo.posInLeaf = ridPositionInfo.leafNode.size - 1;
+					ridPositionInfo.value = getValueFromRecRID(ridPositionInfo.leafNode.data[ridPositionInfo.posInLeaf].recRID);
 					//fileHandle.GetThisPage(ridPositionInfo.leafNode.data[0].ridPageNum, pageHandle);
-					getExistedPage(ridPositionInfo.leafNode.data[0].ridPageNum, pageHandle);
+					getExistedPage(ridPositionInfo.leafNode.data[ridPositionInfo.posInLeaf].ridPageNum, pageHandle);
 					LDB(pageHandle.GetData(pageData));
 					ridPositionInfo.ridPagePacket = *((RIDPagePacket*)pageData);
 					ridPositionInfo.ridPagePos = 0;

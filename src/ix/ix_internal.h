@@ -68,7 +68,7 @@ struct RIDPositionInfo {
 };
 struct RIDList {
 	RID rid;
-	RIDList *next;
+	RIDList *next, *prev;
 	RIDList();
 };
 
