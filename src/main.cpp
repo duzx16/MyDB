@@ -6,6 +6,7 @@
 #include "ql/QueryManager.h"
 #include <unistd.h>
 #include <vector>
+#include "ix/ix.h"
 
 char start_parse(const char *expr_input);
 
@@ -57,6 +58,13 @@ int yyparse();
 
 int main(int args, char **argv) {
     MyBitMap::initConst();
+	
+	/*
+	IX_Test();
+	printf("test successfully\n");
+	return 0;
+	*/
+	
     if (args > 1) {
         for (int i = 0; i < args - 1; ++i) {
             if (freopen(argv[i + 1], "r", stdin))

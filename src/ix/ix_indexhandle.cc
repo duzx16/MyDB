@@ -70,6 +70,7 @@ PageNum IX_IndexHandle::InsertEntryFromPage(RID rid, PageNum &pageNum, PageNum f
 		LDB(fileHandle.UnpinPage(newRIDPageNum));
 		
 		leafNode->insertDataIntoPos(rid, newRIDPageNum, pos);
+		//assertIncrease(leafNode);
 		LDB(fileHandle.MarkDirty(pageNum));
 		LDB(fileHandle.ForcePages(pageNum));
 		// overflow, split
@@ -84,8 +85,20 @@ PageNum IX_IndexHandle::InsertEntryFromPage(RID rid, PageNum &pageNum, PageNum f
 			LeafNode* splitNode = &(((NodePagePacket*)splitNodePageData)->leafNode);
 			splitNode->init();
 			leafNode->split(splitNode, splitNodePageNum, pageNum);
+			//assertIncrease(leafNode);
+			//assertIncrease(splitNode);
 			LDB(fileHandle.ForcePages(pageNum));
 			LDB(fileHandle.ForcePages(splitNodePageNum));
+			if (splitNode->rightPage != -1) {
+				PF_PageHandle splitRightPageHandle;
+				getExistedPage(splitNode->rightPage, splitRightPageHandle);
+				char *splitRightPageData;
+				LDB(splitRightPageHandle.GetData(splitRightPageData));
+				LeafNode *splitRightNode = &(((NodePagePacket*)splitRightPageData)->leafNode);
+				splitRightNode->leftPage = splitNodePageNum;
+				LDB(fileHandle.MarkDirty(splitNode->rightPage));
+				LDB(fileHandle.ForcePages(splitNode->rightPage));
+			}
 			// change fatherPage
 			if (fatherPage == -1) {
 				fatherPage = allocateNewPage(fatherPageHandle);
@@ -100,6 +113,7 @@ PageNum IX_IndexHandle::InsertEntryFromPage(RID rid, PageNum &pageNum, PageNum f
 				indexInfo->rootPageNum = fatherPage;
 				LDB(fileHandle.MarkDirty(0));
 				LDB(fileHandle.ForcePages(0));
+				//assertIncrease(fatherNode);
 			}
 			else {
 				getExistedPage(fatherPage, fatherPageHandle);
@@ -107,8 +121,18 @@ PageNum IX_IndexHandle::InsertEntryFromPage(RID rid, PageNum &pageNum, PageNum f
 				InternalNode *fatherNode = &(((NodePagePacket*)fatherPageData)->internalNode);
 				fatherNode->InsertKeyAfterPos((splitNode->data[0]).recRID, splitNodePageNum, nodePos);
 				LDB(fileHandle.MarkDirty(fatherPage));
+				//assertIncrease(fatherNode);
 			}
 			LDB(fileHandle.ForcePages(fatherPage));
+		}
+		else if (fatherPage != -1) {
+			getExistedPage(fatherPage, fatherPageHandle);
+			LDB(fatherPageHandle.GetData(fatherPageData));
+			InternalNode *fatherNode = &(((NodePagePacket*)fatherPageData)->internalNode);
+			fatherNode->recRID[nodePos] = (leafNode->data[0]).recRID;
+			LDB(fileHandle.MarkDirty(fatherPage));
+			LDB(fileHandle.ForcePages(fatherPage));
+			//assertIncrease(fatherNode);
 		}
 		return newRIDPageNum;
 
@@ -124,13 +148,6 @@ PageNum IX_IndexHandle::InsertEntryFromPage(RID rid, PageNum &pageNum, PageNum f
 				break;
 			}
 		}
-		// reload after rec
-		/*
-		getExistedPage(pageNum, pageHandle);
-		LDB(pageHandle.GetData(pageData));
-		NodePagePacket* nodePagePacket = (NodePagePacket*)pageData;
-		internalNode = &(nodePagePacket->internalNode);
-		*/
 
 		if (internalNode->keyCount == D * 2) {
 			PF_PageHandle splitNodePageHandle;
@@ -146,12 +163,14 @@ PageNum IX_IndexHandle::InsertEntryFromPage(RID rid, PageNum &pageNum, PageNum f
 
 			LDB(fileHandle.ForcePages(pageNum));
 			LDB(fileHandle.ForcePages(splitNodePageNum));
+			//assertIncrease(internalNode);
+			//assertIncrease(splitNode);
 			// modify father page
 			if (fatherPage == -1) {
 				fatherPage = allocateNewPage(fatherPageHandle);
 				fatherPageHandle.GetData(fatherPageData);
 				fileHandle.MarkDirty(fatherPage);
-				((NodePagePacket*)fatherPageData)->nodeType = 0;
+				((NodePagePacket*)fatherPageData)->nodeType = INTERNAL_NODE;
 				InternalNode *fatherNode = &(((NodePagePacket*)fatherPageData)->internalNode);
 				fatherNode->init();
 				fatherNode->son[0] = pageNum;
@@ -160,6 +179,7 @@ PageNum IX_IndexHandle::InsertEntryFromPage(RID rid, PageNum &pageNum, PageNum f
 				indexInfo->rootPageNum = fatherPage;
 				LDB(fileHandle.MarkDirty(0));
 				LDB(fileHandle.ForcePages(0));
+				//assertIncrease(fatherNode);
 			}
 			else {
 				getExistedPage(fatherPage, fatherPageHandle);
@@ -167,8 +187,18 @@ PageNum IX_IndexHandle::InsertEntryFromPage(RID rid, PageNum &pageNum, PageNum f
 				InternalNode *fatherNode = &(((NodePagePacket*)fatherPageData)->internalNode);
 				fatherNode->InsertKeyAfterPos(splitNode->recRID[0], splitNodePageNum, nodePos);
 				LDB(fileHandle.MarkDirty(fatherPage));
+				//assertIncrease(fatherNode);
 			}
 			LDB(fileHandle.ForcePages(fatherPage));
+		}
+		else if (fatherPage != -1) {
+			getExistedPage(fatherPage, fatherPageHandle);
+			LDB(fatherPageHandle.GetData(fatherPageData));
+			InternalNode *fatherNode = &(((NodePagePacket*)fatherPageData)->internalNode);
+			fatherNode->recRID[nodePos] = internalNode->recRID[0];
+			LDB(fileHandle.MarkDirty(fatherPage));
+			LDB(fileHandle.ForcePages(fatherPage));
+			//assertIncrease(fatherNode);
 		}
 		return result;
 	}
@@ -223,7 +253,7 @@ RC IX_IndexHandle::DeleteEntryFromPage(RID rid, PageNum& pageNum, PageNum father
 	LDB(pageHandle.GetData(pageData));
 	//getPageData(pageNum, pageData);
 	NodePagePacket* nodePagePacket = (NodePagePacket*)pageData;
-	if (nodePagePacket->nodeType == 0) {
+	if (nodePagePacket->nodeType == INTERNAL_NODE) {
 		// internal node, find correct son pos
 		InternalNode *internalNode = &(nodePagePacket->internalNode);
 		for (int i = 1; i <= internalNode->keyCount + 1; ++i) {
@@ -235,16 +265,27 @@ RC IX_IndexHandle::DeleteEntryFromPage(RID rid, PageNum& pageNum, PageNum father
 			}
 		}
 		if (internalNode->keyCount == -1) {
+			//printf("internalNode->keyCount == -1\n");
 			addDisposedPage(pageNum);
 			if (fatherPageNum != -1) {
 				getExistedPage(fatherPageNum, fatherPageHandle);
 				LDB(fatherPageHandle.GetData(fatherPageData));
-				//getPageData(fatherPageNum, fatherPageData);
 				InternalNode *fatherNode = &(((NodePagePacket*)fatherPageData)->internalNode);
 				fatherNode->DeleteKeyAtPos(thisPos);
 				LDB(fileHandle.MarkDirty(fatherPageNum));
 				LDB(fileHandle.ForcePages(fatherPageNum));
+				//assertIncrease(fatherNode);
 			}
+		}
+		else if (fatherPageNum != -1) {
+			// update father internalNode head Data
+			getExistedPage(fatherPageNum, fatherPageHandle);
+			LDB(fatherPageHandle.GetData(fatherPageData));
+			InternalNode *fatherNode = &(((NodePagePacket*)fatherPageData)->internalNode);
+			fatherNode->recRID[thisPos] = internalNode->recRID[0];
+			LDB(fileHandle.MarkDirty(fatherPageNum));
+			LDB(fileHandle.ForcePages(fatherPageNum));
+			//assertIncrease(fatherNode);
 		}
 		return 0;
 	}
@@ -255,7 +296,8 @@ RC IX_IndexHandle::DeleteEntryFromPage(RID rid, PageNum& pageNum, PageNum father
 			if (cmp(rid, (leafNode->data[i]).recRID) == 0) {
 				// find index val, delete rid
 				int lastRIDCount;
-				if ((rc = deleteFromRIDPage(rid, (leafNode->data[i]).ridPageNum, lastRIDCount)) != 0)
+				RID replacedRID;
+				if ((rc = deleteFromRIDPage(rid, (leafNode->data[i]).ridPageNum, lastRIDCount, replacedRID)) != 0)
 					return rc;
 				if (lastRIDCount == 0) {
 					// reallocate page & delete index val in the tree
@@ -263,8 +305,16 @@ RC IX_IndexHandle::DeleteEntryFromPage(RID rid, PageNum& pageNum, PageNum father
 					leafNode->deleteDataAtPos(i);
 					LDB(fileHandle.MarkDirty(pageNum));
 					LDB(fileHandle.ForcePages(pageNum));
+					//assertIncrease(leafNode);
+				}
+				else if ((leafNode->data[i]).recRID.getPageNum() == rid.getPageNum() && (leafNode->data[i]).recRID.getSlotNum() == rid.getSlotNum()) {
+					// replace pointer RID
+					(leafNode->data[i]).recRID = replacedRID;
+					LDB(fileHandle.MarkDirty(pageNum));
+					LDB(fileHandle.ForcePages(pageNum));
 				}
 				if (leafNode->size == 0) {
+					//printf("leafNode->size == 0\n");
 					addDisposedPage(pageNum);
 					if (leafNode->leftPage != -1) {
 						PF_PageHandle leftPageHandle;
@@ -294,7 +344,18 @@ RC IX_IndexHandle::DeleteEntryFromPage(RID rid, PageNum& pageNum, PageNum father
 						fatherNode->DeleteKeyAtPos(thisPos);
 						LDB(fileHandle.MarkDirty(fatherPageNum));
 						LDB(fileHandle.ForcePages(fatherPageNum));
+						//assertIncrease(fatherNode);
 					}
+				}
+				else if (fatherPageNum != -1) {
+					// update internalNode head data
+					getExistedPage(fatherPageNum, fatherPageHandle);
+					LDB(fatherPageHandle.GetData(fatherPageData));
+					InternalNode *fatherNode = &(((NodePagePacket*)fatherPageData)->internalNode);
+					fatherNode->recRID[thisPos] = (leafNode->data[0]).recRID;
+					LDB(fileHandle.MarkDirty(fatherPageNum));
+					LDB(fileHandle.ForcePages(fatherPageNum));
+					//assertIncrease(fatherNode);
 				}
 				return 0;
 			}
@@ -333,7 +394,7 @@ RC IX_IndexHandle::insertIntoRIDPage(const RID rid, const PageNum pageNum) {
 	return rc;
 }
 
-RC IX_IndexHandle::deleteFromRIDPage(const RID rid, const PageNum pageNum, int &lastRIDCount) {
+RC IX_IndexHandle::deleteFromRIDPage(const RID rid, const PageNum pageNum, int &lastRIDCount, RID &replacedRID) {
 	RC rc;
 	PF_PageHandle pageHandle;
 	//LDB(fileHandle.GetThisPage(pageNum, pageHandle));
@@ -344,6 +405,8 @@ RC IX_IndexHandle::deleteFromRIDPage(const RID rid, const PageNum pageNum, int &
 	if ((rc = ridPagePacket->deleteRID(rid)) != 0)
 		return rc;
 	lastRIDCount = ridPagePacket->size;
+	if (lastRIDCount > 0)
+		replacedRID = ridPagePacket->r[0];
 	LDB(fileHandle.MarkDirty(pageNum));
 	LDB(fileHandle.ForcePages(pageNum));
 	return 0;
@@ -656,4 +719,62 @@ char* IX_IndexHandle::getValueFromRecRID(const RID rid) {
 	char *store = new char[indexInfo->attrLength + 1];
 	memcpy(store, tupleHead + attrOffset, indexInfo->attrLength);
 	return store;
+}
+
+void IX_IndexHandle::checkLinkListIsValid() {
+	PF_PageHandle pageHandle;
+	char *pageData;
+	getExistedPage(indexInfo->rootPageNum, pageHandle);
+	LeafNode *leafNode;
+	while (true) {
+		LDB(pageHandle.GetData(pageData));
+		NodePagePacket* nodePagePacket = (NodePagePacket*) pageData;
+		if (nodePagePacket->nodeType == INTERNAL_NODE)
+			getExistedPage((nodePagePacket->internalNode).son[0], pageHandle);
+		else {
+			leafNode = &(nodePagePacket->leafNode);
+			break;
+		}
+	}
+	while (true) {
+		printf("left = %ld right = %ld", leafNode->leftPage, leafNode->rightPage);
+		for (int i = 0; i < leafNode->size; ++i) {
+			printf("RIDPage = (%ld, %u)", (leafNode->data[i]).recRID.getPageNum(), (leafNode->data[i]).recRID.getSlotNum());
+		}
+		printf("\n");
+		int rightPage = leafNode->rightPage;
+		unpinAllPages();
+
+		if (rightPage == -1)
+			break;
+		getExistedPage(rightPage, pageHandle);
+		LDB(pageHandle.GetData(pageData));
+		leafNode = &(((NodePagePacket*) pageData)->leafNode);
+	}
+	unpinAllPages();
+}
+
+void IX_IndexHandle::assertIncrease(RID* ridList, int length) {
+	for (int i = 0; i < length - 1; ++i) {
+		if (cmp(ridList[i], ridList[i + 1]) >= 0) {
+			char *a = getValueFromRecRID(ridList[i]);
+			char *b = getValueFromRecRID(ridList[i + 1]);
+			printf("pos i = %d but pos i + 1 = %d\n", *(int*)a, *(int*)b);
+			delete a;
+			delete b;
+		}
+		assert(cmp(ridList[i], ridList[i + 1]) < 0);
+	}
+}
+
+void IX_IndexHandle::assertIncrease(LeafNode* leafNode) {
+	RID* ridList = new RID[leafNode->size];
+	for (int i = 0; i < leafNode->size; ++i)
+		ridList[i] = (leafNode->data[i]).recRID;
+	assertIncrease(ridList, leafNode->size);
+	delete[] ridList;
+}
+
+void IX_IndexHandle::assertIncrease(InternalNode* internalNode) {
+	assertIncrease(internalNode->recRID, internalNode->keyCount + 1);
 }

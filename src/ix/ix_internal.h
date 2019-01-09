@@ -7,6 +7,7 @@
 
 
 const int D = (4050 - 16) / (sizeof(RID) + sizeof(PageNum)) / 4 - 3;
+//const int D = 2;
 const int RID_BUCKET_SIZE = 4000 / sizeof(RID);
 #define MAX_DEPTH 1010
 #define INTERNAL_NODE 0

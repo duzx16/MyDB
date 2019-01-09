@@ -14,5 +14,6 @@ set(SOURCE
 		${CMAKE_CURRENT_SOURCE_DIR}/ix_indexhandle.cc
 		${CMAKE_CURRENT_SOURCE_DIR}/ix_indexscan.cc
 		${CMAKE_CURRENT_SOURCE_DIR}/ix_internal.cc
+		${CMAKE_CURRENT_SOURCE_DIR}/ix_test.cc
         PARENT_SCOPE
         )

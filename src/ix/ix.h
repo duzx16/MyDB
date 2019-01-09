@@ -69,6 +69,7 @@ public:
 	int cmp(const RID, const RID);
 	int cmp(const void*, const void*);
 	char* getValueFromRecRID(const RID rid);
+	void checkLinkListIsValid();
 private:
 	
 	IndexInfo *indexInfo;
@@ -81,10 +82,8 @@ private:
 	PageNum disposedPageList[MAX_DEPTH];
 	int disposedPageNum;
 	
-
-
 	RC insertIntoRIDPage(const RID rid, const PageNum pageNum);
-	RC deleteFromRIDPage(const RID rid, const PageNum pageNum, int &lastRIDCount);
+	RC deleteFromRIDPage(const RID rid, const PageNum pageNum, int &lastRIDCount, RID &replacedRID);
 	PageNum InsertEntryFromPage(RID rid, PageNum &pageNum, PageNum fatherPage, int nodePos);
 	RC DeleteEntryFromPage(RID rid, PageNum& pageNum, PageNum fatherPageNum, int thisPos);
 	PageNum FindLeafPageFromPage(void *pData, PageNum pageNum);
@@ -101,6 +100,10 @@ private:
 	void addDisposedPage(const PageNum pageNum);
 	void unpinAllPages();
 	void disposeAllPages();
+	
+	void assertIncrease(RID* ridList, int length);
+	void assertIncrease(LeafNode* leafNode);
+	void assertIncrease(InternalNode* internalNode);
 };
 
 //
@@ -131,6 +134,8 @@ private:
 // Print-error function
 //
 void IX_PrintError(RC rc);
+
+void IX_Test();
 
 #define IX_EOF                  (START_IX_WARN + 0)
 #define IX_ENTRY_EXISTS         (START_IX_WARN + 1)

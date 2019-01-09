@@ -18,7 +18,7 @@
 
 SM_Manager::SM_Manager() : pfManager(PF_Manager::getInstance()) {
     ixm = &IX_Manager::getInstance();
-    rmm = &(RecordManager::getInstance());
+    rmm = &RecordManager::getInstance();
 }
 
 SM_Manager::~SM_Manager() = default;
