@@ -68,7 +68,7 @@ PageNum IX_IndexHandle::InsertEntryFromPage(RID rid, PageNum &pageNum, PageNum f
 		LDB(fileHandle.AllocatePage(newRIDPageHandle));
 		LDB(newRIDPageHandle.GetPageNum(newRIDPageNum));
 		LDB(fileHandle.UnpinPage(newRIDPageNum));
-		
+
 		leafNode->insertDataIntoPos(rid, newRIDPageNum, pos);
 		//assertIncrease(leafNode);
 		LDB(fileHandle.MarkDirty(pageNum));
@@ -692,7 +692,7 @@ RC IX_IndexHandle::ForcePages() {
 int IX_IndexHandle::cmp(const void *a, const void *b) {
 	if (a == nullptr || b == nullptr)
 		return 0;
-	if (indexInfo->attrType == AttrType::INT) {
+	if (indexInfo->attrType == AttrType::INT or indexInfo->attrType == AttrType::DATE) {
 		int _a = *(int*)a;
 		int _b = *(int*)b;
 		return _a - _b;
@@ -704,7 +704,7 @@ int IX_IndexHandle::cmp(const void *a, const void *b) {
 			return 0;
 		return (d < 0) ? -1 : 1;
 	}
-	if (indexInfo->attrType == AttrType::STRING) {
+	if (indexInfo->attrType == AttrType::STRING or indexInfo->attrType == AttrType::VARCHAR) {
 		char *_a = (char*)a, *_b = (char*)b;
 		for (int i = 0; i < indexInfo->attrLength; ++i)
 			if (_a[i] != _b[i])
