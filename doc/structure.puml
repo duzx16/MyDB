@@ -1,0 +1,33 @@
+@startuml
+
+component User
+component Parser
+component QueryManager as qm
+component SM_Manager as sm
+component IX_Manager as ix
+component RecordManager as rm
+component PF_Manager as pf
+database Disk
+component Memory
+
+User --> Parser: 命令
+
+Parser --> sm: 创建删除
+Parser --> qm: 增删查改
+
+
+qm --> ix: 索引扫描，插入，删除
+qm --> rm: 记录读写
+
+ix --> pf: 文件IO
+rm --> pf: 文件IO
+
+ix .> rm: 记录访问
+
+sm --> rm: 创建删除记录文件
+sm --> ix: 创建删除索引文件
+
+pf --> Disk
+pf -> Memory
+
+@enduml
