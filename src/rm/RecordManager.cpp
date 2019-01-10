@@ -25,7 +25,6 @@ int RecordManager::createFile(std::string filename, unsigned record_size) {
         return rc;
     }
     // Create the Heade Page
-    int file_id, index;
     PF_FileHandle file_handle;
     rc = _pf_manager.OpenFile(filename.c_str(), file_handle);
     if (rc) {
