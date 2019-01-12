@@ -41,13 +41,17 @@ private:
     int whereBindCheck(Expr *expr, std::vector<std::unique_ptr<Table>> &tables);
 
 public:
+    // select attributes on relations with where condition and group attributes
     int exeSelect(AttributeList *attributes, IdentList *relations, Expr *whereClause, const std::string &groupAttrName);
 
-    int exeInsert(std::string relationName, IdentList *columnList, ConstValueLists *insertValueTree);
+    // insert into relation table(可以用columnList指定要插入的列)
+    int exeInsert(std::string relation, IdentList *columnList, ConstValueLists *insertValueTree);
 
-    int exeUpdate(std::string relationName, SetClauseList *setClauses, Expr *whereClause);
+    // update relation table as setClauses with where condition
+    int exeUpdate(std::string relation, SetClauseList *setClauses, Expr *whereClause);
 
-    int exeDelete(std::string relationName, Expr *whereClause);
+    // delete the data in relation table with where condition
+    int exeDelete(std::string relation, Expr *whereClause);
 
     static QL_Manager &getInstance();
 };
