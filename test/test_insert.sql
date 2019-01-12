@@ -1,4 +1,11 @@
 use orderDB;
+
+-- insert illegal date
+insert into orders values (1,309702,201329,'2014-09-31',5);
+insert into orders values (2,309702,201329,'2010-02-29',5);
+insert into orders values (3,309702,201329,'1900-02-29',5);
+
+-- insert optional attribute
 insert into restaurant values (3, 'test3', 'address','12345678', null);
 insert into restaurant(name, id) values ('test1', 0001);
 insert into restaurant(name) values ('test2');

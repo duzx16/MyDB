@@ -19,10 +19,13 @@ bool IsLegalDate(int year, int mon, int day) {
     if (1 == mon || 3 == mon || 5 == mon || 7 == mon || 8 == mon || 10 == mon || 12 == mon) {
         return true;
     }
+    if (mon != 2) {
+        return day != 31;
+    }
     if (IsLeapYear(year)) {
-        return !(2 == mon && (30 == day || 31 == day));
+        return !(30 == day || 31 == day);
     } else {
-        return !(2 == mon && (29 == day || 30 == day || 31 == day));
+        return !(29 == day || 30 == day || 31 == day);
     }
 }
 

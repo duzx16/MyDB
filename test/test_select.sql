@@ -20,6 +20,7 @@ select * from customer where gender='F' or id>314500 and id>314000;
 select orders.id, food.name, quantity, price from orders, food where orders.food_id=food.id and quantity * price > 800.0;
 
 -- select with aggregation
+-- illegal
 select restaurant_id, avg(price) from food;
 select restaurant_id, avg(price) from food group by restaurant_id;
 select restaurant_id, avg(price) from food where price>=60 group by restaurant_id;
