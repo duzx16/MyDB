@@ -61,7 +61,7 @@ class Tree;
 /* aggretation */
 %token AVG SUM MIN MAX
 
-%token NOTNULL DESC GROUP LIKE INDEX CHECK IN T_NULL IS AND
+%token NOTNULL DESC GROUP LIKE INDEX CHECK IN T_NULL IS AND OR
 
 %type <tree> command
 %type <ivalue> type_width
@@ -457,6 +457,10 @@ conditions:
     | conditions AND comparison
             {
                 $$ = new Expr($1, LogicOp::AND_OP, $3);
+            }
+    | conditions OR comparison
+            {
+                $$ = new Expr($1, LogicOp::OR_OP, $3);
             }
     ;
 

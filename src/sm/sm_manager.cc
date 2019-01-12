@@ -89,7 +89,6 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
             if (tableConsFrom->type == ConstraintType::FOREIGN_CONSTRAINT) {
                 // check valid
                 if (!foreignTableExist((tableConsFrom->foreign_table).c_str())) {
-                    printf("SM_FOREIGN_REL_NOT_FOUND\n");
                     return SM_FOREIGN_REL_NOT_FOUND;
                 }
                 char foreignTableFile[1010] = {};
@@ -121,7 +120,6 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
                 LDB(foreignTableFileHandle.UnpinPage(0));
                 LDB(pfManager.CloseFile(foreignTableFileHandle));
                 if (!found) {
-                    printf("SM_FOREIGN_KEY_NOT_FOUND\n");
                     return SM_FOREIGN_KEY_NOT_FOUND;
                 }
             }
@@ -180,14 +178,12 @@ RC SM_Manager::CreateTable(const char *tableName, ColumnDecsList *columns, Table
 
             PageNum tableConsPageNum;
             LDB(tableConsPageHandle.GetPageNum(tableConsPageNum));
-            //printf("i = %d, tableConsPageNum = %d\n", i, tableConsPageNum);
             assert(tableConsPageNum == i + 1);
             LDB(fileHandle.MarkDirty(tableConsPageNum));
             LDB(fileHandle.ForcePages(tableConsPageNum));
             LDB(fileHandle.UnpinPage(tableConsPageNum));
         }
     }
-    //printf("cons inserted\n");
 
     PageNum pageNum;
     LDB(pageHandle.GetPageNum(pageNum));
@@ -283,7 +279,7 @@ RC SM_Manager::DropTable(const char *relName) {
     LDB(fileHandle.GetThisPage(0, pageHandle));
     char *pageData;
     LDB(pageHandle.GetData(pageData));
-    TableInfo *tableInfo = (TableInfo *) pageData;
+    auto *tableInfo = (TableInfo *) pageData;
     // delete all index files
     for (int i = 0; i < tableInfo->indexedAttrSize; ++i) {
         if ((rc = ixm->DestroyIndex(relName, tableInfo->indexedAttr[i])) != 0)

@@ -82,7 +82,8 @@ void optimizeIteration(std::vector<std::unique_ptr<Table>> &tables, Expr *condit
         } else {
             break;
         }
-        if (not aim->calculated and aim->nodeType == NodeType::COMP_NODE and isComparison(aim->oper.comp)) {
+        if (not aim->calculated and aim->nodeType == NodeType::COMP_NODE and isComparison(aim->oper.comp) and
+            aim->left->nodeType == NodeType::ATTR_NODE) {
             // the left of comparison must be attribute
             // the left has not been iterated
             if (before.find(aim->left->tableIndex) == before.end()) {
@@ -226,7 +227,7 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
                               if (i == attributeExprs.size() - 1) {
                                   cout << attributeExpr.to_string() << "\n";
                               } else {
-                                  cout << attributeExpr.to_string() << "\t";
+                                  cout << attributeExpr.to_string() << "  |  ";
                               }
                           }
                           attributeExpr.init_calculate();
@@ -414,11 +415,11 @@ int QL_Manager::iterateTables(Table &table, Expr *condition, QL_Manager::Callbac
             break;
         }
         // the left of comparison must be attribute
-        if (aim->right->calculated) {
+        if (aim->left->nodeType == NodeType::ATTR_NODE and aim->right->calculated) {
             if (aim->left->attrInfo.tableName == table.tableName and table.getIndexAvailable(aim->left->columnIndex) and
                 isComparison(aim->oper.comp)) {
-                indexScan.OpenScan(table.getIndexHandler(current->left->columnIndex), aim->oper.comp,
-                                   aim->getValue());
+                indexScan.OpenScan(table.getIndexHandler(aim->left->columnIndex), aim->oper.comp,
+                                   aim->right->getValue());
                 use_index = true;
                 break;
             }
@@ -475,11 +476,11 @@ void QL_Manager::bindAttribute(Expr *expr, const std::vector<std::unique_ptr<Tab
                 expr1->attrInfo.attrOffset = -1;
                 int tableIndex = 0;
                 for (const auto &table: tables) {
-                    if (not expr1->attrInfo.tableName.empty()) {
-                        throw AttrBindException{"", expr1->attribute->attribute, EXPR_AMBIGUOUS};
-                    } else {
-                        int index = table->getColumnIndex(expr1->attribute->attribute);
-                        if (index >= 0) {
+                    int index = table->getColumnIndex(expr1->attribute->attribute);
+                    if (index >= 0) {
+                        if (not expr1->attrInfo.tableName.empty()) {
+                            throw AttrBindException{"", expr1->attribute->attribute, EXPR_AMBIGUOUS};
+                        } else {
                             expr1->attrInfo = table->getAttrInfo(index);
                             expr1->dataType = expr1->attrInfo.attrType;
                             expr1->tableIndex = tableIndex;

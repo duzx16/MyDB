@@ -40,7 +40,14 @@ WHITESPACE      [ \t\n]
 DATE_FORMAT     '[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}'
 STRING          '(\\\\|\\n|\\r|\\\"|\\0|\\'|[^'\\])*'
 
+
+%x SQL_COMMENT
+
 %%
+
+"--"            {BEGIN(SQL_COMMENT);}
+<SQL_COMMENT>"\n"   {BEGIN(INITIAL);}
+<SQL_COMMENT>.  {}
 
 ","             { /*printf(", "); */ return yytext[0]; }
 "("             { /*printf("( "); */ return yytext[0]; }
@@ -75,6 +82,7 @@ AVG             { /*printf("AVG "); */ return AVG; }
 MIN             { /*printf("MIN "); */ return MIN; }
 MAX             { /*printf("MAX "); */ return MAX; }
 AND             { /*printf("AND "); */ return AND; }
+OR              { /*printf("OR ");  */ return OR;  }
 "NOT NULL"      { /*printf("NOT_NULL "); */ return NOTNULL; }
 "PRIMARY KEY"   { /*printf("PRIMARY_KEY "); */ return PRIMARY; }
 "FOREIGN KEY"   { /*printf("FOREIGN_KEY "); */ return FOREIGN; }

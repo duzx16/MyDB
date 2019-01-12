@@ -59,9 +59,9 @@ Select::~Select() {
 }
 
 void Select::visit() {
-    DebugPrintf("select\n");
+    printf("select\n");
     bool statistics = false;
-    if(this->attributes != nullptr) {
+    if (this->attributes != nullptr) {
         for (const auto &attribute: this->attributes->attributes) {
             if (attribute->aggregationType != AggregationType::T_NONE) {
                 statistics = true;
@@ -95,8 +95,9 @@ Insert::~Insert() {
 }
 
 void Insert::visit() {
-    DebugPrintf("insert\n");
+    printf("insert\n");
     QL_Manager::getInstance().exeInsert(relationName, columnList, insertValueTree);
+    printf("insert complete\n");
 }
 
 /* UpdateTree */
@@ -114,8 +115,9 @@ Update::~Update() {
 }
 
 void Update::visit() {
-    DebugPrintf("update\n");
+    printf("update\n");
     QL_Manager::getInstance().exeUpdate(relationName, setClauses, whereClause);
+    printf("update complete\n");
 }
 
 /* DeleteTree */
@@ -129,8 +131,9 @@ Delete::~Delete() {
 }
 
 void Delete::visit() {
-    DebugPrintf("delete\n");
+    printf("delete\n");
     QL_Manager::getInstance().exeDelete(relationName, whereClause);
+    printf("delete complete\n");
 }
 
 /* CreateDatabaseTree */
@@ -158,7 +161,7 @@ CreateTable::~CreateTable() {
 }
 
 void CreateTable::visit() {
-    DebugPrintf("create table %s\n", tableName.c_str());
+    printf("create table %s\n", tableName.c_str());
     if (tableConstraints != nullptr) {
         for (const auto &it: tableConstraints->tbDecs) {
             bool found = false;
@@ -189,6 +192,8 @@ void CreateTable::visit() {
             fprintf(stderr, "Foreign relation not table\n");
         } else if (rc == SM_REL_EXISTS) {
             fprintf(stderr, "Table already exists\n");
+        } else {
+            fprintf(stderr, "Unknown error\n");
         }
         return;
     }
@@ -209,7 +214,7 @@ void CreateTable::visit() {
             }
         }
     }
-    DebugPrintf("create table %s end\n", tableName.c_str());
+    printf("create table %s end\n", tableName.c_str());
 }
 
 
@@ -224,12 +229,12 @@ CreateIndex::~CreateIndex() {
 }
 
 void CreateIndex::visit() {
-    DebugPrintf("create index %s\n", relName.c_str());
+    printf("create index %s\n", relName.c_str());
     int rc = SM_Manager::getInstance()->CreateIndex(relName.c_str(), attribute->attribute.c_str());
     if (rc == SM_INDEX_EXISTS) {
         fprintf(stderr, "The index of attribute %s already exists\n", attribute->attribute.c_str());
     } else if (rc == SM_INDEX_NOTEXIST) {
-        fprintf(stderr, "The index of attribute %s doesn't exist\n", attribute->attribute.c_str());
+        fprintf(stderr, "The attribute %s doesn't exist in table %s\n", attribute->attribute.c_str(), relName.c_str());
     } else if (rc != 0) {
         fprintf(stderr, "Unknown error\n");
     }
@@ -246,7 +251,7 @@ DropIndex::~DropIndex() {
 }
 
 void DropIndex::visit() {
-    DebugPrintf("drop index %s\n", tableName.c_str());
+    printf("drop index %s\n", tableName.c_str());
     int rc = SM_Manager::getInstance()->DropIndex(tableName.c_str(), attribute->attribute.c_str());
     if (rc == SM_INDEX_NOTEXIST) {
         fprintf(stderr, "The index of attribute %s doesn't exist\n", attribute->attribute.c_str());
@@ -275,7 +280,7 @@ DropTable::DropTable(const char *tableName) {
 DropTable::~DropTable() = default;
 
 void DropTable::visit() {
-    DebugPrintf("drop foreign_table %s\n", tableName.c_str());
+    printf("drop foreign_table %s\n", tableName.c_str());
     int rc = SM_Manager::getInstance()->DropTable(tableName.c_str());
     if (rc == 0) {
         rc = RecordManager::getInstance().destroyFile(tableName);
@@ -387,8 +392,7 @@ UseDatabase::UseDatabase(const char *dbName) {
 }
 
 void UseDatabase::visit() {
-    DebugPrintf("Use %s\n", dbName.c_str());
-//    SystemManager::instance()->openDB(dbName.c_str());
+    printf("use database %s\n", dbName.c_str());
     (SM_Manager::getInstance())->OpenDb(dbName.c_str());
 }
 
@@ -399,12 +403,11 @@ DescTable::DescTable(const char *relName) {
 DescTable::~DescTable() = default;
 
 void DescTable::visit() {
-    DebugPrintf("desc foreign_table %s\n", tableName.c_str());
+    printf("desc foreign_table %s\n", tableName.c_str());
     if (tableName.length() == 0)
         (SM_Manager::getInstance())->Help();
     else
         (SM_Manager::getInstance())->Help(tableName.c_str());
-    DebugPrintf("desc foreign_table end\n");
 }
 
 ConstValueLists::ConstValueLists() = default;
@@ -435,7 +438,6 @@ IdentList::~IdentList() = default;
 
 
 void ShowDatabase::visit() {
-    DebugPrintf("show database: %s\n", DBname.c_str());
 }
 
 ColumnDecsList::ColumnDecsList() = default;
