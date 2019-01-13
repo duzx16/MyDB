@@ -35,7 +35,7 @@
 
 \title{数据库系统概论大作业报告}
 \author{杜政晓 2016011014\\
-吴一凡 }
+吴一凡 2016011269}
 \begin{document}
 \maketitle
 
@@ -76,18 +76,52 @@ Github地址\url{https://github.com/duzx16/MyDB}
 每个文件的第一页作为文件头，保存了文件的一些元信息，比如记录长度、文件中的页数目、文件中的记录数目等。
 文件中每一页的开头保存了该页的一些基本信息。比如该页的槽哪些是空的哪些是非空的。这里使用了Bitmap来表示槽的空与非空。此外，为了能够在插入记录的时候能够快速找到有空槽的页，使用了一个链表来存储有空槽的页。首页中保存了链表中的第一项的页码。每一页的开头4个字节指向的是链表中下一项的页码。比起在首页中用Bitmap来表示页是否非空，这种方式能够存储的页数是没有限制的。
 
-\subsubsection{模块具体实现}
+\subsubsection{模块具体实现}
+
 因为在使用提供的页式文件管理系统的时候出现了奇怪的bug（具体表现是缓存的hash表有时候会突然“丢掉”某个已经打开的页，导致该页对应的页数变成了一个随机数）。而且该文件系统的功能不全（比如没有将某个页固定在缓存中不要换出的功能，在关闭文件的时候也不会写回它的所有页），所以我换用了CS346中提供的页式文件管理系统。
 RecordManager的创建、删除文件都使用文件管理系统的接口。打开文件除了调用接口外，还会将文件的首页中的信息复制出来，并设置modified为false。如果后续操作中改变了首页信息则将modified设置为true。当关闭文件的时候，如果发现modified为true，则将复制出来的信息写回文件的首页。
 RM\_FileHandle负责对文件中的记录进行管理。插入记录时，从首页中找到有空槽的页，然后进行插入。如果发现插入之后该页已经满了，则将首页上有空槽的页码换为链表中的下一项。在删除记录的时候，只需要将Bitmap的对应位设置为空，然后将该页的页码插入到链表的开头。
 对文件的扫描由RM\_FileScan进行，其方法就是依次遍历每一页，每一页中遍历Bitmap中的每一个非空位对应的槽。
 
 \subsection{索引管理模块}
+
+在CS346的模块设计中，索引管理模块维护的是属性值的指针以及该属性值对应的记录在记录文件中的RID的二元组。这样做主要意在实现记录管理模块及索引管理模块的分离。但如果按照这种设计的话，要将所有插入进来的属性值在索引文件中再存一遍。这样做不仅效率较低，也不方便实现，还会浪费空间。因此决定将索引管理模块的接口改为仅维护属性值对应的记录在记录文件中的RID，也就是说只要提供RID就可以进行插入和删除。但为了知道属性值的类型以及从记录文件中获取属性值的指针，在打开索引时还需要提供一个已经打开的RM\_FileHandle以及该属性值开头在所有属性值中的偏移量。
+
+于是索引管理模块的功能为，在一个已经打开的记录文件以及属性的偏移量已知的情况下，可以基于RID来插入/删除索引，也可以给定一个条件(目前支持$<,\leq,>,\geq,=,\not=,\text{NO\_OP}$这几种运算符)以及比较值来对所有符合条件的属性值对应的RID进行遍历。
+\subsubsection{文件结构设计}
+
+将整个索引仅存在一个索引文件中，其中第一页存的是描述属性类型、属性字节数、B+树根节点的页码的索引信息。剩下的所有页要么存的是包含内部节点及叶子节点的B+树节点，要么存的是属性值同为某一个值的所有RID。由于在实现中将这些RID都只存在一页中，所以属性值相同的RID数目不能过多。
+\subsubsection{模块具体实现}
+
+索引管理模块使用B+树对索引进行维护。对于B+树的讨论在这里就不再赘述了。值得注意的是为了实现简便，在对索引进行删除时并未进行下溢的节点合并处理。虽然在理论上可能有些小问题，但经过测试，这样的实现也是可以接受的。
+
+在进行遍历时，首先找到B+树中最小的$\geq$比较值的属性值对应的RID的位置，随后根据运算符向左或者向右一步一步找到所有符合要求的RID。注意这里将所有符合要求的RID都预先存了下来，因此在遍历过程中插入或删除索引并不会影响索引的遍历。但由于索引是基于记录的，若要同时修改记录与索引，应先修改索引，再修改记录。
+
+\subsubsection{测试程序}
+
+为了验证该模块的正确性，实现了一个ix\_test.cc来进行测试，如果不对的话就会assert退出。
 \subsection{系统管理模块}
+
+系统管理模块作为页式文件系统、记录管理模块、索引管理模块的客户端，负责调用上述三个模块处理SQL解析器解析到的部分命令。这些命令有：
+
+\begin{itemize}
+	\item 创建/删除数据库
+	\item 打开/关闭数据库
+	\item 创建/删除表
+	\item 创建/删除索引
+	\item 打印(所有)表信息
+\end{itemize}
+\subsubsection{文件结构设计}
+
+每个数据库都对应一个与数据库名字相同的数据库主程序目录下的子文件夹，该数据库的所有信息都存在这个子文件夹下，其中包含一个TableList文件存数据库的所有表的名字，且对于每个表存表的信息文件(包括表的所有属性及约束，每个属性是否被索引)、表的记录文件、表的索引文件(每个属性的索引一个文件)。
+\subsubsection{模块具体实现}
+
+创建/删除数据库实际上就是创建/删除文件夹，打开/关闭数据库实际上就是进入/退出子文件夹。创建表时我们需要将表的名字插入TableList文件，同时新建并修改表的信息文件，将表的属性与约束写入表的信息文件；删除表时则删除所有跟表有关的文件，并在TableList中删除表名。创建索引时调用索引管理模块的创建索引功能，并且打开记录文件遍历所有的RID并依次调用索引管理模块的插入索引功能进行插入，并将该属性修改为被索引；删除索引则正好相反。打印表信息只需打开表的信息文件并输出即可。
 \subsection{SQL解析器}
 Parser使用flex + bison (Yacc的升级版)实现, 其语法大致与本课程给出的Parser语法文件相同。但是进行了以下拓展:
 \begin{itemize}
-	\item 在create table的时候, 除了主键和外键, 还可以指定属性域约束check in, 此外主键约束可以用多个域连接作为主键。	\item select语句支持group by关键词, 以及SUM, AVG, MIN, MAX等函数。
+	\item 在create table的时候, 除了主键和外键, 还可以指定属性域约束check in, 此外主键约束可以用多个域连接作为主键。
+	\item select语句支持group by关键词, 以及SUM, AVG, MIN, MAX等函数。
 	\item insert语句支持指定插入哪些列(未指定的列自动视为null)。
 	\item where子句中支持任意的涉及四则运算的表达式, 只要最终结果是布尔类型(原语法只支持用and连接的column comp value的比较)。 增加like比较运算。 update的set子句的右半部分也可以是任意类型兼容的四则运算表达式。
 \end{itemize}
@@ -177,7 +211,59 @@ int closeScan();
 \end{lstlisting}
 
 注意在记录管理模块中我们只实现了对记录中单个属性值进行限制的查询。
-
+\subsection{索引管理模块}
+IX\_Manager类可以创建/删除索引，并可以在给定一个打开的RM\_FileHandle以及属性偏移量的情况下打开IX\_IndexHandle类型的索引，也可以关闭索引。
+\begin{lstlisting}[language=C++]
+// Create new index
+RC CreateIndex (const char *fileName,          
+                int indexNo,
+                AttrType attrType,
+                int attrLength);
+// Destroy index
+RC DestroyIndex (const char *fileName,          
+                 int indexNo);
+ // Open index
+RC OpenIndex    (const char *fileName,         
+                 int indexNo,
+                 IX_IndexHandle &indexHandle,
+                 RM_FileHandle &rmFileHandle,
+                 int _attrOffset);
+// Close index
+RC CloseIndex   (IX_IndexHandle &indexHandle);  
+\end{lstlisting}
+IX\_IndexScan类可以在给定一个打开的IX\_IndexHandle以及比较运算符与比较值的情况下打开，并通过GetNext对所有符合条件的RID进行遍历。                           
+\begin{lstlisting}[language=C++]
+// Initialize index scan
+RC OpenScan(IX_IndexHandle &indexHandle, 
+             CompOp compOp,
+             const void *value,
+             ClientHint  pinHint = ClientHint::NO_HINT);
+// Get next matching entry
+RC GetNextEntry(RID &rid); 
+// Terminate index scan                       
+RC CloseScan();     	
+\end{lstlisting}
+\subsection{系统管理模块}
+系统管理模块SM\_Manager暴露给调用者parser的接口有：
+\begin{lstlisting}[language=C++]
+RC CreateDb(const char *dbName);             
+RC DropDb(const char *dbName);             
+RC OpenDb(const char *dbName);            
+RC CloseDb();                                  
+RC CreateTable(const char *tableName,
+               ColumnDecsList *columns,
+               TableConstraintList *tableConstraints);
+RC GetTableInfo(const char *tableName,
+                ColumnDecsList &columns,
+                TableConstraintList &tableConstraints);				
+RC DropTable(const char *relName);               
+RC CreateIndex(const char *relName, const char *attrName);
+RC DropIndex(const char *relName, const char *attrName);
+// Help for database
+RC Help();        
+// Help for relation                          
+RC Help(const char *relName);               	
+\end{lstlisting}
 \subsection{查询处理模块}
 查询处理模块对外的类只有QueryManager，其public方法分别对应于数据库的增删查改
 \begin{lstlisting}[language=C++]
