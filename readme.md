@@ -6,6 +6,9 @@ This is the project for the Database Course by Zhengxiao Du and Yifan Wu, Fall 2
 * CMake >= 3.12
 * gcc
 
+## Environment
+Tested on MacOS Mojave 10.14.2, with Apple LLVM version 10.0.0.
+
 ## Build
 ```bash
 mkdir build && cd build
