@@ -1,6 +1,14 @@
-* 现有模块的CMakeList我已经写好了，后续添加的模块只要照着写就可以了
-* 为了方便我把BufPageManager和FileManager重构了一下，变成了单例模式，通过getInstance方法获取。
-* 这门课大作业的模块划分是仿照CS346的项目https://web.stanford.edu/class/cs346/2015/redbase.html ,所以我的记录管理模块的接口也是仿照CS346写的，如果没有好的想法可以参照链接里的说明。
-* 索引用到的B+ Tree有已经实现好的C++模板，参见https://panthema.net/2007/stx-btree/ ，当然你要手撸我也没意见。
-* 如果没有特殊情况以后还是分branch写吧
-* **经过测试，似乎给的页式文件系统有bug（在哈希表的部分，如果你能de出来的话也可以），我现在改用CS346的文件系统了**
+# MyDB
+This is the project for the Database Course by Zhengxiao Du and Yifan Wu, Fall 2018, Tsinghua University
+
+## Dependencies
+* bison and flex
+* CMake >= 3.12
+* gcc
+
+## Build
+```bash
+mkdir build && cd build
+cmake .. && make
+cd src   # the executive name is 'MyDB'
+```
