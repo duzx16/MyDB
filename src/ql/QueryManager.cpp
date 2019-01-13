@@ -197,7 +197,6 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
         cerr << error;
         return QL_TYPE_CHECK;
     }
-
     // begin iterate
     iterateTables(newTables,
                   0, whereClause,
@@ -274,6 +273,7 @@ QL_Manager::exeSelect(AttributeList *attributes, IdentList *relations, Expr *whe
             }
         }
     }
+    cout << "total count " << total_count << "\n";
     return 0;
 }
 

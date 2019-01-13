@@ -398,6 +398,11 @@ attribute:
                 delete $1;
                 delete $3;
             }
+    | IDENTIFIER '.' KDATE
+            {
+                $$ = new AttributeNode($1, "date");
+                delete $1;
+            }
     | SUM '(' IDENTIFIER '.' IDENTIFIER ')'
             {
                 $$ = new AttributeNode($3, $5, AggregationType::T_SUM);
